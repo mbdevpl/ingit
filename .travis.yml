@@ -1,0 +1,81 @@
+sudo: false
+language: generic
+matrix:
+  include:
+    - os: linux
+      language: python
+      python: "3.5"
+    - os: linux
+      language: python
+      python: "3.6"
+    - os: linux
+      language: python
+      python: "3.7-dev"
+    - os: linux
+      language: python
+      python: "pypy3.5-5.8.0"
+    - os: osx
+      language: generic
+      env: TRAVIS_PYTHON_VERSION="3.5.4"
+    - os: osx
+      language: generic
+      env: TRAVIS_PYTHON_VERSION="3.6.3"
+    - os: osx
+      language: generic
+      env: TRAVIS_PYTHON_VERSION="3.7-dev"
+  allow_failures:
+    - python: "3.5"
+    - python: "3.7-dev"
+    - python: "pypy3.5-5.8.0"
+    - env: TRAVIS_PYTHON_VERSION="3.5.4"
+    - env: TRAVIS_PYTHON_VERSION="3.7-dev"
+
+before_install: |
+  set -e
+  if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
+    brew update
+    brew install pyenv || brew upgrade pyenv
+    pyenv install --list
+    pyenv install "${TRAVIS_PYTHON_VERSION}"
+    export PATH="$HOME/.pyenv/versions/${TRAVIS_PYTHON_VERSION}/bin:${PATH}"
+  fi
+  set +e
+
+install:
+  - pip install -U pip
+  - pip install -U -r dev_requirements.txt
+  # just some example Python packages
+  - git clone https://github.com/PyCQA/pylint ../pylint
+  - cd ../pylint && python setup.py build && cd -
+  - git clone https://github.com/mbdevpl/argunparse ../argunparse
+  - cd ../argunparse && python setup.py build && cd -
+  - git clone https://github.com/k-bx/python-semver ../semver
+  - cd ../semver && python setup.py build && cd -
+
+script:
+  - python -m coverage run --branch --source . -m unittest discover --verbose
+
+after_success:
+  - python -m coverage report --show-missing
+  - codecov
+  - python -m pylint --load-plugins=pylint.extensions.mccabe --docstring-min-length 5 --no-docstring-rgx "^(test)?_|.*Tests$" --unsafe-load-any-extension y --output-format colorized  --reports y $(find . -name "*.py")
+
+before_deploy:
+  - pip3 install -U --user version_query || pip3 install -U version_query
+  - wget https://gist.githubusercontent.com/mbdevpl/cdbc3dab3ae1941870dcaa5bb1b358bc/raw/travis_bintray_descriptor_gen.py
+  - python3 travis_bintray_descriptor_gen.py "$(python3 -m version_query -p .)" "$TRAVIS_OS_NAME-python$TRAVIS_PYTHON_VERSION" "dist/*.tar.gz" "dist/*.whl" "dist/*.zip"
+  - cat ".bintray.json"
+
+deploy:
+  - provider: bintray
+    file: ".bintray.json"
+    user: "mbdevpl"
+    key:
+      secure: "BHlE7nIkqe3PXz39uvhJO/eEwebefR9WM1PfvkINYkUptiErXy3scktM0hBuzDr2ndpwxsK8rZzjpT5+XZyCddjohhJv2in9aMGuKoC00g57cMLWNcealG8aibNAHO/mwAFmJWyJn0Q10WtFxTgtkZt+iBJPWiT/dLysm8LZ1ayzzmGoL8zdDTP1TIZycWNuz1CdmwHzgqhWLuOPl9zINYHoRXizW4KHjxCuh0aX7SJ+dqdtUpuikEoi6NLdEPFUV0a28iS1Gyp0V3Xd5e2HCr5VD+QKpR2SChweYeu39EOwp4V4emywX4l2WYLcesWA+1e+dGwgW/gNwIIgnHIPfj7Vu7wXWouPsji3Rls53PzoluOwqHD3I8uPoAeWhcabv0jCMu3wj6akJ+WwA0JJIwsY7SqjAXvtt8K/g2+s87XgyezIvnkpfpGllRSjug24UuEnqrWZjR41+jZL9nvDkLub26nJD1nzBMPx2PfHZJiz/JjEQLaQlDRpF+6dBol43T0UWwQRh92/GQwrnyj61gzsMVUivcNQCmiroBajuQwcyv/oCe269PJATO2jPsDwy11FriW/TUHL7YkScWRt3OIUNmNVRZCjEbpMVrnExA+4Hg7FUtR/RQZjBbJ9QCyfsgU1VXRMFPdSxPAKDpp+aJJLpEctQ2XGej099NP9n+4="
+    on:
+      all_branches: true
+
+notifications:
+  slack:
+    secure: "dYQlnEBR7Ae2Wvf4/Ja1ZwsEPY85cJj4b1UmG4fUYzwk3w6ttxnn/30oqxArE2Nj4HdU6PkbmR+qhwJucRj+/Pcqy09xlJacHjmJkC9HxbvNS7gH5v/AMLD+ioK5dvBoWFwulAdAoije7qXZR4K7NTSk4uc20qxo38N7WVmr4p8zkpxgPrVFoR0OhbHOFfQzhWXKNUY8AK1zyGG+lnQsr6GFOKGc01gw0OLfzOfaWjw+aU4+mNSpEWnl2eEgMZfwCyqSKgGC6hDwv1fC8ZkpMTpj50JxoS/iCnxasUuxSeoW/Bl3Xtnhc0IHyEuyjzQiptIvDqxNFfin2PyfcTPeNc/w+QDQQWMuKrX/6eTOqhO5MQKo8DJ9EamCL1YCSmmbaugCfIuyO4mwuUihaNv9C2e70tAyLK6qA8xHCnzacYTsy2UF1YJF24kA1RwtHO//32SKVqhpfFgHvwfUPyFnnla4rFP8TpI2YsjUv9kMHCxJ4PHxe+Nq2jWjN27H8+8ZUBpRhKXVi24Jiov071HTBCUkf018PoW9H5aGDjq2kVKEDbRp4FTT34erQMaWtC+R/0PQHnSqAA1sN5bF+IHMvghPbiD5f/LVL+cD5LliP/68VJUGOGfn3V3BpcZtKyLMKM6ssZZ8+F0R+h7wTuLnHfrBzxAV23NCZGbncG0ucVU="
+  email: false
