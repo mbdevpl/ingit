@@ -3,6 +3,7 @@
 import contextlib
 import os
 import shutil
+import tempfile
 import unittest
 
 from ingit.main import main
@@ -38,5 +39,6 @@ class Tests(unittest.TestCase):
               '--repos', 'test/examples/repos_config/example1.json', 'status'])
 
     def tearDown(self):
-        if os.path.isdir('/tmp/ingit'):
-            shutil.rmtree('/tmp/ingit')
+        path = os.path.join(tempfile.gettempdir(), 'ingit')
+        if os.path.isdir(path):
+            shutil.rmtree(path)

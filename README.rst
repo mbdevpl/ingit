@@ -74,7 +74,7 @@ Currently available commands are:
 requirements
 ============
 
-Python version >= 3.6.
+Python version >= 3.5.
 
 Python libraries as specified in `<requirements.txt>`_.
 

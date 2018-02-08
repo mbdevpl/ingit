@@ -2,8 +2,10 @@
 
 import collections
 import logging
+import os
 import pathlib
 import platform
+import tempfile
 import typing as t
 
 from .project import Project
@@ -41,7 +43,10 @@ def resolve_runtime_config(runtime_config):
         if 'names' in machine:
             names += machine['names']
         if '' in names or hostname in names:
-            repos_path = pathlib.Path(machine['repos_path']).resolve()
+            repos_path_str = os.path.expandvars(machine['repos_path'])
+            if repos_path_str == 'tempfile.gettempdir()':
+                repos_path_str = tempfile.gettempdir()
+            repos_path = pathlib.Path(repos_path_str).resolve()
             break
 
     if repos_path is None:

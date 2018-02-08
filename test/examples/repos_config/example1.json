@@ -5,7 +5,7 @@
     {
       "name": "ingit",
       "remotes": {
-        "github": "git@github.com:mbdevpl/ingit.git"
+        "github": "https://github.com/mbdevpl/ingit"
       },
       "tags": ["python"]
     }

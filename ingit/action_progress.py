@@ -2,7 +2,7 @@
 
 import functools
 import operator
-import os
+import logging
 import shutil
 import sys
 
@@ -27,6 +27,8 @@ _KNOWN_OPERATIONS = functools.reduce(operator.or_, _KNOWN_OPERATIONS_STRINGS.key
 _KNOWN_OPERATIONS_PHASES = git.remote.RemoteProgress.BEGIN | git.remote.RemoteProgress.END
 
 _CARET_UP = '\033[1A'  # TODO: works only in bash, but what about cmd?
+
+_LOG = logging.getLogger(__name__)
 
 
 def _create_operation_strings(op_code):
@@ -54,10 +56,13 @@ class ActionProgress(git.remote.RemoteProgress):
         self.printed_lines = False
         self.line_len = 0  # type: int
         try:
-            self.term_size = shutil.get_terminal_size()  # type: int
+            term_size = shutil.get_terminal_size()  # type: int
+            _LOG.log(logging.WARNING if term_size.columns < 16 else logging.NOTSET,
+                     'detected terminal width is %i', term_size.columns)
+            self.line_width = term_size.columns if term_size.columns else 100
         except ValueError:
-            self.term_size = os.terminal_size((80, 24))
-        assert self.term_size.columns > 0
+            self.line_width = 100
+        assert self.line_width > 0
 
         self.inline = inline
         self.f_d = f_d if f_d else sys.stdout
@@ -92,13 +97,13 @@ class ActionProgress(git.remote.RemoteProgress):
         else:
             message = ''
         if self.inline and self.line_len > 0:
-            if self.line_len < self.term_size.columns:
+            if self.line_len < self.line_width:
                 self._print_without_nl('\r{}\r'.format(' ' * self.line_len))
             else:
-                self._print_without_nl('\r{}\r'.format(' ' * (self.term_size.columns - 1)))
+                self._print_without_nl('\r{}\r'.format(' ' * (self.line_width - 1)))
                 self._print_without_nl(_CARET_UP)
-                self._print_without_nl('{}\r'.format(' ' * (self.term_size.columns - 1)))
-        line = '{0}{1}{2}'.format(description, progress, message)
+                self._print_without_nl('{}\r'.format(' ' * (self.line_width - 1)))
+        line = '{}{}{}'.format(description, progress, message)
         self.line_len = len(line)
         self._print_without_nl(line)
         self.printed_lines = True
