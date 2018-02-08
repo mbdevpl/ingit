@@ -1,0 +1,10 @@
+{
+  "description": "ingit runtime configuration file",
+  "ingit-version": "0.1.0",
+  "machines": [
+    {
+      "name": "",
+      "repos_path": "/tmp/"
+    }
+  ]
+}

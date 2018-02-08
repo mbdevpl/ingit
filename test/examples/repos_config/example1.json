@@ -1,0 +1,13 @@
+{
+  "description": "ingit repositories configuration file",
+  "ingit-version": "0.1.0",
+  "repos": [
+    {
+      "name": "ingit",
+      "remotes": {
+        "github": "git@github.com:mbdevpl/ingit.git"
+      },
+      "tags": ["python"]
+    }
+  ]
+}
