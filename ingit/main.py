@@ -2,11 +2,12 @@
 
 import argparse
 import logging
+import os
 import pathlib
 import sys
 
 from ._version import VERSION
-from .runtime import acquire_runtime_configuration, acquire_repos_configuration, run
+from .runtime import run
 
 _LOG = logging.getLogger(__name__)
 
@@ -46,6 +47,13 @@ def prepare_parser():
         .format('", "'.join(predicate_examples)))
 
     commands = {
+        'register': (
+            'start tracking a repository in ingit',
+            '''The initial configuration is set according to basic repository information:
+            its root directory name becomes "name",
+            its absolute path becomes "path",
+            and its currently configured remotes become "remotes".
+            You can edit the configuration manually afterwards.'''),
         'clone': (
             'perform git clone',
             '''Execute "git clone --recursive --orign <remote-name> <remote-url>", where values
@@ -83,6 +91,14 @@ def prepare_parser():
     for command, (help_, description) in commands.items():
         subparser = subparsers.add_parser(command, help=help_)
         subparser.description = description
+        if command == 'register':
+            subparser.add_argument(
+                '--tags', metavar='TAG', type=str, default=None, nargs='+',
+                help='set tags for this repository, they will be added to initial configuration')
+            subparser.add_argument(
+                'path', metavar='PATH', type=str, nargs='?',
+                help='''path to root directory of repository, use current working directory
+                if not provided''')
         if command == 'fetch':
             subparser.add_argument(
                 '--all', action='store_true',
@@ -96,12 +112,13 @@ def main(args=None):
 
     parser = prepare_parser()
     parsed_args = parser.parse_args(args)
+    if parsed_args.predicate is not None and parsed_args.command == 'register':
+        parser.error('predicate is not applicable to "{}" command'
+                     ' -- it can be used only with git commands'.format(parsed_args.command))
     _LOG.warning('parsed args: %s', parsed_args)
 
-    runtime_config = acquire_runtime_configuration(pathlib.Path(
-        os.path.expanduser(os.path.expandvars(parsed_args.config))))
-    repos_config = acquire_repos_configuration(pathlib.Path(
-        os.path.expanduser(os.path.expandvars(parsed_args.repos))))
+    runtime_config_path = pathlib.Path(os.path.expanduser(os.path.expandvars(parsed_args.config)))
+    repos_config_path = pathlib.Path(os.path.expanduser(os.path.expandvars(parsed_args.repos)))
     if parsed_args.predicate is None:
         predicate = None
     else:
@@ -110,7 +127,11 @@ def main(args=None):
         predicate = eval(predicate_code)
     command = parsed_args.command
     command_options = {}
-    if command == 'fetch':
+    if command == 'register':
+        command_options['tags'] = parsed_args.tags
+        command_options['path'] = pathlib.Path() if parsed_args.path is None \
+            else pathlib.Path(parsed_args.path)
+    elif command == 'fetch':
         command_options['all'] = parsed_args.all
 
-    run(runtime_config, repos_config, predicate, command, **command_options)
+    run(runtime_config_path, repos_config_path, predicate, command, **command_options)

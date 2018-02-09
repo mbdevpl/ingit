@@ -57,7 +57,20 @@ For command-specific help, see:
     ingit command -h
 
 
-Currently available commands are:
+Commands are of two kinds in general:
+
+*   git-like commands, which work similar to their git versions;
+*   ingit-only commands, which you won't find in git.
+
+
+Currently available ingit-only commands are:
+
+.. code:: bash
+
+    ingit register
+
+
+Currently available git commands are:
 
 .. code:: bash
 

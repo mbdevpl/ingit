@@ -8,9 +8,12 @@ import platform
 import tempfile
 import typing as t
 
+import git
+
 from ._version import VERSION
 from .runtime_interface import ask
 from .json_config import json_to_file, file_to_json
+from .repo_data import RepoData
 from .project import Project
 
 _LOG = logging.getLogger(__name__)
@@ -55,9 +58,15 @@ def acquire_repos_configuration(path: pathlib.Path):
     return file_to_json(path)
 
 
-def run(runtime_config: dict, repos_config: dict, predicate: collections.Callable,
-        command: str, **command_options):
+def run(runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
+        predicate: collections.Callable, command: str, **command_options):
     """Run the runtime."""
+    runtime_config = acquire_runtime_configuration(runtime_config_path)
+    repos_config = acquire_repos_configuration(repos_config_path)
+    if command == 'register':
+        register_repository(repos_config, **command_options)
+        json_to_file(repos_config, repos_config_path)
+        return
     projects = resolve_configs(runtime_config, repos_config, predicate)
     for project in projects:
         implementation = getattr(project, command)
@@ -112,3 +121,13 @@ def filter_projects(projects, predicate):
     filtered_projects = [project for project in projects
                          if predicate(project.name, project.tags, project.path, project.remotes)]
     return filtered_projects
+
+
+def register_repository(repos_config, tags: t.Sequence[str], path: pathlib.Path):
+    repo = git.Repo(str(path))
+    repo_data = RepoData(repo)
+    _LOG.warning('registering repository: %s', repo_data)
+    repo_config = repo_data.generate_repo_configuration()
+    repo_config['tags'] += tags
+    _LOG.warning('adding to configuration: %s', repo_config)
+    repos_config['repos'].append(repo_config)
