@@ -12,7 +12,7 @@ import git
 
 from ._version import VERSION
 from .runtime_interface import ask
-from .json_config import json_to_file, file_to_json
+from .json_config import normalize_path, json_to_file, file_to_json
 from .repo_data import RepoData
 from .project import Project
 
@@ -28,6 +28,7 @@ def default_runtime_configuration():
 
 
 def acquire_runtime_configuration(path: pathlib.Path):
+    path = normalize_path(path)
     try:
         return file_to_json(path)
     except FileNotFoundError as err:
@@ -47,6 +48,7 @@ def default_repos_configuration():
 
 
 def acquire_repos_configuration(path: pathlib.Path):
+    path = normalize_path(path)
     try:
         return file_to_json(path)
     except FileNotFoundError as err:
@@ -94,7 +96,7 @@ def resolve_runtime_config(runtime_config):
         if 'names' in machine:
             names += machine['names']
         if '' in names or hostname in names:
-            repos_path_str = os.path.expandvars(machine['repos_path'])
+            repos_path_str = normalize_path(machine['repos_path'])
             if repos_path_str == 'tempfile.gettempdir()':
                 repos_path_str = tempfile.gettempdir()
             repos_path = pathlib.Path(repos_path_str).resolve()

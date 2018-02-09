@@ -2,11 +2,19 @@
 
 import json
 import json.decoder
+import os
 import pathlib
+import typing as t
 
 JSON_INDENT = 2
 
 JSON_ENSURE_ASCII = False
+
+
+def normalize_path(path: t.Union[pathlib.Path, str]) -> t.Union[pathlib.Path, str]:
+    if isinstance(path, str):
+        return os.path.expanduser(os.path.expandvars(path))
+    return pathlib.Path(normalize_path(str(path)))
 
 
 def json_to_str(data: dict) -> str:
@@ -29,13 +37,13 @@ def json_to_file(data: dict, path: pathlib.Path) -> None:
     assert isinstance(data, dict), type(data)
     assert isinstance(path, pathlib.Path), type(path)
     text = json_to_str(data)
-    with open(str(path), 'w', encoding='utf-8') as json_file:
+    with open(normalize_path(str(path)), 'w', encoding='utf-8') as json_file:
         json_file.write(text)
 
 
 def file_to_json(path: pathlib.Path) -> dict:
     """Create JSON object from a file."""
-    with open(str(path), 'r', encoding='utf-8') as json_file:
+    with open(normalize_path(str(path)), 'r', encoding='utf-8') as json_file:
         text = json_file.read()
     try:
         data = str_to_json(text)
