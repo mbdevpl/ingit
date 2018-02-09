@@ -3,14 +3,15 @@
 import contextlib
 import logging
 import os
+import pathlib
 import platform
-import shutil
 import tempfile
 import unittest
+import unittest.mock
 
-import psutil
 import readchar
 
+import ingit.runtime
 from ingit.runtime import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
 from ingit.main import main
 
@@ -19,23 +20,13 @@ _LOG = logging.getLogger(__name__)
 
 class Tests(unittest.TestCase):
 
+    def setUp(self):
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self.repos_path = pathlib.Path(self._tmpdir.name)
+
     def tearDown(self):
-        if platform.system() == 'Windows':
-            git_processes = [_ for _ in psutil.process_iter() if 'git' in _.name()]
-            for git_process in git_processes:
-                _LOG.warning('killing %s ...', git_process)
-                git_process.kill(git_process)
-
-        path = os.path.join(tempfile.gettempdir(), 'ingit')
-        if os.path.isdir(path):
-            shutil.rmtree(path)
-
-    @classmethod
-    def tearDownClass(cls):
-        if platform.system() == 'Windows':
-            all_processes = [_ for _ in psutil.process_iter()]
-            for process in all_processes:
-                _LOG.warning('process: %s', process)
+        if platform.system() != 'Windows':
+            self._tmpdir.cleanup()
 
     def test_help(self):
         with open(os.devnull, 'a') as devnull:
@@ -56,21 +47,29 @@ class Tests(unittest.TestCase):
             REPOS_CONFIG_PATH.unlink()
 
     def test_clone(self):
-        main(['--config', 'test/examples/runtime_config/example1.json',
-              '--repos', 'test/examples/repos_config/example1.json', 'clone'])
+        with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
+                                        return_value=self.repos_path):
+            main(['--config', 'test/examples/runtime_config/example1.json',
+                  '--repos', 'test/examples/repos_config/example1.json', 'clone'])
 
     def test_init(self):
-        main(['--config', 'test/examples/runtime_config/example1.json',
-              '--repos', 'test/examples/repos_config/example1.json', 'init'])
+        with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
+                                        return_value=self.repos_path):
+            main(['--config', 'test/examples/runtime_config/example1.json',
+                  '--repos', 'test/examples/repos_config/example1.json', 'init'])
 
     def test_gc(self):
-        main(['--config', 'test/examples/runtime_config/example1.json',
+        with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
+                                        return_value=self.repos_path):
+            main(['--config', 'test/examples/runtime_config/example1.json',
               '--repos', 'test/examples/repos_config/example1.json', 'clone'])
-        main(['--config', 'test/examples/runtime_config/example1.json',
-              '--repos', 'test/examples/repos_config/example1.json', 'gc'])
+            main(['--config', 'test/examples/runtime_config/example1.json',
+                  '--repos', 'test/examples/repos_config/example1.json', 'gc'])
 
     def test_status(self):
-        main(['--config', 'test/examples/runtime_config/example1.json',
+        with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
+                                        return_value=self.repos_path):
+            main(['--config', 'test/examples/runtime_config/example1.json',
               '--repos', 'test/examples/repos_config/example1.json', 'clone'])
-        main(['--config', 'test/examples/runtime_config/example1.json',
-              '--repos', 'test/examples/repos_config/example1.json', 'status'])
+            main(['--config', 'test/examples/runtime_config/example1.json',
+                  '--repos', 'test/examples/repos_config/example1.json', 'status'])

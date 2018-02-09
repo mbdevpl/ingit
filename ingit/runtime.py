@@ -4,7 +4,6 @@ import collections
 import logging
 import pathlib
 import platform
-import tempfile
 import typing as t
 
 import git
@@ -90,23 +89,23 @@ def run(runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
         implementation(**command_options)
 
 
-def resolve_runtime_config(runtime_config: dict) -> str:
-    """Resolve raw JSON of runtime configuration."""
-    hostname = platform.node()
-    repos_path = None
+def find_repos_path(runtime_config: dict, hostname: str) -> t.Optional[str]:
     for machine in runtime_config['machines']:
         names = []
-        repos_path = None
         if 'name' in machine:
             names.append(machine['name'])
         if 'names' in machine:
             names += machine['names']
         if '' in names or hostname in names:
             repos_path_str = normalize_path(machine['repos_path'])
-            if repos_path_str == 'tempfile.gettempdir()':
-                repos_path_str = tempfile.gettempdir()
-            repos_path = pathlib.Path(repos_path_str).resolve()
-            break
+            return pathlib.Path(repos_path_str).resolve()
+    return None
+
+
+def resolve_runtime_config(runtime_config: dict) -> str:
+    """Resolve raw JSON of runtime configuration."""
+    hostname = platform.node()
+    repos_path = find_repos_path(runtime_config, hostname)
 
     if repos_path is not None:
         return repos_path, True
