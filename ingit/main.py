@@ -6,8 +6,7 @@ import pathlib
 import sys
 
 from ._version import VERSION
-from .json_config import file_to_json
-from .runtime import run
+from .runtime import acquire_runtime_configuration, acquire_repos_configuration, run
 
 _LOG = logging.getLogger(__name__)
 
@@ -30,13 +29,13 @@ def prepare_parser():
 
     runtime_config_path = pathlib.Path('~', '.{}_config.json'.format(program_name))
     parser.add_argument(
-        '--config', metavar='PATH', default=str(runtime_config_path),
+        '--config', metavar='PATH', type=str, default=str(runtime_config_path),
         help='''path to the runtime configuration file;
         can be absolute, or relative to current woking directory''')
 
     repos_config_path = pathlib.Path('~', '.{}_repos.json'.format(program_name))
     parser.add_argument(
-        '--repos', metavar='PATH', default=repos_config_path,
+        '--repos', metavar='PATH', type=str, default=str(repos_config_path),
         help='''path to the projects list file;
         can be absolute, or relative to current woking directory''')
 
@@ -99,8 +98,10 @@ def main(args=None):
     parsed_args = parser.parse_args(args)
     _LOG.warning('parsed args: %s', parsed_args)
 
-    runtime_config = file_to_json(pathlib.Path(parsed_args.config))
-    repos_config = file_to_json(pathlib.Path(parsed_args.repos))
+    runtime_config = acquire_runtime_configuration(pathlib.Path(
+        os.path.expanduser(os.path.expandvars(parsed_args.config))))
+    repos_config = acquire_repos_configuration(pathlib.Path(
+        os.path.expanduser(os.path.expandvars(parsed_args.repos))))
     if parsed_args.predicate is None:
         predicate = None
     else:

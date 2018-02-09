@@ -8,9 +8,51 @@ import platform
 import tempfile
 import typing as t
 
+from ._version import VERSION
+from .runtime_interface import ask
+from .json_config import json_to_file, file_to_json
 from .project import Project
 
 _LOG = logging.getLogger(__name__)
+
+
+def default_runtime_configuration():
+    return {
+        'description': 'ingit runtime configuration file',
+        'ingit-version': VERSION,
+        'machines': [
+            {'name': platform.node(), 'repos_path': os.environ['HOME']}]}
+
+
+def acquire_runtime_configuration(path: pathlib.Path):
+    try:
+        return file_to_json(path)
+    except FileNotFoundError as err:
+        ans = ask('Runtime configuration file {} does not exist. Create a default one?'
+                  .format(path))
+        if ans != 'y':
+            raise err
+        json_to_file(default_runtime_configuration(), path)
+    return file_to_json(path)
+
+
+def default_repos_configuration():
+    return {
+        'description': 'ingit repositories configuration file',
+        'ingit-version': VERSION,
+        'repos': []}
+
+
+def acquire_repos_configuration(path: pathlib.Path):
+    try:
+        return file_to_json(path)
+    except FileNotFoundError as err:
+        ans = ask('Repositories configuration file {} does not exist. Create a default one?'
+                  .format(path))
+        if ans != 'y':
+            raise err
+        json_to_file(default_repos_configuration(), path)
+    return file_to_json(path)
 
 
 def run(runtime_config: dict, repos_config: dict, predicate: collections.Callable,
