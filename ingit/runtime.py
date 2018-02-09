@@ -18,13 +18,22 @@ from .project import Project
 
 _LOG = logging.getLogger(__name__)
 
+CONFIG_DIRECTORIES = {
+    'Linux': pathlib.Path('~', '.config', 'ingit'),
+    'Darwin': pathlib.Path('~', 'Library', 'Preferences', 'ingit'),
+    'Windows': pathlib.Path('%LOCALAPPDATA%', 'ingit')}
+
+CONFIG_DIRECTORY = CONFIG_DIRECTORIES[platform.system()]
+RUNTIME_CONFIG_PATH = pathlib.Path(CONFIG_DIRECTORY, 'ingit_config.json')
+REPOS_CONFIG_PATH = pathlib.Path(CONFIG_DIRECTORY, 'ingit_repos.json')
+
 
 def default_runtime_configuration():
     return {
         'description': 'ingit runtime configuration file',
         'ingit-version': VERSION,
         'machines': [
-            {'name': platform.node(), 'repos_path': os.environ['HOME']}]}
+            {'name': platform.node(), 'repos_path': '~'}]}
 
 
 def acquire_runtime_configuration(path: pathlib.Path):
@@ -36,6 +45,7 @@ def acquire_runtime_configuration(path: pathlib.Path):
                   .format(path))
         if ans != 'y':
             raise err
+        path.parent.mkdir(parents=True, exist_ok=True)
         json_to_file(default_runtime_configuration(), path)
     return file_to_json(path)
 
@@ -56,6 +66,7 @@ def acquire_repos_configuration(path: pathlib.Path):
                   .format(path))
         if ans != 'y':
             raise err
+        path.parent.mkdir(parents=True, exist_ok=True)
         json_to_file(default_repos_configuration(), path)
     return file_to_json(path)
 

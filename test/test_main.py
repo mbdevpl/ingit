@@ -9,7 +9,9 @@ import tempfile
 import unittest
 
 import psutil
+import readchar
 
+from ingit.runtime import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
 from ingit.main import main
 
 _LOG = logging.getLogger(__name__)
@@ -41,6 +43,17 @@ class Tests(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     with contextlib.redirect_stdout(devnull):
                         main(flags)
+
+    @unittest.skipUnless('CI' in os.environ, 'skipping test that affects user environment')
+    def test_create_configs(self):
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
+            self.assertFalse(RUNTIME_CONFIG_PATH.exists())
+            self.assertFalse(REPOS_CONFIG_PATH.exists())
+            main(['register'])
+            self.assertTrue(RUNTIME_CONFIG_PATH.exists())
+            self.assertTrue(REPOS_CONFIG_PATH.exists())
+            RUNTIME_CONFIG_PATH.unlink()
+            REPOS_CONFIG_PATH.unlink()
 
     def test_clone(self):
         main(['--config', 'test/examples/runtime_config/example1.json',

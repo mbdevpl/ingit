@@ -7,7 +7,7 @@ import pathlib
 import sys
 
 from ._version import VERSION
-from .runtime import run
+from .runtime import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, run
 
 _LOG = logging.getLogger(__name__)
 
@@ -28,15 +28,13 @@ def prepare_parser():
     # parser.add_argument('--batch', '-b', action='store_true',
     #                    help='run ingit in non-interactive mode')
 
-    runtime_config_path = pathlib.Path('~', '.{}_config.json'.format(program_name))
     parser.add_argument(
-        '--config', metavar='PATH', type=str, default=str(runtime_config_path),
+        '--config', metavar='PATH', type=str, default=str(RUNTIME_CONFIG_PATH),
         help='''path to the runtime configuration file;
         can be absolute, or relative to current woking directory''')
 
-    repos_config_path = pathlib.Path('~', '.{}_repos.json'.format(program_name))
     parser.add_argument(
-        '--repos', metavar='PATH', type=str, default=str(repos_config_path),
+        '--repos', metavar='PATH', type=str, default=str(REPOS_CONFIG_PATH),
         help='''path to the projects list file;
         can be absolute, or relative to current woking directory''')
 
