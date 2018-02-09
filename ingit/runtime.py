@@ -2,7 +2,6 @@
 
 import collections
 import logging
-import os
 import pathlib
 import platform
 import tempfile
