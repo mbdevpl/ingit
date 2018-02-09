@@ -5,6 +5,7 @@ import pathlib
 
 import git
 
+from .repo_data import RepoData
 from .action_progress import ActionProgress
 
 
@@ -50,11 +51,8 @@ class Project:
         """True if repo exists."""
         return self.is_existing and self.has_git_folder_or_file
 
-    @property
-    def is_repo_linked(self) -> bool:
-        """True if GitPython repo object is initialised."""
-
-        return self.repo is not None
+    def link_repo(self):
+        self.repo = RepoData(git.Repo(str(self.path)))
 
     def clone(self) -> None:
         """Execute "git clone --recursive --orign <remote-name> <remote-url> <path>".
@@ -71,8 +69,8 @@ class Project:
 
         try:
             progress = ActionProgress()
-            git.Repo.clone_from(
-                remote_url, str(self.path), recursive=True, origin=remote_name, progress=progress)
+            self.repo = RepoData(git.Repo.clone_from(
+                remote_url, str(self.path), recursive=True, origin=remote_name, progress=progress))
             progress.finalize()
         except git.GitCommandError as err:
             raise ValueError('error while cloning "{}" into "{}"'
@@ -84,27 +82,36 @@ class Project:
             raise ValueError('repo {} already initialised'.format(self.path))
         if self.is_existing:
             raise ValueError('directory already exists... please check, delete it, and try again')
-        self.repo = git.Repo.init(self.path)
+        self.repo = RepoData(git.Repo.init(self.path))
 
         for remote_name, remote_url in self.remotes.items():
             self.repo.git.remote('add', remote_name, remote_url)
 
     def fetch(self, all: bool = False) -> None:
+        if self.repo is None:
+            self.link_repo()
         raise NotImplementedError()
 
     def checkout(self) -> None:
+        if self.repo is None:
+            self.link_repo()
         raise NotImplementedError()
 
     def merge(self) -> None:
+        if self.repo is None:
+            self.link_repo()
         raise NotImplementedError()
 
     def push(self) -> None:
+        if self.repo is None:
+            self.link_repo()
         raise NotImplementedError()
 
     def gc(self) -> None:
         """Execute "git gc --agressive --prune"."""
-        if not self.is_repo_linked:
-            self.repo = git.Repo(str(self.path))
+        if self.repo is None:
+            self.link_repo()
+
         try:
             self.repo.git.gc(aggressive=True, prune=True)
         except git.GitCommandError as err:
@@ -112,8 +119,8 @@ class Project:
 
     def status(self) -> None:
         """Execute "git status --short" and run "git gui" if there is any output."""
-        if not self.is_repo_linked:
-            self.repo = git.Repo(str(self.path))
+        if self.repo is None:
+            self.link_repo()
 
         try:
             status_log = self.repo.git.status(short=True).splitlines()
