@@ -28,6 +28,13 @@ class Tests(unittest.TestCase):
         if os.path.isdir(path):
             shutil.rmtree(path)
 
+    @classmethod
+    def tearDownClass(cls):
+        if platform.system() == 'Windows':
+            all_processes = [_ for _ in psutil.process_iter()]
+            for process in all_processes:
+                _LOG.warning('process: %s', process)
+
     def test_help(self):
         with open(os.devnull, 'a') as devnull:
             for flags in (['-h'], ['--help']):
