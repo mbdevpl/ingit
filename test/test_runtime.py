@@ -43,7 +43,6 @@ class Tests(unittest.TestCase):
             REPOS_CONFIG_PATH.unlink()
             self.assertEqual(repos_config, default_repos_configuration())
 
-
     def test_create_repos_config(self):
         with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
             with tempfile.NamedTemporaryFile() as tmp_file:
@@ -57,10 +56,3 @@ class Tests(unittest.TestCase):
             repos_config = acquire_repos_configuration(path)
             path.unlink()
             self.assertEqual(repos_config, default_repos_configuration())
-
-    def test_acquire_runtime_config(self):
-        paths = [
-            pathlib.Path('~/.ingit_config.json'),
-            pathlib.Path('~/.ingit_config.json'),
-            pathlib.Path('test/examples/runtime_config/example1.json')
-            ]
