@@ -15,16 +15,15 @@ _LOG = logging.getLogger(__name__)
 def prepare_parser():
     """Prepare command-line arguments parser."""
 
-    program_name = 'ingit'
     parser = argparse.ArgumentParser(
-        prog=program_name,
+        prog='ingit',
         description='''Tool for managing a large collection of repositories in git. If you have
         100 git-versioned projects, keeping tabs on everything can be quite troublesome.''',
         epilog='''Copyright (C) 2015-2018 by Mateusz Bysiek,
         GNU General Public License v3 or later (GPLv3+), https://github.com/mbdevpl/ingit''',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter, allow_abbrev=True)
     parser.add_argument('--version', action='version',
-                        version='{} {}, Python {}'.format(program_name, VERSION, sys.version))
+                        version='ingit {}, Python {}'.format(VERSION, sys.version))
     # parser.add_argument('--batch', '-b', action='store_true',
     #                    help='run ingit in non-interactive mode')
 
@@ -115,8 +114,8 @@ def main(args=None):
                      ' -- it can be used only with git commands'.format(parsed_args.command))
     _LOG.warning('parsed args: %s', parsed_args)
 
-    runtime_config_path = pathlib.Path(os.path.expanduser(os.path.expandvars(parsed_args.config)))
-    repos_config_path = pathlib.Path(os.path.expanduser(os.path.expandvars(parsed_args.repos)))
+    runtime_config_path = pathlib.Path(parsed_args.config)
+    repos_config_path = pathlib.Path(parsed_args.repos)
     if parsed_args.predicate is None:
         predicate = None
     else:

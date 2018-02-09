@@ -95,7 +95,7 @@ def resolve_configs(runtime_config, repos_config, predicate=None) -> t.List[Proj
     return filter_projects(projects, predicate)
 
 
-def resolve_runtime_config(runtime_config):
+def resolve_runtime_config(runtime_config: dict) -> str:
     """Resolve raw JSON of runtime configuration."""
     hostname = platform.node()
     repos_path = None
@@ -130,7 +130,7 @@ def resolve_repos_config(repos_config, hostname, names, repos_path: pathlib.Path
     return projects
 
 
-def filter_projects(projects, predicate):
+def filter_projects(projects: t.Sequence[Project], predicate):
     filtered_projects = [project for project in projects
                          if predicate(project.name, project.tags, project.path, project.remotes)]
     return filtered_projects
