@@ -12,6 +12,7 @@ import unittest.mock
 import readchar
 
 import ingit.runtime
+from ingit.json_config import normalize_path
 from ingit.runtime import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
 from ingit.main import main
 
@@ -38,13 +39,15 @@ class Tests(unittest.TestCase):
     @unittest.skipUnless('CI' in os.environ, 'skipping test that affects user environment')
     def test_create_configs(self):
         with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
-            self.assertFalse(RUNTIME_CONFIG_PATH.exists())
-            self.assertFalse(REPOS_CONFIG_PATH.exists())
+            runtime_config_path = normalize_path(RUNTIME_CONFIG_PATH)
+            repos_config_path = normalize_path(REPOS_CONFIG_PATH)
+            self.assertFalse(runtime_config_path.exists())
+            self.assertFalse(repos_config_path.exists())
             main(['register'])
-            self.assertTrue(RUNTIME_CONFIG_PATH.exists())
-            self.assertTrue(REPOS_CONFIG_PATH.exists())
-            RUNTIME_CONFIG_PATH.unlink()
-            REPOS_CONFIG_PATH.unlink()
+            self.assertTrue(runtime_config_path.exists())
+            self.assertTrue(repos_config_path.exists())
+            runtime_config_path.unlink()
+            repos_config_path.unlink()
 
     def test_clone(self):
         with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
