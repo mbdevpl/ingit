@@ -65,7 +65,7 @@ class Tests(unittest.TestCase):
         with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
                                         return_value=self.repos_path):
             main(['--config', 'test/examples/runtime_config/example1.json',
-              '--repos', 'test/examples/repos_config/example1.json', 'clone'])
+                  '--repos', 'test/examples/repos_config/example1.json', 'clone'])
             main(['--config', 'test/examples/runtime_config/example1.json',
                   '--repos', 'test/examples/repos_config/example1.json', 'gc'])
 
@@ -73,6 +73,6 @@ class Tests(unittest.TestCase):
         with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
                                         return_value=self.repos_path):
             main(['--config', 'test/examples/runtime_config/example1.json',
-              '--repos', 'test/examples/repos_config/example1.json', 'clone'])
+                  '--repos', 'test/examples/repos_config/example1.json', 'clone'])
             main(['--config', 'test/examples/runtime_config/example1.json',
                   '--repos', 'test/examples/repos_config/example1.json', 'status'])

@@ -35,6 +35,7 @@ def default_runtime_configuration():
 
 
 def acquire_runtime_configuration(path: pathlib.Path):
+    """Read (or create default) and return ingit runtime configuration."""
     path = normalize_path(path)
     try:
         return file_to_json(path)
@@ -56,6 +57,7 @@ def default_repos_configuration():
 
 
 def acquire_repos_configuration(path: pathlib.Path):
+    """Read (or create default) and return ingit repositories configuration."""
     path = normalize_path(path)
     try:
         return file_to_json(path)
@@ -150,6 +152,7 @@ def register_machine(runtime_config, name: str, repos_path: pathlib.Path):
 
 def register_repository(repos_path: pathlib.Path, repos_config: dict, projects: t.Sequence[Project],
                         tags: t.Sequence[str], path: pathlib.Path):
+    """Add repo to ingit repositories configuration."""
     repo = git.Repo(str(path))
     repo_data = RepoData(repo)
     _LOG.warning('registering repository: %s', repo_data)
@@ -158,6 +161,8 @@ def register_repository(repos_path: pathlib.Path, repos_config: dict, projects: 
         repo_config['path'] = str(pathlib.Path(repo_config['path']).relative_to(repos_path))
     except ValueError:
         pass
+    if repo_config['path'] == repo_config['name']:
+        del repo_config['path']
     if tags is not None:
         repo_config['tags'] += tags
     _LOG.warning('adding repo to configuration: %s', repo_config)
