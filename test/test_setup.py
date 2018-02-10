@@ -11,7 +11,7 @@ import tempfile
 import typing as t
 import unittest
 
-__updated__ = '2018-02-08'
+__updated__ = '2018-02-10'
 
 
 def run_program(*args, glob: bool = False):
@@ -239,8 +239,9 @@ class UnitTests(unittest.TestCase):
 
 
 @unittest.skipUnless(os.environ.get('TEST_PACKAGING') or os.environ.get('CI'),
-                     'skipping packaging tests')
+                     'skipping packaging tests for actual package')
 class IntergrationTests(unittest.TestCase):
+
     """Test if the boilerplate can actually create a valid package."""
 
     pkg_name = get_package_folder_name()
@@ -256,16 +257,6 @@ class IntergrationTests(unittest.TestCase):
     def test_build_source(self):
         run_module('setup', 'sdist', '--formats=gztar,zip')
         self.assertTrue(os.path.isdir('dist'))
-
-    def test_clean(self):
-        run_module('setup', 'bdist')
-        self.assertTrue(os.path.isdir('build'))
-        package = import_module_member('setup_boilerplate', 'Package')
-        package.clean()
-        os.mkdir('build')
-        package.clean()
-        package.clean()
-        self.assertFalse(os.path.isdir('build'))
 
     def test_install_code(self):
         run_pip('install', '.')

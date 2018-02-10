@@ -15,7 +15,7 @@ import typing as t
 
 import setuptools
 
-__updated__ = '2018-02-08'
+__updated__ = '2018-02-10'
 
 SETUP_TEMPLATE = '''"""Setup script."""
 
@@ -172,13 +172,6 @@ class Package:
         for name in names:
             if hasattr(cls, name):
                 return getattr(cls, name)
-
-    @classmethod
-    def clean(cls, build_directory_name: str = 'build') -> None:
-        """Recursively delete build directory (by default "build") if it exists."""
-        build_directory_path = pathlib.Path(HERE, build_directory_name)
-        if build_directory_path.is_dir():
-            shutil.rmtree(str(build_directory_path))
 
     @classmethod
     def setup(cls) -> None:
