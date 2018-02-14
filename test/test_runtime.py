@@ -34,6 +34,11 @@ class Tests(unittest.TestCase):
             path.unlink()
             self.assertEqual(runtime_config, default_runtime_configuration())
 
+    def test_bad_runtime_config(self):
+        bad_config_path = pathlib.Path('test', 'examples', 'runtime_config', 'example_bad.json')
+        with self.assertRaises(ValueError):
+            acquire_runtime_configuration(bad_config_path)
+
     @unittest.skipUnless('CI' in os.environ, 'skipping test that affects user environment')
     def test_use_default_config_dir(self):
         with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):

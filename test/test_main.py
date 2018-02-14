@@ -14,6 +14,7 @@ import readchar
 from ingit.json_config import normalize_path
 from ingit.runtime import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
 from ingit.main import main
+from .test_setup import run_module
 
 _LOG = logging.getLogger(__name__)
 
@@ -35,13 +36,10 @@ class Tests(unittest.TestCase):
         if platform.system() != 'Windows':
             cls._tmpdir.cleanup()
 
-    # def setUp(self):
-    #    self._tmpdir = tempfile.TemporaryDirectory()
-    #    self.repos_path = pathlib.Path(self._tmpdir.name)
-
-    # def tearDown(self):
-    #    if platform.system() != 'Windows':
-    #        self._tmpdir.cleanup()
+    def test_script(self):
+        with self.assertRaises(SystemExit):
+            run_module('ingit')
+        run_module('ingit', run_name='not_main')
 
     def test_help(self):
         with open(os.devnull, 'a') as devnull:

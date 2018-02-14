@@ -5,6 +5,7 @@ import operator
 import logging
 import shutil
 import sys
+import typing as t
 
 import git
 import git.remote
@@ -31,7 +32,7 @@ _CARET_UP = '\033[1A'  # TODO: works only in bash, but what about cmd?
 _LOG = logging.getLogger(__name__)
 
 
-def _create_operation_strings(op_code):
+def _create_operation_strings(op_code: int):
     """ Creates operation strings. """
     operation_strings = []
     for key, value in _KNOWN_OPERATIONS_STRINGS.items():
@@ -56,7 +57,7 @@ class ActionProgress(git.remote.RemoteProgress):
         self.printed_lines = False
         self.line_len = 0  # type: int
         try:
-            term_size = shutil.get_terminal_size()  # type: int
+            term_size = shutil.get_terminal_size()  # type: t.Tuple[int, int]
             _LOG.log(logging.WARNING if term_size.columns < 16 else logging.NOTSET,
                      'detected terminal width is %i', term_size.columns)
             self.line_width = term_size.columns if term_size.columns else 100
@@ -76,7 +77,7 @@ class ActionProgress(git.remote.RemoteProgress):
     def _print_with_nl(self, text: str):
         print(text, file=self.f_d)
 
-    def update(self, op_code: int, cur_count, max_count=None, message: str = ''):
+    def update(self, op_code: int, cur_count: t.Any, max_count: t.Any = None, message: str = ''):
         """Override git.remote.RemoteProgress.update()."""
         operation_strings = _create_operation_strings(op_code)
         description = '{}: '.format(' '.join(operation_strings)) if operation_strings else ''

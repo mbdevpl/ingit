@@ -142,11 +142,13 @@ class ActionProgressTests(unittest.TestCase):
 
     def test_redirect_output_not_inline(self):
         """Can ActionProgress be used in non-inline mode? """
-        apr = ActionProgress(inline=False, f_d=StreamToLog(logging.debug))
+        log_stream = StreamToLog(logging.debug)
+        apr = ActionProgress(inline=False, f_d=log_stream)
         self.assertIsNotNone(apr)
         for op_code in op_codes:
             apr.update(op_code, 0, None)
             self.assertTrue(apr.printed_lines)
+        log_stream.flush()
         apr.finalize()
         self.assertFalse(apr.printed_lines)
 
