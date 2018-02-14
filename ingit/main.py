@@ -12,6 +12,8 @@ _LOG = logging.getLogger(__name__)
 
 PREDICATE_EXAMPLES = ['''name.startswith('py_')''', ''' 'python' in tags''']
 
+REGEX_EXAMPLES = ['^py_.*', '^python$']
+
 
 def prepare_parser():
     """Prepare command-line arguments parser."""
@@ -42,6 +44,10 @@ def prepare_parser():
         '--predicate', '-p', type=str, default=None, help='''a Python expression used to select
         repositories operated on; it is evaluated on each repository metadata;
         examples: "{}"'''.format('", "'.join(PREDICATE_EXAMPLES)))
+    parser.add_argument(
+        '--regex', '-r', type=str, default=None, help='''a regular expression used to select
+        repositories operated on; repository matches if any of its metadata match;
+        examples: "{}"'''.format('", "'.join(REGEX_EXAMPLES)))
 
     commands = {
         'register': (
@@ -122,6 +128,10 @@ def main(args=None):
         predicate_code = "lambda name, tags, path, remotes: ({})".format(parsed_args.predicate)
         _LOG.warning('prepared predicate lambda: %s', predicate_code)
         predicate = eval(predicate_code)
+    if parsed_args.regex is None:
+        regex = None
+    else:
+        regex = parsed_args.regex
     command = parsed_args.command
     command_options = {}
     if command == 'register':
@@ -131,4 +141,4 @@ def main(args=None):
     elif command == 'fetch':
         command_options['all'] = parsed_args.all
 
-    run(runtime_config_path, repos_config_path, predicate, command, **command_options)
+    run(runtime_config_path, repos_config_path, predicate, regex, command, **command_options)

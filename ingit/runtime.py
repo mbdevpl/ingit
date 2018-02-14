@@ -1,9 +1,11 @@
 """The ingit runtime."""
 
 import collections
+import functools
 import logging
 import pathlib
 import platform
+import re
 import typing as t
 
 import git
@@ -71,8 +73,16 @@ def acquire_repos_configuration(path: pathlib.Path):
     return file_to_json(path)
 
 
+def regex_predicate(regex, name, tags, path, remotes):
+    return (
+        re.search(regex, name) is not None
+        or any(re.search(regex, tag) is not None for tag in tags)
+        or re.search(regex, str(path)) is not None
+        or any(re.search(regex, name) for name, url in remotes.items()))
+
+
 def run(runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
-        predicate: collections.Callable, command: str, **command_options):
+        predicate: collections.Callable, regex: str, command: str, **command_options):
     """Run the runtime."""
     runtime_config = acquire_runtime_configuration(runtime_config_path)
     repos_path, found = resolve_runtime_config(runtime_config)
@@ -86,6 +96,8 @@ def run(runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
         return
     if predicate is not None:
         projects = filter_projects(projects, predicate)
+    if regex is not None:
+        projects = filter_projects(projects, functools.partial(regex_predicate, regex))
     for project in projects:
         implementation = getattr(project, command)
         implementation(**command_options)
