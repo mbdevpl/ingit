@@ -28,8 +28,9 @@ def str_to_json(text: str) -> dict:
         return json.loads(text)
     except json.decoder.JSONDecodeError as err:
         lines = text.splitlines(keepends=True)
-        raise ValueError('{}{}\n{}'.format(
-            ''.join(lines[:err.lineno]), '-' * err.colno, ''.join(lines[err.lineno:]))) from err
+        raise ValueError('\n{}{}\n{}'.format(
+            ''.join(lines[max(0, err.lineno - 10):err.lineno]), '-' * err.colno,
+            ''.join(lines[err.lineno:min(err.lineno + 10, len(lines))]))) from err
 
 
 def json_to_file(data: dict, path: pathlib.Path) -> None:
