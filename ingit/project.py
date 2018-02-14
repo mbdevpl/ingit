@@ -5,8 +5,14 @@ import pathlib
 
 import git
 
+from .json_config import normalize_path
 from .repo_data import RepoData
 from .action_progress import ActionProgress
+from .runtime_interface import ask
+
+
+def normalize_url(url: str):
+    return normalize_path(url)
 
 
 class Project:
@@ -59,33 +65,62 @@ class Project:
 
         All of the <...> values are taken from project configuration.
         Values of <remote-...> are taken from default remote.
+
+        This is followed by "git remote add <remote-name> <remote-url>" for all additional
+        configured remotes.
         """
         if self.is_initialised:
-            raise ValueError('repo {} already initialised'.format(self.path))
+            print('repo {} already initialised'.format(self.path))
+            return
         if self.is_existing:
             raise ValueError('directory already exists... please check, delete it, and try again')
 
-        remote_name, remote_url = next(iter(self.remotes.items()))
+        remotes_iter = iter(self.remotes.items())
+        remote_name, remote_url = next(remotes_iter)
+        path_str = str(self.path)
+
+        if ask('Execute "git clone {} --recursive --origin={} {}"?'
+               .format(remote_url, remote_name, path_str)) != 'y':
+            print('skipping {}'.format(self.path))
+            return
 
         try:
             progress = ActionProgress()
             self.repo = RepoData(git.Repo.clone_from(
-                remote_url, str(self.path), recursive=True, origin=remote_name, progress=progress))
+                normalize_url(remote_url), path_str, recursive=True, origin=remote_name,
+                progress=progress))
             progress.finalize()
         except git.GitCommandError as err:
             raise ValueError('error while cloning "{}" into "{}"'
                              .format(remote_url, self.path)) from err
 
+        for remote_name, remote_url in remotes_iter:
+            self.repo.git.remote('add', remote_name, normalize_url(remote_url))
+
+        if len(self.remotes) >= 2:
+            self.fetch(all_remotes=True)
+
     def init(self) -> None:
-        """Execute "git init", followed by "git remote add" for each configured remote."""
+        """Execute "git init".
+
+        This is followed by "git remote add <remote-name> <remote-url>" for each configured remote.
+        """
         if self.is_initialised:
-            raise ValueError('repo {} already initialised'.format(self.path))
+            print('repo {} already initialised'.format(self.path))
+            return
         if self.is_existing:
             raise ValueError('directory already exists... please check, delete it, and try again')
+
+        path_str = str(self.path)
+
+        if ask('Execute "git init {}"?'.format(path_str)) != 'y':
+            print('skipping {}'.format(self.path))
+            return
+
         self.repo = RepoData(git.Repo.init(self.path))
 
         for remote_name, remote_url in self.remotes.items():
-            self.repo.git.remote('add', remote_name, remote_url)
+            self.repo.git.remote('add', remote_name, normalize_url(remote_url))
 
     def fetch(self, all_remotes: bool = False) -> None:
         """Execute "git fetch", or "git fetch --all"."""
