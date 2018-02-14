@@ -21,13 +21,28 @@ _LOG = logging.getLogger(__name__)
 
 class Tests(unittest.TestCase):
 
-    def setUp(self):
-        self._tmpdir = tempfile.TemporaryDirectory()
-        self.repos_path = pathlib.Path(self._tmpdir.name)
+    @classmethod
+    def setUpClass(cls):
+        assert 'INGIT_TEST_REPOS_PATH' not in os.environ
+        cls._tmpdir = tempfile.TemporaryDirectory()
+        os.environ['INGIT_TEST_REPOS_PATH'] = cls._tmpdir.name
+        _LOG.warning('set INGIT_TEST_REPOS_PATH="%s"', cls._tmpdir.name)
+        cls.repos_path = pathlib.Path(cls._tmpdir.name)
+        # raise NotImplementedError()
+        # _ = os.environ['INGIT_TEST_REPOS_PATH']
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         if platform.system() != 'Windows':
-            self._tmpdir.cleanup()
+            cls._tmpdir.cleanup()
+
+    # def setUp(self):
+    #    self._tmpdir = tempfile.TemporaryDirectory()
+    #    self.repos_path = pathlib.Path(self._tmpdir.name)
+
+    # def tearDown(self):
+    #    if platform.system() != 'Windows':
+    #        self._tmpdir.cleanup()
 
     def test_help(self):
         with open(os.devnull, 'a') as devnull:
@@ -49,30 +64,43 @@ class Tests(unittest.TestCase):
             runtime_config_path.unlink()
             repos_config_path.unlink()
 
-    def test_clone(self):
-        with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
-                                        return_value=self.repos_path):
+    def test_1(self):
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
             main(['--config', 'test/examples/runtime_config/example1.json',
                   '--repos', 'test/examples/repos_config/example1.json', 'clone'])
+        self.assertTrue(pathlib.Path(self.repos_path, 'repos1').is_dir())
 
-    def test_init(self):
-        with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
-                                        return_value=self.repos_path):
-            main(['--config', 'test/examples/runtime_config/example1.json',
-                  '--repos', 'test/examples/repos_config/example1.json', 'init'])
+    def test_clone(self):
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
+            main(['--config', 'test/examples/runtime_config/example2.json',
+                  '--repos', 'test/examples/repos_config/example2.json',
+                  '-p', 'name == "ingit"', 'clone'])
+        self.assertTrue(pathlib.Path(self.repos_path, 'repos2', 'ingit').is_dir())
+
+    def test_init_and_fetch(self):
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
+            main(['--config', 'test/examples/runtime_config/example2.json',
+                  '--repos', 'test/examples/repos_config/example2.json',
+                  '-r', 'typed-astunparse', 'init'])
+            main(['--config', 'test/examples/runtime_config/example2.json',
+                  '--repos', 'test/examples/repos_config/example2.json',
+                  '-r', 'typed-astunparse', 'fetch', '--all'])
+        self.assertTrue(pathlib.Path(self.repos_path, 'repos2', 'typed-astunparse').is_dir())
 
     def test_gc(self):
-        with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
-                                        return_value=self.repos_path):
+        self.assertTrue(pathlib.Path(self.repos_path, 'repos2', 'ingit').is_dir())
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
+            # main(['--config', 'test/examples/runtime_config/example1.json',
+            #      '--repos', 'test/examples/repos_config/example1.json', 'clone'])
             main(['--config', 'test/examples/runtime_config/example1.json',
-                  '--repos', 'test/examples/repos_config/example1.json', 'clone'])
-            main(['--config', 'test/examples/runtime_config/example1.json',
-                  '--repos', 'test/examples/repos_config/example1.json', 'gc'])
+                  '--repos', 'test/examples/repos_config/example1.json',
+                  '-r', 'ingit', 'gc'])
 
     def test_status(self):
-        with unittest.mock.patch.object(ingit.runtime, 'find_repos_path',
-                                        return_value=self.repos_path):
+        self.assertTrue(pathlib.Path(self.repos_path, 'repos2', 'typed-astunparse').is_dir())
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
+            # main(['--config', 'test/examples/runtime_config/example1.json',
+            #      '--repos', 'test/examples/repos_config/example1.json', 'clone'])
             main(['--config', 'test/examples/runtime_config/example1.json',
-                  '--repos', 'test/examples/repos_config/example1.json', 'clone'])
-            main(['--config', 'test/examples/runtime_config/example1.json',
-                  '--repos', 'test/examples/repos_config/example1.json', 'status'])
+                  '--repos', 'test/examples/repos_config/example1.json',
+                  '-p', 'name == "types-astunparse"', 'status'])

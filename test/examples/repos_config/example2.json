@@ -5,14 +5,14 @@
     {
       "name": "ingit",
       "remotes": {
-        "github": "https://github.com/mbdevpl/ingit"
+        "github": "$INGIT_TEST_REPOS_PATH/repos1/ingit"
       },
       "tags": ["python"]
     },
     {
       "name": "typed-astunparse",
       "remotes": {
-        "github": "https://github.com/mbdevpl/typed-astunparse"
+        "github": "$INGIT_TEST_REPOS_PATH/repos1/typed-astunparse"
       },
       "tags": ["python"]
     }
