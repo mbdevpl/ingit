@@ -77,18 +77,17 @@ class Project:
 
         remotes_iter = iter(self.remotes.items())
         remote_name, remote_url = next(remotes_iter)
-        path_str = str(self.path)
 
         if ask('Execute "git clone {} --recursive --origin={} {}"?'
-               .format(remote_url, remote_name, path_str)) != 'y':
+               .format(remote_url, remote_name, self.path)) != 'y':
             print('skipping {}'.format(self.path))
             return
 
         try:
             progress = ActionProgress()
             self.repo = RepoData(git.Repo.clone_from(
-                normalize_url(remote_url), path_str, recursive=True, origin=remote_name,
-                progress=progress))
+                normalize_url(remote_url), normalize_path(str(self.path)), recursive=True,
+                origin=remote_name, progress=progress))
             progress.finalize()
         except git.GitCommandError as err:
             raise ValueError('error while cloning "{}" into "{}"'
@@ -111,13 +110,11 @@ class Project:
         if self.is_existing:
             raise ValueError('directory already exists... please check, delete it, and try again')
 
-        path_str = str(self.path)
-
-        if ask('Execute "git init {}"?'.format(path_str)) != 'y':
+        if ask('Execute "git init {}"?'.format(self.path)) != 'y':
             print('skipping {}'.format(self.path))
             return
 
-        self.repo = RepoData(git.Repo.init(self.path))
+        self.repo = RepoData(git.Repo.init(normalize_path(str(self.path))))
 
         for remote_name, remote_url in self.remotes.items():
             self.repo.git.remote('add', remote_name, normalize_url(remote_url))

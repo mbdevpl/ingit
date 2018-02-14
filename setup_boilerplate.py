@@ -17,7 +17,7 @@ import docutils.parsers.rst
 import docutils.utils
 import setuptools
 
-__updated__ = '2018-02-10'
+__updated__ = '2018-02-14'
 
 SETUP_TEMPLATE = '''"""Setup script."""
 
@@ -127,6 +127,7 @@ def find_required_python_version(
 
 
 def parse_rst(text: str) -> docutils.nodes.document:
+    """Parse text assuming it's an RST markup."""
     parser = docutils.parsers.rst.Parser()
     components = (docutils.parsers.rst.Parser,)
     settings = docutils.frontend.OptionParser(components=components).get_default_values()
@@ -137,18 +138,22 @@ def parse_rst(text: str) -> docutils.nodes.document:
 
 class SimpleRefCounter(docutils.nodes.NodeVisitor):
 
+    """Find all simple references in a given docutils document."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.references = []
 
     def visit_reference(self, node: docutils.nodes.reference) -> None:
         """Called for "reference" nodes."""
-        if len(node.children) != 1 or not isinstance(node.children[0], docutils.nodes.Text):
-            return
-        if not all(_ in node.attributes for _ in ('name', 'refuri')):
+        if len(node.children) != 1 or not isinstance(node.children[0], docutils.nodes.Text) \
+                or not all(_ in node.attributes for _ in ('name', 'refuri')):
             return
         path = pathlib.Path(node.attributes['refuri'])
-        if path.is_absolute():
+        try:
+            if path.is_absolute():
+                return
+        except OSError:  # on URLs in Windows
             return
         try:
             resolved_path = path.resolve()

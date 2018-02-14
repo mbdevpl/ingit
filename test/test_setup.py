@@ -11,7 +11,7 @@ import tempfile
 import typing as t
 import unittest
 
-__updated__ = '2018-02-10'
+__updated__ = '2018-02-14'
 
 
 def run_program(*args, glob: bool = False):
@@ -285,7 +285,6 @@ class PackageTests(unittest.TestCase):
                 name = link + ' '
             self.assertIn('`{}<{}{}>`_'.format(name, prefix, link), result)
 
-
     def test_prepare(self):
         package = import_module_member('setup_boilerplate', 'Package')
 
@@ -314,7 +313,7 @@ class PackageTests(unittest.TestCase):
         Package.prepare()
 
         Package.version = None
-        with self.assertRaises(ModuleNotFoundError):
+        with self.assertRaises(ImportError):
             Package.prepare()
 
 
