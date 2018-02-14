@@ -21,8 +21,6 @@ class RepoData:
         self.remote_branches = {}
         self.tracking_branches = {}
 
-        self.refresh()
-
     @property
     def git(self):
         return self._repo.git
@@ -37,12 +35,11 @@ class RepoData:
             current_tracking_branch = self._repo.active_branch.tracking_branch()
             if current_tracking_branch is not None:
                 current_tracking_branch = str(current_tracking_branch)
+            default_remote = current_tracking_branch.partition('/')[0]
         except TypeError:
             _LOG.exception('repository %s is not on any branch', self._repo)
-        try:
-            default_remote = current_tracking_branch.partition('/')[0]
         except AttributeError:
-            _LOG.exception('repository %s has no remotes', self._repo)
+            _LOG.exception('current branch in %s has no tracking branch', self._repo)
 
         self.branches = collections.OrderedDict([] if current_branch is None
                                                 else [(current_branch, None)])

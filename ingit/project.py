@@ -139,6 +139,7 @@ class Project:
 
         if self.repo is None:
             self.link_repo()
+        self.repo.refresh()
 
         # if self.is_on_only_branch():
         #    return
@@ -230,3 +231,5 @@ class Project:
             print('!! unclear status in "{}":'.format(self.path))
             for line in status_log:
                 print(line)
+
+        self.repo.refresh()

@@ -81,6 +81,8 @@ class Tests(unittest.TestCase):
             main(['--config', 'test/examples/runtime_config/example2.json',
                   '--repos', 'test/examples/repos_config/example2.json',
                   '-r', 'typed-astunparse', 'init'])
+        self.assertTrue(pathlib.Path(self.repos_path, 'repos2', 'typed-astunparse').is_dir())
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
             main(['--config', 'test/examples/runtime_config/example2.json',
                   '--repos', 'test/examples/repos_config/example2.json',
                   '-r', 'typed-astunparse', 'fetch', '--all'])
