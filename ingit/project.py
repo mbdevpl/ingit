@@ -108,7 +108,7 @@ class Project:
             self.link_repo()
         raise NotImplementedError()
 
-    def gc(self) -> None:
+    def collect_garbage(self) -> None:
         """Execute "git gc --agressive --prune"."""
         if self.repo is None:
             self.link_repo()

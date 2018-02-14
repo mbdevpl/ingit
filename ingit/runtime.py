@@ -98,6 +98,8 @@ def run(runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
         projects = filter_projects(projects, predicate)
     if regex is not None:
         projects = filter_projects(projects, functools.partial(regex_predicate, regex))
+    if command == 'gc':
+        command = 'collect_garbage'
     for project in projects:
         implementation = getattr(project, command)
         implementation(**command_options)
