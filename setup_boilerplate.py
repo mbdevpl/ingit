@@ -162,7 +162,6 @@ class SimpleRefCounter(docutils.nodes.NodeVisitor):
             resolved_path.relative_to(HERE)
         except ValueError:
             return
-        # assert path == resolved_path.relative_to(HERE), path
         if not path.is_file():
             return
         assert node.attributes['name'] == node.children[0].astext()
@@ -181,13 +180,10 @@ def resolve_relative_rst_links(text: str, base_link: str):
     document = parse_rst(text)
     visitor = SimpleRefCounter(document)
     document.walk(visitor)
-    # relative_targets = [ref.name for ref in visitor.references]
-    # relative_targets = ['requirements.txt', 'file.txt']
     for target in visitor.references:
         name = target.attributes['name']
         uri = target.attributes['refuri']
         new_link = '`{} <{}{}>`_'.format(name, base_link, uri)
-        print(new_link)
         if name == uri:
             text = text.replace('`<{}>`_'.format(uri), new_link)
         else:
