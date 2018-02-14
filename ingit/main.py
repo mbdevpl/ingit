@@ -144,6 +144,6 @@ def main(args=None):
         command_options['path'] = pathlib.Path() if parsed_args.path is None \
             else pathlib.Path(parsed_args.path)
     elif command == 'fetch':
-        command_options['all'] = parsed_args.all
+        command_options['all_remotes'] = parsed_args.all
 
     run(runtime_config_path, repos_config_path, predicate, regex, command, **command_options)

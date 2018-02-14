@@ -87,10 +87,11 @@ class Project:
         for remote_name, remote_url in self.remotes.items():
             self.repo.git.remote('add', remote_name, remote_url)
 
-    def fetch(self, all: bool = False) -> None:
+    def fetch(self, all_remotes: bool = False) -> None:
+        """Execute "git fetch", or "git fetch --all"."""
         if self.repo is None:
             self.link_repo()
-        raise NotImplementedError()
+        self.repo.git.fetch(all=all_remotes)
 
     def checkout(self) -> None:
         if self.repo is None:
