@@ -114,7 +114,7 @@ def find_repos_path(runtime_config: dict, hostname: str) -> t.Optional[str]:
             names += machine['names']
         if '' in names or hostname in names:
             repos_path_str = normalize_path(machine['repos_path'])
-            return pathlib.Path(repos_path_str).resolve()
+            return pathlib.Path(repos_path_str)
     return None
 
 
