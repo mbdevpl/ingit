@@ -122,17 +122,22 @@ def main(args=None):
 
     runtime_config_path = pathlib.Path(parsed_args.config)
     repos_config_path = pathlib.Path(parsed_args.repos)
+
     if parsed_args.predicate is None:
         predicate = None
     else:
         predicate_code = "lambda name, tags, path, remotes: ({})".format(parsed_args.predicate)
         _LOG.warning('prepared predicate lambda: %s', predicate_code)
         predicate = eval(predicate_code)
+
     if parsed_args.regex is None:
         regex = None
     else:
         regex = parsed_args.regex
+
     command = parsed_args.command
+    if command is None:
+        parser.error('no command provided')
     command_options = {}
     if command == 'register':
         command_options['tags'] = parsed_args.tags
