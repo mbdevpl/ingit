@@ -10,6 +10,8 @@ from .runtime import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, run
 
 _LOG = logging.getLogger(__name__)
 
+PREDICATE_EXAMPLES = ['''name.startswith('py_')''', ''' 'python' in tags''']
+
 
 def prepare_parser():
     """Prepare command-line arguments parser."""
@@ -36,11 +38,10 @@ def prepare_parser():
         help='''path to the projects list file;
         can be absolute, or relative to current woking directory''')
 
-    predicate_examples = ['''name.startswith('py_')''', ''' 'python' in tags''']
     parser.add_argument(
-        'predicate', type=str, nargs='?', help='''a Python expression used to select repositories
-        operated on; it is evaluated on each repository metadata; examples: "{}"'''
-        .format('", "'.join(predicate_examples)))
+        '--predicate', '-p', type=str, default=None, help='''a Python expression used to select
+        repositories operated on; it is evaluated on each repository metadata;
+        examples: "{}"'''.format('", "'.join(PREDICATE_EXAMPLES)))
 
     commands = {
         'register': (
