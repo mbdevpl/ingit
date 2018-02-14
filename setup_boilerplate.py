@@ -153,11 +153,10 @@ class SimpleRefCounter(docutils.nodes.NodeVisitor):
         try:
             if path.is_absolute():
                 return
-        except OSError:  # on URLs in Windows
-            return
-        try:
             resolved_path = path.resolve()
-        except FileNotFoundError:  # prior to Python 3.6
+        except FileNotFoundError:  # in resolve(), prior to Python 3.6
+            return
+        except OSError:  # in is_absolute() and resolve(), on URLs in Windows
             return
         try:
             resolved_path.relative_to(HERE)
