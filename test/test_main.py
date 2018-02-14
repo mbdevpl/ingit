@@ -11,7 +11,6 @@ import unittest.mock
 
 import readchar
 
-import ingit.runtime
 from ingit.json_config import normalize_path
 from ingit.runtime import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
 from ingit.main import main
@@ -70,14 +69,14 @@ class Tests(unittest.TestCase):
                   '--repos', 'test/examples/repos_config/example1.json', 'clone'])
         self.assertTrue(pathlib.Path(self.repos_path, 'repos1').is_dir())
 
-    def test_clone(self):
+    def test_2_clone(self):
         with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
             main(['--config', 'test/examples/runtime_config/example2.json',
                   '--repos', 'test/examples/repos_config/example2.json',
                   '-p', 'name == "ingit"', 'clone'])
         self.assertTrue(pathlib.Path(self.repos_path, 'repos2', 'ingit').is_dir())
 
-    def test_init_and_fetch(self):
+    def test_2_init_and_fetch(self):
         with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
             main(['--config', 'test/examples/runtime_config/example2.json',
                   '--repos', 'test/examples/repos_config/example2.json',
@@ -86,6 +85,13 @@ class Tests(unittest.TestCase):
                   '--repos', 'test/examples/repos_config/example2.json',
                   '-r', 'typed-astunparse', 'fetch', '--all'])
         self.assertTrue(pathlib.Path(self.repos_path, 'repos2', 'typed-astunparse').is_dir())
+
+    def test_checkout(self):
+        self.assertTrue(pathlib.Path(self.repos_path, 'repos2', 'ingit').is_dir())
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
+            main(['--config', 'test/examples/runtime_config/example2.json',
+                  '--repos', 'test/examples/repos_config/example2.json',
+                  '-p', 'name == "ingit"', 'checkout'])
 
     def test_gc(self):
         self.assertTrue(pathlib.Path(self.repos_path, 'repos2', 'ingit').is_dir())

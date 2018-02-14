@@ -58,7 +58,8 @@ class RepoData:
         self.remotes.update(collections.OrderedDict([(str(_), _) for _ in self._repo.remotes]))
 
         self.remote_branches = {
-            str(_): _ for remote_name, remote in self.remotes.items() for _ in remote.refs}
+            (remote_name, str(_).replace('{}/'.format(remote_name), '')): _
+            for remote_name, remote in self.remotes.items() for _ in remote.refs}
 
     def all_branches_are_tracked(self) -> bool:
         """True if all local branches have remote tracking branches."""

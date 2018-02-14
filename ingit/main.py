@@ -70,7 +70,8 @@ def prepare_parser():
             tracking branch, or default remote of the repository if there's no tracking branch.'''),
         'checkout': (
             'perform git checkout',
-            'Interactively select branch to checkout from list of local and remote branches.'),
+            '''Interactively select revision to checkout from list of local branches,
+            remote non-tracking branches and local tags.'''),
         'merge': (
             'perform git merge',
             '''Interactively merge all branches to their tracking branches. For each <branch>

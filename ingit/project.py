@@ -129,9 +129,72 @@ class Project:
         self.repo.git.fetch(all=all_remotes)
 
     def checkout(self) -> None:
+        """Interactively select revision and execute "git checkout <revision>" on it.
+
+        The list of branches to select from is composed by combinig:
+        - local branches
+        - local tags
+        - branches on all remotes
+        """
+
         if self.repo is None:
             self.link_repo()
-        raise NotImplementedError()
+
+        # if self.is_on_only_branch():
+        #    return
+
+        revisions = collections.OrderedDict()
+
+        keys = '1234567890abcdefghijklmopqrstuvwxz'
+        index = 0
+        for branch in self.repo.branches:
+            revisions[keys[index]] = (branch, None)
+            index += 1
+
+        for tag in self.repo._repo.tags:
+            revisions[keys[index]] = (tag, 'tag')
+            index += 1
+
+        special_branches = {'HEAD', 'FETCH_HEAD'}
+        remote_tracking_branches = set(self.repo.tracking_branches.values())
+
+        for (remote, branch) in self.repo.remote_branches:
+            remote_branch = '{}/{}'.format(remote, branch)
+            if remote_branch in remote_tracking_branches \
+                    or branch in special_branches:
+                continue
+            to_checkout = branch if branch not in self.repo.branches else remote_branch
+            revisions[keys[index]] = (to_checkout, 'based on {}'.format(remote))
+            index += 1
+
+        active_branch = self.repo._repo.active_branch
+        if active_branch is None:
+            revisions['n'] = ('---', 'keep no branch/tag')
+        else:
+            active_branch = str(active_branch)
+            # assert revisions['1'][0] == active_branch
+            for key, (revision, comment) in revisions.items():
+                if revision == active_branch:
+                    _ = 'no change'
+                    comment = '{}, {}'.format(comment, _) if comment else _
+                    revisions[key] = (revision, comment)
+                    break
+
+        print('Checkout options:')
+        for key, (revision, comment) in revisions.items():
+            if comment is None:
+                print('  {}: {}'.format(key, revision))
+            else:
+                print('  {}: {} ({})'.format(key, revision, comment))
+
+        answer = ask('Which branch to checkout?', answers=[key for key in keys[:index]] + ['n'])
+        if answer == 'n':
+            return
+        target, _ = revisions[answer]
+        if target == active_branch:
+            return
+
+        self.repo.git.checkout(target)
 
     def merge(self) -> None:
         if self.repo is None:
