@@ -143,10 +143,8 @@ def resolve_repos_config(repos_config: dict, repos_path: pathlib.Path):
         name = repo['name']
         if 'path' in repo:
             path = pathlib.Path(repo['path'])
-            try:
-                path = path.relative_to(repos_path)
-            except ValueError:
-                pass
+            if not path.is_absolute():
+                path = repos_path.joinpath(path)
         else:
             path = repos_path.joinpath(name)
         project = Project(name=name, tags=repo['tags'], path=path, remotes=repo['remotes'])
