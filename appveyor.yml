@@ -21,6 +21,10 @@ init:
 install:
   - pip install -U pip
   - pip install -U -r dev_requirements.txt
+  # git repositories for testing
+  - git clone https://github.com/mbdevpl/argunparse ../argunparse
+  - git clone https://github.com/mbdevpl/transpyle ../transpyle
+  - git clone https://github.com/mbdevpl/typed-astunparse ../typed-astunparse
 
 build: off
 

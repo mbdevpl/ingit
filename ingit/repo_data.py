@@ -47,7 +47,8 @@ class RepoData:
         assert all(_ is not None for name, _ in self.branches.items()), (self._repo, self.branches)
 
         self.tracking_branches = {
-            name: (str(_.tracking_branch()) if _.tracking_branch() else None)
+            name: (tuple(str(_.tracking_branch()).partition('/')[::2])
+                   if _.tracking_branch() else None)
             for name, _ in self.branches.items()}
 
         self.remotes = collections.OrderedDict([] if default_remote is None

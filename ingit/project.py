@@ -1,6 +1,7 @@
 """Single project."""
 
 import collections
+import logging
 import pathlib
 
 import git
@@ -9,6 +10,9 @@ from .json_config import normalize_path
 from .repo_data import RepoData
 from .action_progress import ActionProgress
 from .runtime_interface import ask
+from .fetch_flags import create_fetch_info_strings
+
+_LOG = logging.getLogger(__name__)
 
 
 def normalize_url(url: str):
@@ -120,10 +124,43 @@ class Project:
             self.repo.git.remote('add', remote_name, normalize_url(remote_url))
 
     def fetch(self, all_remotes: bool = False) -> None:
-        """Execute "git fetch", or "git fetch --all"."""
+        """Execute "git fetch --prune" on a remote of trancking branch of current branch.
+
+        Or execute "git fetch --prune" for all remotes."""
         if self.repo is None:
             self.link_repo()
-        self.repo.git.fetch(all=all_remotes)
+        self.repo.refresh()
+        # fetch_info = self.repo.git.fetch(all=all_remotes)
+        remote_names = self.repo.remotes if all_remotes else str(self.repo._repo.active_branch)
+        for remote_name in remote_names:
+            fetch_infos = self._fetch_single_remote(remote_name)
+            if not fetch_infos:
+                _LOG.warning('no fetch info after fetching from remote "%s" in "%s"',
+                             remote_name, self.name)
+            for fetch_info in fetch_infos:
+                merge = self._interpret_fetch_info(fetch_info)
+                if merge:
+                    raise NotImplementedError('merging not yet implemented')
+
+    def _fetch_single_remote(self, remote_name: str):
+        try:
+            progress = ActionProgress()
+            fetch_infos = self.repo.remotes[remote_name].fetch(prune=True, progress=progress)
+            progress.finalize()
+        except git.GitCommandError as err:
+            raise ValueError('error while fetching remote "{}" in "{}"'
+                             .format(remote_name, self.name)) from err
+        return fetch_infos
+
+    def _interpret_fetch_info(self, fetch_info) -> bool:
+        info_strings, prefix = create_fetch_info_strings(fetch_info)
+        if info_strings:
+            print('{} fetched "{}" in "{}"; {}'.format(
+                prefix, fetch_info.ref, self.name, ', '.join(info_strings)))
+        if not fetch_info.flags & fetch_info.FAST_FORWARD:
+            return False
+        ans = ask('The fetch was fast-forward. Do you want to merge?')
+        return ans == 'y'
 
     def checkout(self) -> None:
         """Interactively select revision and execute "git checkout <revision>" on it.
@@ -157,11 +194,11 @@ class Project:
         remote_tracking_branches = set(self.repo.tracking_branches.values())
 
         for (remote, branch) in self.repo.remote_branches:
-            remote_branch = '{}/{}'.format(remote, branch)
-            if remote_branch in remote_tracking_branches \
+            # remote_branch = '{}/{}'.format(remote, branch)
+            if (remote, branch) in remote_tracking_branches \
                     or branch in special_branches:
                 continue
-            to_checkout = branch if branch not in self.repo.branches else remote_branch
+            to_checkout = branch if branch not in self.repo.branches else '{}/{}'.format(remote, branch)
             revisions[keys[index]] = (to_checkout, 'based on {}'.format(remote))
             index += 1
 
@@ -197,9 +234,13 @@ class Project:
     def merge(self) -> None:
         if self.repo is None:
             self.link_repo()
-        raise NotImplementedError()
+        raise NotImplementedError('merging not yet implemented')
 
-    def push(self) -> None:
+    def push(self, all_branches: bool = False) -> None:
+        """Push current branch to it's tracking branch.
+
+        Or, push all local branches to their tracking branches.
+        """
         if self.repo is None:
             self.link_repo()
         raise NotImplementedError()

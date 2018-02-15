@@ -41,13 +41,10 @@ before_install: |
 install:
   - pip install -U pip
   - pip install -U -r dev_requirements.txt
-  # just some example Python packages
-  - git clone https://github.com/PyCQA/pylint ../pylint
-  - cd ../pylint && python setup.py build && cd -
+  # git repositories for testing
   - git clone https://github.com/mbdevpl/argunparse ../argunparse
-  - cd ../argunparse && python setup.py build && cd -
-  - git clone https://github.com/k-bx/python-semver ../semver
-  - cd ../semver && python setup.py build && cd -
+  - git clone https://github.com/mbdevpl/transpyle ../transpyle
+  - git clone https://github.com/mbdevpl/typed-astunparse ../typed-astunparse
 
 script:
   - python -m coverage run --branch --source . -m unittest discover --verbose

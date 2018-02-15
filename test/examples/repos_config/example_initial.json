@@ -1,0 +1,34 @@
+{
+  "description": "ingit repositories configuration file",
+  "ingit-version": "0.3.0",
+  "repos": [
+    {
+      "name": "argunparse",
+      "remotes": {
+        "host": "../argunparse"
+      },
+      "tags": ["cloned", "python"]
+    },
+    {
+      "name": "ingit",
+      "remotes": {
+        "host": "../ingit"
+      },
+      "tags": ["git", "python"]
+    },
+      {
+        "name": "transpyle",
+        "remotes": {
+          "host": "../transpyle"
+        },
+        "tags": ["python", "transpilation"]
+      },
+    {
+      "name": "typed-astunparse",
+      "remotes": {
+        "host": "../typed-astunparse"
+      },
+      "tags": ["python", "transpilation"]
+    }
+  ]
+}
