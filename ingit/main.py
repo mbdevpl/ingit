@@ -116,7 +116,8 @@ def main(args=None):
 
     parser = prepare_parser()
     parsed_args = parser.parse_args(args)
-    if parsed_args.predicate is not None and parsed_args.command == 'register':
+    if (parsed_args.predicate is not None or parsed_args.regex is not None) \
+            and parsed_args.command == 'register':
         parser.error('predicate is not applicable to "{}" command'
                      ' -- it can be used only with git commands'.format(parsed_args.command))
     _LOG.warning('parsed args: %s', parsed_args)

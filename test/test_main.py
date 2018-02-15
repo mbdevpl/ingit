@@ -46,6 +46,12 @@ class Tests(unittest.TestCase):
                     with contextlib.redirect_stdout(devnull):
                         main(flags)
 
+    def test_filtered_register(self):
+        with self.assertRaises(SystemExit):
+            main(['-p', 'something', 'register'])
+        with self.assertRaises(SystemExit):
+            main(['-r', 'True', 'register'])
+
     @unittest.skipUnless('CI' in os.environ, 'skipping test that affects user environment')
     def test_create_configs(self):
         with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
@@ -95,7 +101,9 @@ class RuntimeCommandTests(unittest.TestCase):
         path1 = pathlib.Path('.')
         path2 = pathlib.Path('.').resolve()
         path3 = pathlib.Path('..', 'ingit')
-        self.call_main('register', str(path1))
+        self.call_main('register')
+        with self.assertRaises(ValueError):
+            self.call_main('register', str(path1))
         with self.assertRaises(ValueError):
             self.call_main('register', str(path2))
         with self.assertRaises(ValueError):
@@ -157,7 +165,7 @@ class GitCommandTests(unittest.TestCase):
         call_main('-p', 'name == "{}"'.format(project_name), 'clone')
         self.assertTrue(repo_path.is_dir())
         self.assertTrue(repo_path.joinpath('.git').is_dir())
-        call_main('-p', 'name == "{}"'.format(project_name), 'clone')
+        call_main('-r', '^{}$'.format(project_name), 'clone')
 
     def test_clone_to_nonrepo_dir(self):
         project_name = 'argunparse'
