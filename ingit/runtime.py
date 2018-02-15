@@ -106,6 +106,7 @@ def run(runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
 
 
 def find_repos_path(runtime_config: dict, hostname: str) -> t.Optional[str]:
+    """Retrieve the repositories path applicable to target machine from runtime configuration."""
     for machine in runtime_config['machines']:
         names = []
         if 'name' in machine:
@@ -136,6 +137,7 @@ def resolve_runtime_config(runtime_config: dict) -> str:
 
 
 def resolve_repos_config(repos_config: dict, repos_path: pathlib.Path):
+    """Resolve raw JSON of repositories configuration."""
     projects = []
     for repo in repos_config['repos']:
         name = repo['name']

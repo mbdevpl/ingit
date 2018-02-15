@@ -58,7 +58,7 @@ class Project:
         return self.is_existing and self.has_git_folder_or_file
 
     def link_repo(self):
-        self.repo = RepoData(git.Repo(str(self.path)))
+        self.repo = RepoData(git.Repo(normalize_path(str(self.path))))
 
     def clone(self) -> None:
         """Execute "git clone --recursive --orign <remote-name> <remote-url> <path>".
