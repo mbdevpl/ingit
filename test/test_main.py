@@ -203,6 +203,14 @@ class GitCommandTests(unittest.TestCase):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
             call_main('-p', 'name == "{}"'.format(project_name), 'init')
+            call_main('-p', 'name == "{}"'.format(project_name), 'fetch')
+            self.assertTrue(repo_path.is_dir())
+            self.assertTrue(repo_path.joinpath('.git').is_dir())
+
+    def test_fetch_all(self):
+        for project_name in PROJECT_NAMES:
+            repo_path = pathlib.Path(self.repos_path, project_name)
+            call_main('-p', 'name == "{}"'.format(project_name), 'init')
             call_main('-p', 'name == "{}"'.format(project_name), 'fetch', '--all')
             self.assertTrue(repo_path.is_dir())
             self.assertTrue(repo_path.joinpath('.git').is_dir())

@@ -126,12 +126,27 @@ class Project:
     def fetch(self, all_remotes: bool = False) -> None:
         """Execute "git fetch --prune" on a remote of trancking branch of current branch.
 
-        Or execute "git fetch --prune" for all remotes."""
+        Or execute "git fetch --prune" for all remotes.
+        """
         if self.repo is None:
             self.link_repo()
         self.repo.refresh()
         # fetch_info = self.repo.git.fetch(all=all_remotes)
-        remote_names = self.repo.remotes if all_remotes else str(self.repo._repo.active_branch)
+        if all_remotes:
+            remote_names = self.repo.remotes
+        else:
+            branch = str(self.repo._repo.active_branch)
+            try:
+                remote_name, _ = self.repo.tracking_branches[branch]
+                remote_names = [remote_name]
+            except KeyError:
+                _LOG.warning('branch "%s" not configured, fetching all remotes', branch)
+                remote_names = self.repo.remotes
+            except TypeError:
+                _LOG.warning('current branch "%s" has no tracking branch, fetching all remotes',
+                             branch)
+                remote_names = self.repo.remotes
+
         for remote_name in remote_names:
             fetch_infos = self._fetch_single_remote(remote_name)
             if not fetch_infos:
