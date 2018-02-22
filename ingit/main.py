@@ -51,6 +51,10 @@ def prepare_parser():
         examples: "{}"'''.format('", "'.join(REGEX_EXAMPLES)))
 
     commands = {
+        'summary': (
+            'show summary of registered repositories',
+            '''By default, all registered repositories are listed, but, as in case of most commands,
+            the results can be filtered via a predicate or regex.'''),
         'register': (
             'start tracking a repository in ingit',
             '''The initial configuration is set according to basic repository information:

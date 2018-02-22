@@ -98,6 +98,9 @@ def run(runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
         projects = filter_projects(projects, predicate)
     if regex is not None:
         projects = filter_projects(projects, functools.partial(regex_predicate, regex))
+    if command == 'summary':
+        repositories_summary(repos_path, repos_config, projects, **command_options)
+        return
     if command == 'gc':
         command = 'collect_garbage'
     for project in projects:
@@ -156,6 +159,42 @@ def filter_projects(projects: t.Sequence[Project], predicate):
     filtered_projects = [project for project in projects
                          if predicate(project.name, project.tags, project.path, project.remotes)]
     return filtered_projects
+
+
+def repositories_summary(
+        repos_path: pathlib.Path, repos_config: dict, projects: t.Sequence[Project]):
+    """Add repo to ingit repositories configuration."""
+
+    all_count = len(projects)
+    was_filtered = all_count < len(repos_config['repos'])
+    if was_filtered:
+        print('Registered projects matching given conditions ({}):'.format(all_count))
+    else:
+        print('All registered projects ({}):'.format(all_count))
+    initialised_count = 0
+    for project in projects:
+        if project.is_initialised:
+            initialised_count += 1
+        print(' -', project)
+
+    if initialised_count == all_count:
+        print('all of them are initialised')
+    else:
+        print('{} of them are initialised ({} not)'
+              .format(initialised_count, all_count - initialised_count))
+
+    unregistered_count = 0
+    for path in repos_path.iterdir():
+        if not path.is_dir():
+            continue
+        try:
+            _ = git.Repo(str(path))
+            unregistered_count += 1
+        except git.exc.InvalidGitRepositoryError:
+            pass
+
+    print('there are {} unregistered git repositories in configured repositories root "{}"'
+          .format(unregistered_count, repos_path))
 
 
 def register_machine(runtime_config, name: str, repos_path: pathlib.Path):

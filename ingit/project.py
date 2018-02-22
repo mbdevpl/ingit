@@ -304,3 +304,14 @@ class Project:
                 print(line)
 
         self.repo.refresh()
+
+    def __str__(self):
+        fields = ['path="{}"'.format(self.path)]
+        if not self.is_initialised:
+            if not self.is_existing:
+                fields.append('not existing')
+            else:
+                fields.append('not initialized')
+        if self.tags:
+            fields.append('tags={}'.format(self.tags))
+        return '{} ({})'.format(self.name, ', '.join(fields))
