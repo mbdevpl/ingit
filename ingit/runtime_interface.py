@@ -11,6 +11,11 @@ _INTERRUPTS = {chr(3)}
 _NEWLINES = {'\n', '\r'}
 
 
+class RuntimeInterfaceConfig:
+
+    interactive = True
+
+
 def default_template(question, answers, default):
     answers_print = [(a.upper() if a == default else a) for a in answers]
     return '{} [{}] '.format(question, '/'.join(answers_print))
@@ -44,6 +49,8 @@ def ask(question: str, answers: t.Sequence[str] = None, default: str = None,
         default = answers[-1]
     assert isinstance(default, str), type(default)
     assert default in answers, (default, answers)
+    if autoanswer is None and not RuntimeInterfaceConfig.interactive:
+        autoanswer = True
     if autoanswer is True:
         autoanswer = default
     assert autoanswer is None or isinstance(autoanswer, str), type(autoanswer)

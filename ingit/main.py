@@ -6,6 +6,7 @@ import pathlib
 import sys
 
 from ._version import VERSION
+from .runtime_interface import RuntimeInterfaceConfig
 from .runtime import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, run
 
 _LOG = logging.getLogger(__name__)
@@ -27,8 +28,8 @@ def prepare_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter, allow_abbrev=True)
     parser.add_argument('--version', action='version',
                         version='ingit {}, Python {}'.format(VERSION, sys.version))
-    # parser.add_argument('--batch', '-b', action='store_true',
-    #                    help='run ingit in non-interactive mode')
+    parser.add_argument('--batch', '-b', action='store_true',
+                        help='run ingit in non-interactive mode')
 
     parser.add_argument(
         '--config', metavar='PATH', type=str, default=str(RUNTIME_CONFIG_PATH),
@@ -147,5 +148,7 @@ def main(args=None):
             else pathlib.Path(parsed_args.path)
     elif command == 'fetch':
         command_options['all_remotes'] = parsed_args.all
+
+    RuntimeInterfaceConfig.interactive = not parsed_args.batch
 
     run(runtime_config_path, repos_config_path, predicate, regex, command, **command_options)
