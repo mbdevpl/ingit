@@ -128,6 +128,9 @@ class Project:
 
         Or execute "git fetch --prune" for all remotes.
         """
+        if not self.is_existing:
+            print('skipping non-existing {}'.format(self.path))
+            return
         if self.repo is None:
             self.link_repo()
         self.repo.refresh()
@@ -185,7 +188,9 @@ class Project:
         - local tags
         - branches on all remotes
         """
-
+        if not self.is_existing:
+            print('skipping non-existing {}'.format(self.path))
+            return
         if self.repo is None:
             self.link_repo()
         self.repo.refresh()
@@ -247,6 +252,10 @@ class Project:
         self.repo.git.checkout(target)
 
     def merge(self) -> None:
+        """Execute "git merge" for current branch."""
+        if not self.is_existing:
+            print('skipping non-existing {}'.format(self.path))
+            return
         if self.repo is None:
             self.link_repo()
         raise NotImplementedError('merging not yet implemented')
@@ -256,12 +265,18 @@ class Project:
 
         Or, push all local branches to their tracking branches.
         """
+        if not self.is_existing:
+            print('skipping non-existing {}'.format(self.path))
+            return
         if self.repo is None:
             self.link_repo()
         raise NotImplementedError()
 
     def collect_garbage(self) -> None:
         """Execute "git gc --agressive --prune"."""
+        if not self.is_existing:
+            print('skipping non-existing {}'.format(self.path))
+            return
         if self.repo is None:
             self.link_repo()
 
@@ -272,6 +287,9 @@ class Project:
 
     def status(self) -> None:
         """Execute "git status --short" and run "git gui" if there is any output."""
+        if not self.is_existing:
+            print('skipping non-existing {}'.format(self.path))
+            return
         if self.repo is None:
             self.link_repo()
 
