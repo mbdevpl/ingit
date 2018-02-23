@@ -9,6 +9,7 @@ import re
 import typing as t
 
 import git
+import ordered_set
 
 from ._version import VERSION
 from .runtime_interface import ask
@@ -172,10 +173,15 @@ def repositories_summary(
     else:
         print('All registered projects ({}):'.format(all_count))
     initialised_count = 0
+    project_paths_in_root = ordered_set.OrderedSet()
     for project in projects:
         if project.is_initialised:
             initialised_count += 1
         print(' -', project)
+        try:
+            project_paths_in_root.add(project.path.relative_to(repos_path))
+        except:
+            pass
 
     if initialised_count == all_count:
         print('all of them are initialised')
@@ -183,18 +189,24 @@ def repositories_summary(
         print('{} of them are initialised ({} not)'
               .format(initialised_count, all_count - initialised_count))
 
-    unregistered_count = 0
+    unregistered_in_root = ordered_set.OrderedSet()
     for path in repos_path.iterdir():
         if not path.is_dir():
             continue
         try:
             _ = git.Repo(str(path))
-            unregistered_count += 1
         except git.exc.InvalidGitRepositoryError:
-            pass
+            # TODO: recurse into non-git dir here
+            continue
+        relative_path = path.relative_to(repos_path)
+        if relative_path in project_paths_in_root:
+            continue
+        unregistered_in_root.add(path)
 
     print('there are {} unregistered git repositories in configured repositories root "{}"'
-          .format(unregistered_count, repos_path))
+          .format(len(unregistered_in_root), repos_path))
+    for path in unregistered_in_root:
+        print(path)
 
 
 def register_machine(runtime_config, name: str, repos_path: pathlib.Path):
@@ -208,6 +220,7 @@ def register_repository(repos_path: pathlib.Path, repos_config: dict, projects: 
     """Add repo to ingit repositories configuration."""
     repo = git.Repo(str(path))
     repo_data = RepoData(repo)
+    repo_data.refresh()
     _LOG.warning('registering repository: %s', repo_data)
     repo_config = repo_data.generate_repo_configuration()
     try:

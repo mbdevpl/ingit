@@ -67,6 +67,7 @@ Currently available ingit-only commands are:
 
 .. code:: bash
 
+    ingit summary
     ingit register
 
 
