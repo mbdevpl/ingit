@@ -1,3 +1,4 @@
 gitpython >= 2.0
+ordered_set
 readchar == 0.1.0
 version_query
