@@ -189,6 +189,7 @@ def repositories_summary(
         print('{} of them are initialised ({} not)'
               .format(initialised_count, all_count - initialised_count))
 
+    non_repo_paths_in_root = ordered_set.OrderedSet()
     unregistered_in_root = ordered_set.OrderedSet()
     for path in repos_path.iterdir():
         if not path.is_dir():
@@ -197,17 +198,24 @@ def repositories_summary(
             _ = git.Repo(str(path))
         except git.exc.InvalidGitRepositoryError:
             # TODO: recurse into non-git dir here
+            non_repo_paths_in_root.add(path)
             continue
         relative_path = path.relative_to(repos_path)
         if relative_path in project_paths_in_root:
             continue
         unregistered_in_root.add(path)
 
-    print('there are {} unregistered git repositories in configured repositories root "{}"'
-          .format(len(unregistered_in_root), repos_path))
-    for path in unregistered_in_root:
-        print(path)
+    if unregistered_in_root:
+        print('there are {} unregistered git repositories in configured repositories root "{}"'
+              .format(len(unregistered_in_root), repos_path))
+        for path in unregistered_in_root:
+            print(path)
 
+    if non_repo_paths_in_root:
+        print('there are {} not versioned folders in configured repositories root "{}"'
+              .format(len(non_repo_paths_in_root), repos_path))
+        for path in non_repo_paths_in_root:
+            print(path)
 
 def register_machine(runtime_config, name: str, repos_path: pathlib.Path):
     machine_config = {'name': name, 'repos_path': str(repos_path)}
