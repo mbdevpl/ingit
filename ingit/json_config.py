@@ -4,11 +4,24 @@ import json
 import json.decoder
 import os
 import pathlib
+import platform
 import typing as t
+
+from ._version import VERSION
+from .runtime_interface import ask
 
 JSON_INDENT = 2
 
 JSON_ENSURE_ASCII = False
+
+CONFIG_DIRECTORIES = {
+    'Linux': pathlib.Path('~', '.config', 'ingit'),
+    'Darwin': pathlib.Path('~', 'Library', 'Preferences', 'ingit'),
+    'Windows': pathlib.Path('%LOCALAPPDATA%', 'ingit')}
+
+CONFIG_DIRECTORY = CONFIG_DIRECTORIES[platform.system()]
+RUNTIME_CONFIG_PATH = pathlib.Path(CONFIG_DIRECTORY, 'ingit_config.json')
+REPOS_CONFIG_PATH = pathlib.Path(CONFIG_DIRECTORY, 'ingit_repos.json')
 
 
 def normalize_path(path: t.Union[pathlib.Path, str]) -> t.Union[pathlib.Path, str]:
@@ -51,3 +64,46 @@ def file_to_json(path: pathlib.Path) -> dict:
     except ValueError as err:
         raise ValueError('in file "{}"'.format(path)) from err
     return data
+
+
+def default_runtime_configuration():
+    return {
+        'description': 'ingit runtime configuration file',
+        'ingit-version': VERSION,
+        'machines': [default_machine_configuration()]}
+
+
+def default_machine_configuration(name=None):
+    return {'interactive': True,
+            'name': platform.node() if name is None else name,
+            'repos_path': '~'}
+
+
+def default_repos_configuration():
+    return {
+        'description': 'ingit repositories configuration file',
+        'ingit-version': VERSION,
+        'repos': []}
+
+
+CONFIG_TYPES = {
+    'runtime': (default_runtime_configuration, 'Runtime'),
+    'repos': (default_repos_configuration, 'Repositories')}
+
+
+def acquire_configuration(path: pathlib.Path, config_type: str):
+    """Read (or create default) and return ingit configuration."""
+    default_generator, config_type_name = CONFIG_TYPES[config_type]
+    path = normalize_path(path)
+    try:
+        return file_to_json(path)
+    except FileNotFoundError as err:
+        ans = ask('{} configuration file {} does not exist. Create a default one?'
+                  .format(config_type_name, path))
+        if ans != 'y':
+            raise err
+        path.parent.mkdir(parents=True, exist_ok=True)
+        config = default_generator()
+        json_to_file(config, path)
+        return config
+    return file_to_json(path)

@@ -1,3 +1,10 @@
+# Jupyter Notebook
+/.ipynb_checkpoints
+*-checkpoint.ipynb
+
+# macOS
+.DS_Store
+
 # Python
 /build
 /dist
@@ -9,4 +16,5 @@ __pycache__
 
 # Python coverage
 /htmlcov
+/coverage.xml
 /.coverage

@@ -6,8 +6,8 @@ import pathlib
 import sys
 
 from ._version import VERSION
-from .runtime_interface import RuntimeInterfaceConfig
-from .runtime import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, run
+from .json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
+from .runtime import Runtime
 
 _LOG = logging.getLogger(__name__)
 
@@ -28,8 +28,15 @@ def prepare_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter, allow_abbrev=True)
     parser.add_argument('--version', action='version',
                         version='ingit {}, Python {}'.format(VERSION, sys.version))
-    parser.add_argument('--batch', '-b', action='store_true',
-                        help='run ingit in non-interactive mode')
+
+    feature_parser = parser.add_mutually_exclusive_group(required=False)
+    feature_parser.add_argument(
+        '--batch', '--non-interactive', dest='batch', action='store_true',
+        help='run ingit in non-interactive mode')
+    feature_parser.add_argument(
+        '--interactive', dest='batch', action='store_false',
+        help='force interactive mode even if configuration sets batch mode as default')
+    parser.set_defaults(batch=None)
 
     parser.add_argument(
         '--config', metavar='PATH', type=str, default=str(RUNTIME_CONFIG_PATH),
@@ -153,6 +160,13 @@ def main(args=None):
     elif command == 'fetch':
         command_options['all_remotes'] = parsed_args.all
 
-    RuntimeInterfaceConfig.interactive = not parsed_args.batch
+    interactive = None if parsed_args.batch is None else not parsed_args.batch
+    runtime = Runtime(runtime_config_path, repos_config_path, interactive=interactive)
 
-    run(runtime_config_path, repos_config_path, predicate, regex, command, **command_options)
+    if predicate is not None:
+        runtime.filter_projects(predicate)
+    if regex is not None:
+        runtime.filter_projects(regex)
+    runtime.execute(command, **command_options)
+
+    # run(runtime_config_path, repos_config_path, predicate, regex, command, **command_options)
