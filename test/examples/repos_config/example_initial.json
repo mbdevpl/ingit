@@ -12,23 +12,24 @@
     {
       "name": "ingit",
       "remotes": {
-        "host": "../ingit"
+        "host": "../ingit",
+        "mirror": "../ingit"
       },
-      "tags": ["git", "python"]
+      "tags": ["git", "this", "python"]
     },
-      {
-        "name": "transpyle",
-        "remotes": {
-          "host": "../transpyle"
-        },
-        "tags": ["python", "transpilation"]
+    {
+      "name": "transpyle",
+      "remotes": {
+        "host": "../transpyle"
       },
+      "tags": ["cloned", "python", "transpilation"]
+    },
     {
       "name": "typed-astunparse",
       "remotes": {
         "host": "../typed-astunparse"
       },
-      "tags": ["python", "transpilation"]
+      "tags": ["cloned", "python", "transpilation"]
     }
   ]
 }

@@ -129,6 +129,14 @@ class Tests(unittest.TestCase):
             call_main('-p', 'name == "{}"'.format(project_name), 'checkout', answer='n')
 
     @unittest.expectedFailure
+    def test_checkout_conflicting(self):
+        """Checkout remote branch for which there already exists local branch having a different
+        tracking branch, which will result in detached head.
+        """
+        # project_name = 'argunparse'
+        self.fail()
+
+    @unittest.expectedFailure
     def test_merge(self):
         for project_name in PROJECT_NAMES:
             call_main('-p', 'name == "{}"'.format(project_name), 'init')

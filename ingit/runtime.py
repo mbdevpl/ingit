@@ -93,7 +93,7 @@ class Runtime:
         for repo in self.repos_config['repos']:
             name = repo['name']
             if 'path' in repo:
-                path = pathlib.Path(repo['path'])
+                path = pathlib.Path(normalize_path(repo['path']))
                 if not path.is_absolute():
                     path = self.repos_path.joinpath(path)
             else:

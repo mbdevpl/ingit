@@ -218,7 +218,10 @@ class Project:
             if (remote, branch) in remote_tracking_branches \
                     or branch in special_branches:
                 continue
-            to_checkout = branch if branch not in self.repo.branches else '{}/{}'.format(remote, branch)
+            if branch in self.repo.branches:
+                to_checkout = '{}/{}'.format(remote, branch)
+            else:
+                to_checkout = branch
             revisions[keys[index]] = (to_checkout, 'based on {}'.format(remote))
             index += 1
 
@@ -324,7 +327,6 @@ class Project:
                 else:
                     # TODO: check extra remotes for identical urls
                     pass
-
 
     def __str__(self):
         fields = ['path="{}"'.format(self.path)]
