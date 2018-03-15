@@ -18,6 +18,7 @@ class RepoData:
         self._repo = repo
         self.remotes = {}
         self.branches = {}
+        self.active_branch = None
         self.remote_branches = {}
         self.tracking_branches = {}
 
@@ -26,23 +27,29 @@ class RepoData:
         return self._repo.git
 
     def refresh(self):
-        current_branch = None
-        current_tracking_branch = None
-        default_remote = None
+        """Refresh repository data."""
+
+        self.active_branch = None
         try:
             if self._repo.branches:
-                current_branch = str(self._repo.active_branch)
-            current_tracking_branch = self._repo.active_branch.tracking_branch()
-            if current_tracking_branch is not None:
-                current_tracking_branch = str(current_tracking_branch)
-            default_remote = current_tracking_branch.partition('/')[0]
+                self.active_branch = str(self._repo.active_branch)
         except TypeError:
-            _LOG.exception('repository %s is not on any branch', self._repo)
-        except AttributeError:
-            _LOG.exception('current branch in %s has no tracking branch', self._repo)
+            _LOG.warning('repository %s is not on any branch', self._repo)
 
-        self.branches = collections.OrderedDict([] if current_branch is None
-                                                else [(current_branch, None)])
+        current_tracking_branch = None
+        default_remote = None
+        if self.active_branch is not None:
+            try:
+                current_tracking_branch = self._repo.active_branch.tracking_branch()
+                if current_tracking_branch is not None:
+                    current_tracking_branch = str(current_tracking_branch)
+                default_remote = current_tracking_branch.partition('/')[0]
+            except AttributeError:
+                _LOG.warning('current branch "%s" in %s has no tracking branch',
+                             self.active_branch, self._repo)
+
+        self.branches = collections.OrderedDict([] if self.active_branch is None
+                                                else [(self.active_branch, None)])
         self.branches.update(collections.OrderedDict([(str(_), _) for _ in self._repo.branches]))
         assert all(_ is not None for name, _ in self.branches.items()), (self._repo, self.branches)
 
