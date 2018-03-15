@@ -226,14 +226,12 @@ class Project:
             revisions[keys[index]] = (to_checkout, 'based on {}'.format(remote))
             index += 1
 
-        active_branch = self.repo._repo.active_branch
-        if active_branch is None:
+        if self.repo.active_branch is None:
             revisions['n'] = ('---', 'keep no branch/tag')
         else:
-            active_branch = str(active_branch)
             # assert revisions['1'][0] == active_branch
             for key, (revision, comment) in revisions.items():
-                if revision == active_branch:
+                if revision == self.repo.active_branch:
                     _ = 'no change'
                     comment = '{}, {}'.format(comment, _) if comment else _
                     revisions[key] = (revision, comment)
@@ -250,7 +248,7 @@ class Project:
         if answer == 'n':
             return
         target, _ = revisions[answer]
-        if target == active_branch:
+        if target == self.repo.active_branch:
             return
 
         self.repo.git.checkout(target)

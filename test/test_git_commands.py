@@ -109,16 +109,23 @@ class Tests(unittest.TestCase):
             self.assertTrue(repo_path.is_dir())
             self.assertTrue(repo_path.joinpath('.git').is_dir())
 
-    @unittest.expectedFailure
     def test_checkout_detached(self):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
+            self.assertFalse(repo_path.is_dir())
             call_main('-p', 'name == "{}"'.format(project_name), 'clone')
+            self.assertTrue(repo_path.is_dir())
             repo = git.Repo(str(repo_path))
             head_ref = repo.head.commit.hexsha
-            repo.git.checkout(head_ref)
-            call_main('-p', 'name == "{}"'.format(project_name), 'checkout')
-            self.assertTrue(repo_path.is_dir())
+            for commit in repo.iter_commits():
+                if not commit.parents:
+                    initial_ref = commit.hexsha
+                    break
+            repo.git.checkout(initial_ref)
+            call_main('-p', 'name == "{}"'.format(project_name), 'checkout', answer='n')
+            self.assertEqual(repo.head.commit.hexsha, initial_ref)
+            call_main('-p', 'name == "{}"'.format(project_name), 'checkout', answer='1')
+            self.assertEqual(repo.head.commit.hexsha, head_ref)
 
     def test_checkout(self):
         for project_name in PROJECT_NAMES:
