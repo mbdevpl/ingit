@@ -45,7 +45,7 @@ class Tests(unittest.TestCase):
             self.assertTrue(repo_path.is_dir())
             self.assertTrue(repo_path.joinpath('.git').is_dir())
 
-    def test_clone(self):
+    def test_clone_no(self):
         project_name = 'argunparse'
         repo_path = pathlib.Path(self.repos_path, project_name)
         call_main('-p', 'name == "{}"'.format(project_name), 'clone', answer='n')
