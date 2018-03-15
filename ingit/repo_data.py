@@ -66,15 +66,6 @@ class RepoData:
             (remote_name, str(_).replace('{}/'.format(remote_name), '')): _
             for remote_name, remote in self.remotes.items() for _ in remote.refs}
 
-    def all_branches_are_tracked(self) -> bool:
-        """True if all local branches have remote tracking branches."""
-        return len(self.branches) == len(self.tracking_branches)
-
-    def has_all_remotes(self, remote_names) -> bool:
-        """True if this git project has all and only those remotes required by config."""
-        return len(self.remotes) == len(remote_names) and all([
-            remote_name in self.remotes for remote_name in remote_names])
-
     def generate_repo_configuration(self):
         path = pathlib.Path(self._repo.working_tree_dir)
         return {

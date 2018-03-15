@@ -37,11 +37,6 @@ class Project:
         return self.path.is_dir()
 
     @property
-    def is_project_dir_current(self) -> bool:
-        """True if current working directory is this project's working directory."""
-        return self.is_existing and self.path == pathlib.Path.cwd()
-
-    @property
     def has_git_folder(self) -> bool:
         """True if repo has .git folder."""
         return self.path.joinpath('.git').is_dir()
