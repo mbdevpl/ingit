@@ -3,6 +3,7 @@
 import collections
 import logging
 import pathlib
+import typing as t
 
 import git
 
@@ -23,7 +24,12 @@ class Project:
 
     """Single project."""
 
-    def __init__(self, name, tags: set, path: pathlib.Path, remotes: collections.OrderedDict):
+    def __init__(self, name: str, tags: t.Collection[str], path: pathlib.Path,
+                 remotes: t.Mapping[str, str]):
+        assert isinstance(name, str), type(name)
+        assert isinstance(tags, collections.abc.Collection), type(tags)
+        assert isinstance(path, pathlib.Path), type(path)
+        assert isinstance(remotes, collections.abc.Mapping), type(remotes)
         self.name = name
         self.tags = {tag for tag in tags}
         self.path = path
