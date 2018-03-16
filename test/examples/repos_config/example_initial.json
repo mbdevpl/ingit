@@ -5,31 +5,24 @@
     {
       "name": "argunparse",
       "remotes": {
-        "host": "../argunparse"
+        "host": "../argunparse",
+        "mirror": "../argunparse"
       },
-      "tags": ["cloned", "python"]
-    },
-    {
-      "name": "ingit",
-      "remotes": {
-        "host": "../ingit",
-        "mirror": "../ingit"
-      },
-      "tags": ["git", "this", "python"]
+      "tags": ["python"]
     },
     {
       "name": "transpyle",
       "remotes": {
         "host": "../transpyle"
       },
-      "tags": ["cloned", "python", "transpilation"]
+      "tags": ["python", "transpilation"]
     },
     {
       "name": "typed-astunparse",
       "remotes": {
         "host": "../typed-astunparse"
       },
-      "tags": ["cloned", "python", "transpilation"]
+      "tags": ["python", "transpilation"]
     }
   ]
 }

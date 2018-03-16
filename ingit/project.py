@@ -24,10 +24,10 @@ class Project:
 
     """Single project."""
 
-    def __init__(self, name: str, tags: t.Collection[str], path: pathlib.Path,
+    def __init__(self, name: str, tags: t.Iterable[str], path: pathlib.Path,
                  remotes: t.Mapping[str, str]):
         assert isinstance(name, str), type(name)
-        assert isinstance(tags, collections.abc.Collection), type(tags)
+        assert isinstance(tags, collections.abc.Iterable), type(tags)
         assert isinstance(path, pathlib.Path), type(path)
         assert isinstance(remotes, collections.abc.Mapping), type(remotes)
         self.name = name

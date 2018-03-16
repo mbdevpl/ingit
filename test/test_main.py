@@ -24,7 +24,7 @@ TEST_RUNTIME_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'runtime_config', 'exa
 TEST_REPOS_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'repos_config', 'example_initial.json')
 # TEST_REPOS_CONFIG = file_to_json(TEST_REPOS_CONFIG_PATH)
 
-PROJECT_NAMES = ('argunparse', 'ingit', 'transpyle', 'typed-astunparse')
+PROJECT_NAMES = ('argunparse', 'transpyle', 'typed-astunparse')
 
 
 class Tests(unittest.TestCase):
