@@ -96,5 +96,51 @@ class Tests(GitRepoTests):
     # def test_gc(self):
     #    pass
 
-    # def test_status(self):
-    #    pass
+    def test_status(self):
+        self.git_init()
+        self.repo.git.remote('add', 'origin', _REMOTE)
+        project = Project('example', [], self.repo_path, {'origin': _REMOTE})
+        project.status()
+
+    def test_status_unclear(self):
+        self.git_init()
+        self.repo.git.remote('add', 'origin', _REMOTE)
+        project = Project('example', [], self.repo_path, {'origin': _REMOTE})
+        path = self.git_commit_new_file()
+        self.git_modify_file(path)
+        project.status()
+        self.git_modify_file(path, add=True)
+        project.status()
+        self.git_modify_file(path, commit=True)
+        project.status()
+
+    def test_status_extra_remote(self):
+        self.git_init()
+        self.repo.git.remote('add', 'origin', _REMOTE)
+        self.repo.git.remote('add', 'mirror', _REMOTE)
+        project = Project('example', [], self.repo_path, {'origin': _REMOTE})
+        project.status()
+
+    def test_status_missing_remote(self):
+        self.git_init()
+        project = Project('example', [], self.repo_path, {'origin': _REMOTE})
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
+            project.status()
+        self.assertIn('origin', self.repo.git.remote(v=True))
+        self.assertIn(_REMOTE, self.repo.git.remote(v=True))
+
+    def test_status_missing_remote_no(self):
+        self.git_init()
+        project = Project('example', [], self.repo_path, {'origin': _REMOTE})
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
+            project.status()
+        self.assertNotIn('origin', self.repo.git.remote(v=True))
+        self.assertNotIn(_REMOTE, self.repo.git.remote(v=True))
+
+    def test_status_bad_remote(self):
+        self.git_init()
+        self.repo.git.remote('add', 'mirror', _REMOTE)
+        project = Project('example', [], self.repo_path, {'origin': _REMOTE})
+        project.status()
+        self.assertNotIn('origin', self.repo.git.remote(v=True))
+        self.assertIn(_REMOTE, self.repo.git.remote(v=True))

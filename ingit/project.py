@@ -307,25 +307,23 @@ class Project:
 
         self.repo.refresh()
 
-        if len(self.repo.remotes) != len(self.remotes):
-            print('!! repo "{}" has different number of remotes than it should'
-                  .format(self.path))
-            remotes_in_config = set(self.remotes)
-            remotes = set(self.repo.remotes)
-            extra_remotes = remotes - remotes_in_config
-            missing_remotes = remotes_in_config - remotes
+        remotes_in_config = set(self.remotes)
+        remotes = set(self.repo.remotes)
+        extra_remotes = remotes - remotes_in_config
+        missing_remotes = remotes_in_config - remotes
+        if extra_remotes or missing_remotes:
+            print('!! repo "{}" has different remotes than it should'.format(self.path))
             for extra_remote in extra_remotes:
                 print('!! extra remote: "{}"'.format(extra_remote))
             for missing_remote in missing_remotes:
                 print('!! missing remote: "{}"'.format(missing_remote))
-                if not extra_remotes:
-                    ans = ask('add remote "{}" with url "{}"?'
-                              .format(missing_remote, self.remotes[missing_remote]))
-                    if ans == 'y':
-                        self.repo.git.remote('add', missing_remote, self.remotes[missing_remote])
-                else:
+                if extra_remotes:
                     # TODO: check extra remotes for identical urls
-                    pass
+                    continue
+                ans = ask('add remote "{}" with url "{}"?'
+                          .format(missing_remote, self.remotes[missing_remote]))
+                if ans == 'y':
+                    self.repo.git.remote('add', missing_remote, self.remotes[missing_remote])
 
     def __str__(self):
         fields = ['path="{}"'.format(self.path)]
