@@ -33,7 +33,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def _create_operation_strings(op_code: int):
-    """ Creates operation strings. """
+    """Create operation strings."""
     operation_strings = []
     for key, value in _KNOWN_OPERATIONS_STRINGS.items():
         if op_code & key:

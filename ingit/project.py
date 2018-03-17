@@ -135,21 +135,11 @@ class Project:
         if self.repo is None:
             self.link_repo()
         self.repo.refresh()
-        # fetch_info = self.repo.git.fetch(all=all_remotes)
+
         if all_remotes:
             remote_names = self.repo.remotes
         else:
-            branch = str(self.repo._repo.active_branch)
-            try:
-                remote_name, _ = self.repo.tracking_branches[branch]
-                remote_names = [remote_name]
-            except KeyError:
-                _LOG.warning('branch "%s" not configured, fetching all remotes', branch)
-                remote_names = self.repo.remotes
-            except TypeError:
-                _LOG.warning('current branch "%s" has no tracking branch, fetching all remotes',
-                             branch)
-                remote_names = self.repo.remotes
+            remote_names = self._determine_remotes_to_fetch()
 
         for remote_name in remote_names:
             fetch_infos = self._fetch_single_remote(remote_name)
@@ -160,6 +150,22 @@ class Project:
                 merge = self._interpret_fetch_info(fetch_info)
                 if merge:
                     raise NotImplementedError('merging not yet implemented')
+
+    def _determine_remotes_to_fetch(self):
+        if self.repo.active_branch is None:
+            _LOG.warning('repo %s is not on any branch, fetching all remotes', self.repo)
+            return self.repo.remotes
+        try:
+            remote_name, _ = self.repo.tracking_branches[self.repo.active_branch]
+        except KeyError:
+            _LOG.warning('branch "%s" not configured, fetching all remotes',
+                         self.repo.active_branch)
+            return self.repo.remotes
+        except TypeError:
+            _LOG.warning('current branch "%s" has no tracking branch, fetching all remotes',
+                         self.repo.active_branch)
+            return self.repo.remotes
+        return [remote_name]
 
     def _fetch_single_remote(self, remote_name: str):
         try:
@@ -199,9 +205,29 @@ class Project:
         # if self.is_on_only_branch():
         #    return
 
+        keys = '1234567890abcdefghijklmopqrstuvwxz'
+        revisions = self._prepare_checkout_list(keys)
+
+        print('Checkout options:')
+        for key, (revision, comment) in revisions.items():
+            if comment is None:
+                print('  {}: {}'.format(key, revision))
+            else:
+                print('  {}: {} ({})'.format(key, revision, comment))
+
+        answer = ask('Which branch to checkout?',
+                     answers=[key for key in keys[:len(revisions)]] + ['n'])
+        if answer == 'n':
+            return
+        target, _ = revisions[answer]
+        if target == self.repo.active_branch:
+            return
+
+        self.repo.git.checkout(target)
+
+    def _prepare_checkout_list(self, keys: str):
         revisions = collections.OrderedDict()
 
-        keys = '1234567890abcdefghijklmopqrstuvwxz'
         index = 0
         for branch in self.repo.branches:
             revisions[keys[index]] = (branch, None)
@@ -237,21 +263,7 @@ class Project:
                     revisions[key] = (revision, comment)
                     break
 
-        print('Checkout options:')
-        for key, (revision, comment) in revisions.items():
-            if comment is None:
-                print('  {}: {}'.format(key, revision))
-            else:
-                print('  {}: {} ({})'.format(key, revision, comment))
-
-        answer = ask('Which branch to checkout?', answers=[key for key in keys[:index]] + ['n'])
-        if answer == 'n':
-            return
-        target, _ = revisions[answer]
-        if target == self.repo.active_branch:
-            return
-
-        self.repo.git.checkout(target)
+        return revisions
 
     def merge(self) -> None:
         """Execute "git merge" for current branch."""
@@ -272,7 +284,7 @@ class Project:
             return
         if self.repo is None:
             self.link_repo()
-        raise NotImplementedError()
+        raise NotImplementedError('pushing not yet implemented')
 
     def collect_garbage(self) -> None:
         """Execute "git gc --agressive --prune"."""
@@ -307,6 +319,9 @@ class Project:
 
         self.repo.refresh()
 
+        self._status_remotes()
+
+    def _status_remotes(self):
         remotes_in_config = set(self.remotes)
         remotes = set(self.repo.remotes)
         extra_remotes = remotes - remotes_in_config
