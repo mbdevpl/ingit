@@ -15,6 +15,8 @@ PREDICATE_EXAMPLES = ['''name.startswith('py_')''', ''' 'python' in tags''']
 
 REGEX_EXAMPLES = ['^py_.*', '^python$']
 
+OUT = logging.getLogger('ingit.interface.print')
+
 
 def prepare_parser():
     """Prepare command-line arguments parser."""
@@ -37,6 +39,20 @@ def prepare_parser():
         '--interactive', dest='batch', action='store_false',
         help='force interactive mode even if configuration sets batch mode as default')
     parser.set_defaults(batch=None)
+
+    verbosity_group = parser.add_mutually_exclusive_group(required=False)
+    verbosity_group.add_argument(
+        '--verbose', '-v', action='count',
+        help='ingit should be more verbose than by default'
+        ' (repeat up to 2 times for stronger effect)')
+    verbosity_group.add_argument(
+        '--quiet', '-q', action='count',
+        help='ingit should be more quiet than by default'
+        ' (repeat up to 3 times for stronger effect)')
+    verbosity_group.add_argument(
+        '--verbosity', metavar='LEVEL', type=int, default=logging.CRITICAL - logging.WARNING,
+        help='set verbosity level explicitly (normally from {} to {})'
+        .format(logging.CRITICAL - logging.CRITICAL, logging.CRITICAL - logging.NOTSET))
 
     parser.add_argument(
         '--config', metavar='PATH', type=str, default=str(RUNTIME_CONFIG_PATH),
@@ -132,7 +148,17 @@ def main(args=None):
             and parsed_args.command == 'register':
         parser.error('predicate is not applicable to "{}" command'
                      ' -- it can be used only with git commands'.format(parsed_args.command))
+
     _LOG.warning('parsed args: %s', parsed_args)
+    level = logging.CRITICAL
+    if parsed_args.verbose is not None:
+        level -= 10 * parsed_args.verbose
+    if parsed_args.quiet is not None:
+        level += 10 * parsed_args.quiet
+    if parsed_args.verbosity is not None:
+        level -= parsed_args.verbosity
+    OUT.setLevel(level)
+    assert level == OUT.getEffectiveLevel(), (level, OUT.getEffectiveLevel())
 
     runtime_config_path = pathlib.Path(parsed_args.config)
     repos_config_path = pathlib.Path(parsed_args.repos)

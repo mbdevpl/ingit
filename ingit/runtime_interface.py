@@ -2,6 +2,8 @@
 
 import collections
 import collections.abc
+import logging
+import sys
 import typing as t
 
 import readchar
@@ -9,6 +11,12 @@ import readchar
 _INTERRUPTS = {chr(3)}
 
 _NEWLINES = {'\n', '\r'}
+
+OUT = logging.getLogger('ingit.interface.print')
+
+OUT_HANDLER = logging.StreamHandler(sys.stdout)
+OUT_HANDLER.setLevel(logging.NOTSET)
+OUT.addHandler(OUT_HANDLER)
 
 
 def default_template(question, answers, default):
