@@ -173,8 +173,8 @@ class Project:
             fetch_infos = self.repo.remotes[remote_name].fetch(prune=True, progress=progress)
             progress.finalize()
         except git.GitCommandError as err:
-            raise ValueError('error while fetching remote "{}" in "{}"'
-                             .format(remote_name, self.name)) from err
+            raise ValueError('error while fetching remote "{}" ("{}") in "{}"'.format(
+                remote_name, self.repo.remotes[remote_name].url, self.name)) from err
         return fetch_infos
 
     def _interpret_fetch_info(self, fetch_info) -> bool:
@@ -184,8 +184,9 @@ class Project:
                 prefix, fetch_info.ref, self.name, ', '.join(info_strings)))
         if not fetch_info.flags & fetch_info.FAST_FORWARD:
             return False
-        ans = ask('The fetch was fast-forward. Do you want to merge?')
-        return ans == 'y'
+        # ans = ask('The fetch was fast-forward. Do you want to merge?')
+        # return ans == 'y'
+        return False
 
     def checkout(self) -> None:
         """Interactively select revision and execute "git checkout <revision>" on it.

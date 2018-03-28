@@ -3,6 +3,7 @@
 import collections
 import logging
 import pathlib
+import typing as t
 
 import git
 
@@ -16,17 +17,17 @@ class RepoData:
     def __init__(self, repo: git.Repo):
         assert isinstance(repo, git.Repo), type(repo)
         self._repo = repo
-        self.remotes = {}
-        self.branches = {}
-        self.active_branch = None
-        self.remote_branches = {}
-        self.tracking_branches = {}
+        self.remotes = {}  # type: t.Mapping[str, git.Remote]
+        self.branches = {}  # type: t.Mapping[str, git.Reference]
+        self.active_branch = None  # type: str
+        self.remote_branches = {}  # type: t.Mapping[str, git.Reference]
+        self.tracking_branches = {}  # type: t.Mapping[str, git.Reference]
 
     @property
     def git(self):
         return self._repo.git
 
-    def refresh(self):
+    def refresh(self) -> None:
         """Refresh repository data."""
 
         self.active_branch = None
@@ -66,7 +67,7 @@ class RepoData:
             (remote_name, str(_).replace('{}/'.format(remote_name), '')): _
             for remote_name, remote in self.remotes.items() for _ in remote.refs}
 
-    def generate_repo_configuration(self):
+    def generate_repo_configuration(self) -> t.Mapping[str, t.Any]:
         path = pathlib.Path(self._repo.working_tree_dir)
         return {
             'name': path.name,

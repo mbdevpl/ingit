@@ -29,11 +29,11 @@ def prepare_parser():
     parser.add_argument('--version', action='version',
                         version='ingit {}, Python {}'.format(VERSION, sys.version))
 
-    feature_parser = parser.add_mutually_exclusive_group(required=False)
-    feature_parser.add_argument(
+    interactivity_group = parser.add_mutually_exclusive_group(required=False)
+    interactivity_group.add_argument(
         '--batch', '--non-interactive', dest='batch', action='store_true',
         help='run ingit in non-interactive mode')
-    feature_parser.add_argument(
+    interactivity_group.add_argument(
         '--interactive', dest='batch', action='store_false',
         help='force interactive mode even if configuration sets batch mode as default')
     parser.set_defaults(batch=None)
