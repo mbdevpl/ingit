@@ -15,6 +15,8 @@ from .fetch_flags import create_fetch_info_strings
 
 _LOG = logging.getLogger(__name__)
 
+OUT = logging.getLogger('ingit.interface.print')
+
 
 def normalize_url(url: str):
     return normalize_path(url)
@@ -75,7 +77,7 @@ class Project:
         configured remotes.
         """
         if self.is_initialised:
-            print('repo {} already initialised'.format(self.path))
+            OUT.info('repo {} already initialised'.format(self.path))
             return
         if self.is_existing:
             raise ValueError('directory already exists... please check, delete it, and try again')
@@ -85,7 +87,7 @@ class Project:
 
         if ask('Execute "git clone {} --recursive --origin={} {}"?'
                .format(remote_url, remote_name, self.path)) != 'y':
-            print('skipping {}'.format(self.path))
+            OUT.warning('skipping {}'.format(self.path))
             return
 
         try:
@@ -110,13 +112,13 @@ class Project:
         This is followed by "git remote add <remote-name> <remote-url>" for each configured remote.
         """
         if self.is_initialised:
-            print('repo {} already initialised'.format(self.path))
+            OUT.error('repo {} already initialised'.format(self.path))
             return
         if self.is_existing:
             raise ValueError('directory already exists... please check, delete it, and try again')
 
         if ask('Execute "git init {}"?'.format(self.path)) != 'y':
-            print('skipping {}'.format(self.path))
+            OUT.warning('skipping {}'.format(self.path))
             return
 
         self.repo = RepoData(git.Repo.init(normalize_path(str(self.path))))
@@ -130,7 +132,7 @@ class Project:
         Or execute "git fetch --prune" for all remotes.
         """
         if not self.is_existing:
-            print('skipping non-existing {}'.format(self.path))
+            OUT.info('skipping non-existing "%s"...', self.path)
             return
         if self.repo is None:
             self.link_repo()
@@ -153,7 +155,7 @@ class Project:
 
     def _determine_remotes_to_fetch(self):
         if self.repo.active_branch is None:
-            _LOG.warning('repo %s is not on any branch, fetching all remotes', self.repo)
+            OUT.warning('!! "%s" is not on any branch, fetching all remotes', self.path)
             return self.repo.remotes
         try:
             remote_name, _ = self.repo.tracking_branches[self.repo.active_branch]
@@ -162,8 +164,8 @@ class Project:
                          self.repo.active_branch)
             return self.repo.remotes
         except TypeError:
-            _LOG.warning('current branch "%s" has no tracking branch, fetching all remotes',
-                         self.repo.active_branch)
+            OUT.warning('!! branch "%s" in "%s" has no tracking branch, fetching all remotes',
+                        self.repo.active_branch, self.path)
             return self.repo.remotes
         return [remote_name]
 
@@ -180,7 +182,9 @@ class Project:
     def _interpret_fetch_info(self, fetch_info) -> bool:
         info_strings, prefix = create_fetch_info_strings(fetch_info)
         if info_strings:
-            print('{} fetched "{}" in "{}"; {}'.format(
+            level = logging.WARNING if fetch_info.flags & fetch_info.HEAD_UPTODATE \
+                else logging.CRITICAL
+            OUT.log(level, '{} fetched "{}" in "{}"; {}'.format(
                 prefix, fetch_info.ref, self.name, ', '.join(info_strings)))
         if not fetch_info.flags & fetch_info.FAST_FORWARD:
             return False
@@ -197,7 +201,7 @@ class Project:
         - branches on all remotes
         """
         if not self.is_existing:
-            print('skipping non-existing {}'.format(self.path))
+            OUT.info('skipping non-existing "%s"...', self.path)
             return
         if self.repo is None:
             self.link_repo()
@@ -269,7 +273,7 @@ class Project:
     def merge(self) -> None:
         """Execute "git merge" for current branch."""
         if not self.is_existing:
-            print('skipping non-existing {}'.format(self.path))
+            OUT.info('skipping non-existing "%s"...', self.path)
             return
         if self.repo is None:
             self.link_repo()
@@ -281,7 +285,7 @@ class Project:
         Or, push all local branches to their tracking branches.
         """
         if not self.is_existing:
-            print('skipping non-existing {}'.format(self.path))
+            OUT.info('skipping non-existing "%s"...', self.path)
             return
         if self.repo is None:
             self.link_repo()
@@ -290,7 +294,7 @@ class Project:
     def collect_garbage(self) -> None:
         """Execute "git gc --agressive --prune"."""
         if not self.is_existing:
-            print('skipping non-existing {}'.format(self.path))
+            OUT.info('skipping non-existing "%s"...', self.path)
             return
         if self.repo is None:
             self.link_repo()
@@ -303,7 +307,7 @@ class Project:
     def status(self) -> None:
         """Execute "git status --short" and run "git gui" if there is any output."""
         if not self.is_existing:
-            print('skipping non-existing {}'.format(self.path))
+            OUT.info('skipping non-existing "%s"...', self.path)
             return
         if self.repo is None:
             self.link_repo()
@@ -314,9 +318,9 @@ class Project:
             raise ValueError('error while getting status of "{}"'.format(self.path)) from err
 
         if status_log:
-            print('!! unclear status in "{}":'.format(self.path))
+            OUT.critical('!! unclear status in "{}":'.format(self.path))
             for line in status_log:
-                print(line)
+                OUT.critical(line)
 
         self.repo.refresh()
 
@@ -328,11 +332,11 @@ class Project:
         extra_remotes = remotes - remotes_in_config
         missing_remotes = remotes_in_config - remotes
         if extra_remotes or missing_remotes:
-            print('!! repo "{}" has different remotes than it should'.format(self.path))
+            OUT.critical('!! repo "%s" has different remotes than it should', self.path)
             for extra_remote in extra_remotes:
-                print('!! extra remote: "{}"'.format(extra_remote))
+                OUT.critical('!! extra remote: "%s"', extra_remote)
             for missing_remote in missing_remotes:
-                print('!! missing remote: "{}"'.format(missing_remote))
+                OUT.critical('!! missing remote: "%s"', missing_remote)
                 if extra_remotes:
                     # TODO: check extra remotes for identical urls
                     continue

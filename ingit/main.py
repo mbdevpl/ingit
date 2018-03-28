@@ -149,7 +149,6 @@ def main(args=None):
         parser.error('predicate is not applicable to "{}" command'
                      ' -- it can be used only with git commands'.format(parsed_args.command))
 
-    _LOG.warning('parsed args: %s', parsed_args)
     level = logging.CRITICAL
     if parsed_args.verbose is not None:
         level -= 10 * parsed_args.verbose
@@ -159,6 +158,8 @@ def main(args=None):
         level -= parsed_args.verbosity
     OUT.setLevel(level)
     assert level == OUT.getEffectiveLevel(), (level, OUT.getEffectiveLevel())
+
+    OUT.info('parsed args: %s', parsed_args)
 
     runtime_config_path = pathlib.Path(parsed_args.config)
     repos_config_path = pathlib.Path(parsed_args.repos)
