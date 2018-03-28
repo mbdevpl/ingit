@@ -149,9 +149,12 @@ class Project:
                 _LOG.warning('no fetch info after fetching from remote "%s" in "%s"',
                              remote_name, self.name)
             for fetch_info in fetch_infos:
-                merge = self._interpret_fetch_info(fetch_info)
-                if merge:
-                    raise NotImplementedError('merging not yet implemented')
+                self._print_fetch_info(fetch_info)
+                if fetch_info.flags & fetch_info.FAST_FORWARD:
+                    # ans = ask('The fetch was fast-forward. Do you want to merge?')
+                    # if ans == 'y':
+                    #    raise NotImplementedError('merging not yet implemented')
+                    pass
 
     def _determine_remotes_to_fetch(self):
         if self.repo.active_branch is None:
@@ -160,8 +163,8 @@ class Project:
         try:
             remote_name, _ = self.repo.tracking_branches[self.repo.active_branch]
         except KeyError:
-            _LOG.warning('branch "%s" not configured, fetching all remotes',
-                         self.repo.active_branch)
+            _LOG.warning('branch "%s" in "%s" not configured, fetching all remotes',
+                         self.repo.active_branch, self.path)
             return self.repo.remotes
         except TypeError:
             OUT.warning('!! branch "%s" in "%s" has no tracking branch, fetching all remotes',
@@ -179,18 +182,14 @@ class Project:
                 remote_name, self.repo.remotes[remote_name].url, self.name)) from err
         return fetch_infos
 
-    def _interpret_fetch_info(self, fetch_info) -> bool:
+    def _print_fetch_info(self, fetch_info) -> bool:
         info_strings, prefix = create_fetch_info_strings(fetch_info)
-        if info_strings:
-            level = logging.WARNING if fetch_info.flags & fetch_info.HEAD_UPTODATE \
-                else logging.CRITICAL
-            OUT.log(level, '{} fetched "{}" in "{}"; {}'.format(
-                prefix, fetch_info.ref, self.name, ', '.join(info_strings)))
-        if not fetch_info.flags & fetch_info.FAST_FORWARD:
-            return False
-        # ans = ask('The fetch was fast-forward. Do you want to merge?')
-        # return ans == 'y'
-        return False
+        if not info_strings:
+            return
+        level = logging.WARNING if fetch_info.flags & fetch_info.HEAD_UPTODATE \
+            else logging.CRITICAL
+        OUT.log(level, '{} fetched "{}" in "{}"; {}'.format(
+            prefix, fetch_info.ref, self.name, ', '.join(info_strings)))
 
     def checkout(self) -> None:
         """Interactively select revision and execute "git checkout <revision>" on it.
@@ -340,7 +339,7 @@ class Project:
                 if extra_remotes:
                     # TODO: check extra remotes for identical urls
                     continue
-                ans = ask('add remote "{}" with url "{}"?'
+                ans = ask('Add remote "{}" with url "{}"?'
                           .format(missing_remote, self.remotes[missing_remote]))
                 if ans == 'y':
                     self.repo.git.remote('add', missing_remote, self.remotes[missing_remote])
