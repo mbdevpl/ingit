@@ -322,8 +322,67 @@ class Project:
                 OUT.critical(line)
 
         self.repo.refresh()
-
+        self._status_branch()
         self._status_remotes()
+
+    def _get_log(self, start_ref: str, end_ref: str) -> str:
+        """Get log as if start_ref..end_ref was used."""
+        refs = '{}..{}'.format(start_ref, end_ref)
+        # return self.repo.git.log('--pretty=oneline', refs, color='always').splitlines()
+        return self.repo.git.log('--color=always', '--pretty=oneline', refs).splitlines()
+
+    def _print_log(self, ref_log, printed_header: str = '', head_count: int = 10,
+                   tail_count: int = 10) -> None:
+        if printed_header:
+            OUT.critical(printed_header)
+        if len(ref_log) > head_count + tail_count + 1:
+            for line in ref_log[:head_count]:
+                OUT.critical(line)
+            OUT.critical(
+                '... skipped {} commits'.format(len(ref_log) - head_count - tail_count))
+            for line in ref_log[-tail_count:]:
+                OUT.critical(line)
+        else:
+            for line in ref_log:
+                OUT.critical(line)
+
+    def _status_branch(self, branch: str = None) -> None:
+        """Evaluate the status of single branch by comparing it to the remote branch.
+
+        auto-answers used in this function: create_remote_branch, push, merge, forget_locally
+        """
+        if branch is None:
+            branch = self.repo.active_branch
+        if branch is None:
+            OUT.warning('cannot diagnose branch status in "%s" -- not on any branch', self.path)
+            return
+        tracking_branch_data = self.repo.tracking_branches[branch]
+        if tracking_branch_data is None:
+            OUT.warning('cannot diagnose branch status in "%s"'
+                        ' -- current branch has no tracking branch', self.path)
+            return
+        tracking_branch = '/'.join(tracking_branch_data)
+        not_pushed_log = self._get_log(tracking_branch, branch)
+        if not_pushed_log:
+            self._print_log(not_pushed_log, '!! not pushed commits from "{}" to "{}" in "{}":'
+                            .format(branch, tracking_branch, self.path))
+            # self.push_single_remote(
+            #    tracking_branch_data[0], ['{0}:{0}'.format(branch, tracking_branch_data[1])])
+        not_merged_log = self._get_log(branch, tracking_branch)
+        if not_merged_log:
+            self._print_log(not_pushed_log, '!! not merged commits from "{}" to "{}" in "{}":'
+                            .format(tracking_branch, branch, self.path))
+            '''
+            answer = self.interface.get_answer('merge')
+            if answer in ['y', 'm']:
+                self.merge_single_branch(remote, branch)
+            elif answer == 'b':
+                self.rebase_single_branch(remote, branch)
+            elif answer == 'r':
+                self.hard_reset_single_branch(remote, branch)
+            elif self.interface.confirm('forget_locally'):
+                self.repo.git.update_ref('refs/remotes/{0}/{1}'.format(remote, branch), branch)
+            '''
 
     def _status_remotes(self):
         remotes_in_config = set(self.remotes)

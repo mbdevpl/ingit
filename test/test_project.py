@@ -114,6 +114,25 @@ class Tests(GitRepoTests):
         self.git_modify_file(path, commit=True)
         project.status()
 
+    def test_status_not_pushed(self):
+        self.git_clone('origin', _REMOTE)
+        project = Project('example', [], self.repo_path, {'origin': _REMOTE})
+        self.git_commit_new_file()
+        project.status()
+
+    def test_status_not_pushed_many(self):
+        self.git_clone('origin', _REMOTE)
+        project = Project('example', [], self.repo_path, {'origin': _REMOTE})
+        for _ in range(10 + 10 + 1 + 1):
+            self.git_commit_new_file()
+        project.status()
+
+    def test_status_not_merged(self):
+        self.git_clone('origin', _REMOTE)
+        project = Project('example', [], self.repo_path, {'origin': _REMOTE})
+        self.repo.git.reset('--hard', 'HEAD~1')
+        project.status()
+
     def test_status_extra_remote(self):
         self.git_init()
         self.repo.git.remote('add', 'origin', _REMOTE)

@@ -10,7 +10,7 @@ import git
 
 _LOG = logging.getLogger(__name__)
 
-__updated__ = '2018-03-15'
+__updated__ = '2018-03-28'
 
 
 class GitRepoTests(unittest.TestCase):
@@ -46,6 +46,14 @@ class GitRepoTests(unittest.TestCase):
     def git_init(self) -> git.Repo:
         """Initialize a git repository in the temporary folder."""
         self.repo = git.Repo.init(str(self.repo_path))
+        self.assertIsInstance(self.repo, git.Repo)
+        self.repo.git.config('user.email', 'you@example.com')
+        self.repo.git.config('user.name', 'Your Name')
+        return self.repo
+
+    def git_clone(self, remote_name, url) -> git.Repo:
+        """Clone a git repository into the temporary folder."""
+        self.repo = git.Repo.clone_from(url, str(self.repo_path), origin=remote_name)
         self.assertIsInstance(self.repo, git.Repo)
         self.repo.git.config('user.email', 'you@example.com')
         self.repo.git.config('user.name', 'Your Name')
