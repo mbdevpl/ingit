@@ -1,3 +1,7 @@
+# Bintray deployment
+/travis_bintray_descriptor_gen.py
+/.bintray.json
+
 # Jupyter Notebook
 /.ipynb_checkpoints
 *-checkpoint.ipynb
