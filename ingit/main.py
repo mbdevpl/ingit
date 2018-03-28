@@ -75,9 +75,11 @@ def prepare_parser():
 
     commands = {
         'summary': (
-            'show summary of registered repositories',
-            '''By default, all registered repositories are listed, but, as in case of most commands,
-            the results can be filtered via a predicate or regex.'''),
+            'show summary of registered repositories and status of configured repository root',
+            '''First of all, print a list of registered repositories. By default, all registered
+            repositories are listed, but, as in case of most commands, the results can be filtered
+            via a predicate or regex. Independently, print a list of all unregistered repositories
+            and all not versioned paths present in the configured repositories root.'''),
         'register': (
             'start tracking a repository in ingit',
             '''The initial configuration is set according to basic repository information:
@@ -112,8 +114,14 @@ def prepare_parser():
             that has a tracking branch.'''),
         'gc': ('perform git gc', 'Execute "git gc --agressive --prune".'),
         'status': (
-            'perform git status',
-            'Execute "git status --short" and run "git gui" if there is any output.')}
+            'perform git status, as well as other diagnostic git commands',
+            '''Execute git status --short to inform about any uncommited changes,
+            git log tracking_branch..branch to inform about commits that are not yet pushed
+            to the remote, and
+            git log branch..tracking_branch to inform about commits that are not yet merged
+            from the remote.
+            Additionally, compare registered remotes with actual remotes to make sure that ingit
+            configuration is in sync with the repository metadata.''')}
 
     subparsers = parser.add_subparsers(
         dest='command', metavar='command', help='''main command to execute; one of: "{}";
