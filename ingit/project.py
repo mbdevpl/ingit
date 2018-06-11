@@ -12,6 +12,7 @@ from .repo_data import RepoData
 from .action_progress import ActionProgress
 from .runtime_interface import ask
 from .fetch_flags import create_fetch_info_strings
+from .push_flags import create_push_info_strings
 
 _LOG = logging.getLogger(__name__)
 
@@ -172,7 +173,7 @@ class Project:
             return self.repo.remotes
         return [remote_name]
 
-    def _fetch_single_remote(self, remote_name: str):
+    def _fetch_single_remote(self, remote_name: str) -> t.Sequence[git.FetchInfo]:
         try:
             progress = ActionProgress()
             fetch_infos = self.repo.remotes[remote_name].fetch(prune=True, progress=progress)
@@ -182,11 +183,11 @@ class Project:
                 remote_name, self.repo.remotes[remote_name].url, self.name)) from err
         return fetch_infos
 
-    def _print_fetch_info(self, fetch_info) -> bool:
+    def _print_fetch_info(self, fetch_info: git.FetchInfo) -> None:
         info_strings, prefix = create_fetch_info_strings(fetch_info)
         if not info_strings:
             return
-        level = logging.WARNING if fetch_info.flags & fetch_info.HEAD_UPTODATE \
+        level = logging.WARNING if fetch_info.flags & git.FetchInfo.HEAD_UPTODATE \
             else logging.CRITICAL
         OUT.log(level, '{} fetched "{}" in "{}"; {}'.format(
             prefix, fetch_info.ref, self.name, ', '.join(info_strings)))
@@ -288,7 +289,63 @@ class Project:
             return
         if self.repo is None:
             self.link_repo()
-        raise NotImplementedError('pushing not yet implemented')
+
+        branches_to_push = []  # type: t.List[str]
+
+        if all_branches:
+            raise NotImplementedError('pushing not yet implemented')
+        else:
+            if self.repo.active_branch is None:
+                OUT.warning('not pushing "%s" because there is no active branch...', self.path)
+                return
+            else:
+                branches_to_push.append(self.repo.active_branch)
+
+        pushed_branches_per_remote = {}  # type: t.Dict[str, t.Dict[str, t.Optional[str]]]
+        for local_branch in branches_to_push:
+            tracking_branch = self.repo.tracking_branches[local_branch]
+            if tracking_branch is None:
+                remote = next(iter(self.repo.remotes.keys()))
+                OUT.warning('pushing "%s" to "%s"...', self.path, remote)
+                remote_branch = None
+            else:
+                remote, remote_branch = tracking_branch
+            if remote in pushed_branches_per_remote:
+                pushed_branches_per_remote[remote][local_branch] = remote_branch
+            else:
+                pushed_branches_per_remote[remote] = {local_branch: remote_branch}
+
+        for remote_name, branch_mapping in pushed_branches_per_remote.items():
+            push_infos = self._push_single_remote(remote_name, branch_mapping)
+            for push_info in push_infos:
+                self._print_push_info(push_info)
+
+    def _push_single_remote(
+            self, remote_name: str,
+            branch_mapping: t.Mapping[str, t.Optional[str]]) -> t.Sequence[git.PushInfo]:
+        push_refspec = ['{}'.format(local_branch) if remote_branch is None
+                        else '{}:{}'.format(local_branch, remote_branch)
+                        for local_branch, remote_branch in branch_mapping.items()]
+        _LOG.warning('push refspec: %s', push_refspec)
+        try:
+            progress = ActionProgress()
+            push_infos = self.repo.remotes[remote_name].push(
+                refspec=push_refspec, with_extended_output=True, progress=progress)
+            progress.finalize()
+        except git.GitCommandError as err:
+            raise ValueError('error while pushing branches {} to remote "{}" ("{}") in "{}"'.format(
+                branch_mapping, remote_name, self.repo.remotes[remote_name].url,
+                self.name)) from err
+        return push_infos
+
+    def _print_push_info(self, push_info: git.PushInfo) -> None:
+        info_strings, prefix = create_push_info_strings(push_info)
+        if not info_strings:
+            return
+        level = logging.WARNING if push_info.flags & git.PushInfo.UP_TO_DATE \
+            else logging.CRITICAL
+        OUT.log(level, '{} pushed "{}" to "{}" in "{}"; {}'.format(
+            prefix, push_info.local_ref, push_info.remote_ref, self.name, ', '.join(info_strings)))
 
     def collect_garbage(self) -> None:
         """Execute "git gc --agressive --prune"."""

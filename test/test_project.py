@@ -89,9 +89,40 @@ class Tests(GitRepoTests):
     # def test_merge(self):
     #    pass
 
-    # @unittest.expectedFailure
-    # def test_push(self):
-    #    pass
+    def test_push(self):
+        separate_repo = GitRepoTests()
+        separate_repo.setUp()
+        separate_repo.git_init()
+        separate_repo.git_commit_new_file()
+        separate_repo.repo.git.checkout('-b', 'devel')
+        separate_repo.repo.git.branch('-d', 'master')
+        target_url = str(separate_repo.repo_path)
+
+        self.git_init()
+        self.repo.git.remote('add', 'target', target_url)
+        project = Project('example', [], self.repo_path, {'target': target_url})
+        project.push()
+        # project.push(all_branches=True)
+
+        self.git_commit_new_file()
+        self.repo.git.push('target', 'master')
+        self.git_commit_new_file()
+        project.repo.refresh()
+        self.assertEqual(project.repo.active_branch, 'master')
+        self.assertIsNone(project.repo.tracking_branches['master'])
+        project.push()
+        # project.push(all_branches=True)
+
+        self.repo.git.branch('master', set_upstream_to='target/master')
+        project.repo.refresh()
+        self.assertEqual(project.repo.active_branch, 'master')
+        self.assertTupleEqual(project.repo.tracking_branches['master'], ('target', 'master'))
+        project.push()
+        # project.push(all_branches=True)
+
+        project.repo.refresh()
+
+        separate_repo.tearDown()
 
     # def test_gc(self):
     #    pass
