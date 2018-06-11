@@ -1,0 +1,9 @@
+{
+  "description": "ingit runtime configuration file",
+  "ingit-version": "0.4.0",
+  "machines": [
+    {
+      "names": ["this_is_my_name_123456", "this_is_my_alias_123456"]
+    }
+  ]
+}

@@ -3,6 +3,7 @@
 import logging
 import pathlib
 import platform
+import shutil
 import tempfile
 import unittest
 import unittest.mock
@@ -10,6 +11,8 @@ import unittest.mock
 import readchar
 
 from ingit.runtime import Runtime
+
+HERE = pathlib.Path(__file__).resolve().parent
 
 _LOG = logging.getLogger(__name__)
 
@@ -48,3 +51,15 @@ class Tests(unittest.TestCase):
         self.assertIn('blah', [machine['name'] for machine in runtime.runtime_config['machines']])
         with self.assertRaises(ValueError):
             runtime.register_machine(platform.node())
+
+    def test_autoadd_machine(self):
+        """Test adding machine into an existing config."""
+        runtime_config_path = pathlib.Path(HERE, 'examples', 'runtime_config', 'example_names.json')
+        shutil.copy(str(runtime_config_path), str(self.runtime_config_path))
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
+            with self.assertRaises(ValueError):
+                Runtime(self.runtime_config_path, self.repos_config_path)
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
+            runtime = Runtime(self.runtime_config_path, self.repos_config_path)
+        self.assertIn(platform.node(), [
+            machine.get('name') for machine in runtime.runtime_config['machines']])
