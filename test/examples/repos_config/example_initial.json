@@ -1,6 +1,6 @@
 {
   "description": "ingit repositories configuration file",
-  "ingit-version": "0.3.0",
+  "ingit-version": "0.4.0",
   "repos": [
     {
       "name": "argunparse",

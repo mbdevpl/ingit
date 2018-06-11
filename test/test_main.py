@@ -3,28 +3,16 @@
 import contextlib
 import logging
 import os
-import pathlib
 import unittest
 import unittest.mock
 
 import readchar
 
-from ingit.json_config import \
-    RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, normalize_path, file_to_json
+from ingit.json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, normalize_path
 from ingit.main import main
 from .test_setup import run_module
 
 _LOG = logging.getLogger(__name__)
-
-HERE = pathlib.Path(__file__).resolve().parent
-
-TEST_RUNTIME_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'runtime_config', 'example_initial.json')
-# TEST_RUNTIME_CONFIG = file_to_json(TEST_RUNTIME_CONFIG_PATH)
-
-TEST_REPOS_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'repos_config', 'example_initial.json')
-# TEST_REPOS_CONFIG = file_to_json(TEST_REPOS_CONFIG_PATH)
-
-PROJECT_NAMES = ('argunparse', 'transpyle', 'typed-astunparse')
 
 
 class Tests(unittest.TestCase):
