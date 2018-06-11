@@ -90,7 +90,7 @@ Currently available git-like commands are:
 configuration
 -------------
 
-Ingit workes based on configuration in 2 JSON files:
+Ingit works based on configuration in 2 JSON files:
 
 *   runtime configuration
 *   repositories configuraion
