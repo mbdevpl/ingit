@@ -1,4 +1,4 @@
 gitpython >= 2.0
 ordered-set
-readchar == 0.1.0
+readchar
 version-query
