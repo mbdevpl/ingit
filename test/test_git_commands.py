@@ -1,5 +1,6 @@
 """Unit tests for git-like commands of ingit."""
 
+import collections
 import logging
 import os
 import pathlib
@@ -126,11 +127,8 @@ class Tests(unittest.TestCase):
             self.assertTrue(repo_path.is_dir())
             repo = git.Repo(str(repo_path))
             head_ref = repo.head.commit.hexsha
-            initial_ref = None
-            for commit in repo.iter_commits():
-                if not commit.parents:
-                    initial_ref = commit.hexsha
-                    break
+            initial_commit = collections.deque(repo.iter_commits(), maxlen=1).pop()
+            initial_ref = initial_commit.hexsha
             repo.git.checkout(initial_ref)
             call_main('-p', 'name == "{}"'.format(project_name), 'checkout', answer='n')
             self.assertEqual(repo.head.commit.hexsha, initial_ref)
