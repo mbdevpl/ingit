@@ -10,7 +10,7 @@ import git
 
 _LOG = logging.getLogger(__name__)
 
-__updated__ = '2018-03-28'
+__updated__ = '2018-04-18'
 
 
 class GitRepoTests(unittest.TestCase):
@@ -51,7 +51,7 @@ class GitRepoTests(unittest.TestCase):
         self.repo.git.config('user.name', 'Your Name')
         return self.repo
 
-    def git_clone(self, remote_name, url) -> git.Repo:
+    def git_clone(self, remote_name: str, url: str) -> git.Repo:
         """Clone a git repository into the temporary folder."""
         self.repo = git.Repo.clone_from(url, str(self.repo_path), origin=remote_name)
         self.assertIsInstance(self.repo, git.Repo)
@@ -75,9 +75,34 @@ class GitRepoTests(unittest.TestCase):
         self.assertIsInstance(self.repo, git.Repo)
         self.assertIsInstance(path, pathlib.Path)
         self.assertTrue(path.is_file())
-        with open(str(path), 'a') as repo_file:
+        with path.open('a') as repo_file:
             repo_file.write('spam eggs ham\n')
         if add or commit:
             self.repo.index.add([path.name])
         if commit:
             self.repo.index.commit('modified file {}'.format(path))
+
+
+class GitRepoSelfTests(GitRepoTests):
+
+    def test_typical(self):
+        self.git_init()
+        pth = self.git_commit_new_file()
+        self.git_modify_file(pth)
+        pth = self.git_commit_new_file()
+        self.git_modify_file(pth, add=True)
+        pth = self.git_commit_new_file()
+        self.git_modify_file(pth, commit=True)
+
+    def test_clone(self):
+        path = pathlib.Path(__file__).resolve().parent.parent
+        self.git_clone('origin', str(path))
+
+    def test_no_repo(self):
+        self.assertIsNone(self.repo)
+
+    def test_cleanup_nonexisting(self):
+        self.git_init()
+        pth = self.git_commit_new_file()
+        pth.unlink()
+        self.assertFalse(pth.is_file())

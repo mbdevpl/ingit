@@ -9,7 +9,7 @@ import unittest.mock
 import readchar
 
 from ingit.project import Project
-from .git_repo_tests import GitRepoTests
+from .test_with_git_repo import GitRepoTests
 
 _HERE = pathlib.Path(__file__).resolve().parent
 

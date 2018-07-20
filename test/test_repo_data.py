@@ -6,7 +6,7 @@ import logging
 # import git
 
 from ingit.repo_data import RepoData
-from .git_repo_tests import GitRepoTests
+from .test_with_git_repo import GitRepoTests
 
 _LOG = logging.getLogger(__name__)
 
