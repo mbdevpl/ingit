@@ -4,19 +4,20 @@
 .. role:: json(code)
     :language: json
 
+
 =====
 ingit
 =====
 
 .. image:: https://img.shields.io/pypi/v/ingit.svg
-    :target: https://pypi.python.org/pypi/ingit
+    :target: https://pypi.org/project/ingit
     :alt: package version from PyPI
 
 .. image:: https://travis-ci.org/mbdevpl/ingit.svg?branch=master
     :target: https://travis-ci.org/mbdevpl/ingit
     :alt: build status from Travis CI
 
-.. image:: https://ci.appveyor.com/api/projects/status/github/mbdevpl/ingit?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/github/mbdevpl/ingit?branch=master&svg=true
     :target: https://ci.appveyor.com/project/mbdevpl/ingit
     :alt: build status from AppVeyor
 
