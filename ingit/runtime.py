@@ -150,15 +150,10 @@ class Runtime:
         else:
             print('All registered projects ({}):'.format(all_count))
         initialised_count = 0
-        project_paths_in_root = ordered_set.OrderedSet()
         for project in self._projects:
             if project.is_initialised:
                 initialised_count += 1
             print(' -', project)
-            try:
-                project_paths_in_root.add(project.path.relative_to(self.repos_path))
-            except:
-                pass
 
         if initialised_count == all_count:
             print('all of them are initialised')
@@ -166,8 +161,20 @@ class Runtime:
             print('{} of them are initialised ({} not)'
                   .format(initialised_count, all_count - initialised_count))
 
+        if self.repos_path is not None:
+            self._unregistered_folders_summary()
+
+    def _unregistered_folders_summary(self):
         non_repo_paths_in_root = ordered_set.OrderedSet()
         unregistered_in_root = ordered_set.OrderedSet()
+
+        project_paths_in_root = ordered_set.OrderedSet()
+        for project in self._projects:
+            try:
+                project_paths_in_root.add(project.path.relative_to(self.repos_path))
+            except:
+                pass
+
         for path in self.repos_path.iterdir():
             if not path.is_dir():
                 continue

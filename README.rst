@@ -149,7 +149,7 @@ The default paths to the files can be overriden via ``--config`` and ``--repos``
 command-line options.
 
 
-runtime configuraion
+Runtime configuraion
 ~~~~~~~~~~~~~~~~~~~~
 
 Most importantly, stores repositories root directory -- it's a directory which ingit assumes
@@ -176,7 +176,7 @@ Example:
     }
 
 
-repositories configuraion
+Repositories configuraion
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It's a file that lists all registered projects and keeps their metadata.
