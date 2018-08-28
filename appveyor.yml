@@ -29,7 +29,7 @@ install:
 build: off
 
 test_script:
-  - python -m coverage run --branch --source . -m unittest discover --verbose
+  - python -m coverage run --branch --source . -m unittest -v
 
 after_test:
   - python -m coverage report --show-missing

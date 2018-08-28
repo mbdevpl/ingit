@@ -16,10 +16,10 @@ matrix:
       python: "pypy3.5-5.8.0"
     - os: osx
       language: generic
-      env: TRAVIS_PYTHON_VERSION="3.5.4"
+      env: TRAVIS_PYTHON_VERSION="3.5.6"
     - os: osx
       language: generic
-      env: TRAVIS_PYTHON_VERSION="3.6.3"
+      env: TRAVIS_PYTHON_VERSION="3.6.6"
     - os: osx
       language: generic
       env: TRAVIS_PYTHON_VERSION="3.7-dev"
@@ -46,12 +46,11 @@ install:
   - git clone https://github.com/mbdevpl/typed-astunparse ../typed-astunparse
 
 script:
-  - python -m coverage run --branch --source . -m unittest discover --verbose
+  - python -m coverage run --branch --source . -m unittest -v
 
 after_success:
   - python -m coverage report --show-missing
   - codecov
-  - python -m pylint --load-plugins=pylint.extensions.mccabe --docstring-min-length 5 --no-docstring-rgx "^(test)?_|.*Tests$" --unsafe-load-any-extension y --output-format colorized  --reports y $(find . -name "*.py")
 
 before_deploy:
   - pip3 install -U --user version_query || pip3 install -U version_query
