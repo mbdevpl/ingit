@@ -25,7 +25,7 @@ ingit
     :target: https://codecov.io/gh/mbdevpl/ingit
     :alt: test coverage from Codecov
 
-.. image:: https://img.shields.io/pypi/l/ingit.svg
+.. image:: https://img.shields.io/github/license/mbdevpl/ingit.svg
     :target: https://github.com/mbdevpl/ingit/blob/master/NOTICE
     :alt: license
 
@@ -38,12 +38,15 @@ action on a group of repositories instead of just one.
 Additionally, it has an interactive mode in which you can go over your repositories and quickly
 perform typical suggested actions in each individual repository based on its current status.
 
+.. contents::
+    :backlinks: none
 
-overview
+
+Overview
 ========
 
 
-basic usage
+Basic usage
 -----------
 
 For general help, see:
@@ -68,27 +71,24 @@ Commands are of two kinds in general:
 
 Currently available ingit-only commands are:
 
-.. code:: bash
-
-    ingit summary
-    ingit register
+*   ``ingit summary`` will show summary of repositories registered in ingit;
+*   ``ingit register`` will add an existing git repository to ingit configuration.
 
 
 Currently available git-like commands are:
 
-.. code:: bash
-
-    ingit clone
-    ingit init
-    ingit fetch
-    ingit checkout
-    ingit merge
-    ingit push
-    ingit gc
-    ingit status
+*   ``ingit clone`` will mass-clone registered repositories;
+*   ``ingit init`` will mass-init registered repositories;
+*   ``ingit fetch`` will mass-fetch existing registered repositories;
+*   ``ingit checkout`` will interactively checkout branches;
+*   ``ingit merge`` will interactively merge branches;
+*   ``ingit push`` will mass-push existing registered repositories;
+*   ``ingit gc`` will do mass garbage collection of existing registered repositories;
+*   ``ingit status`` will give comprehensive status report for every existing registered repository.
 
 
-configuration
+
+Configuration
 -------------
 
 Ingit works based on configuration in 2 JSON files:
@@ -114,7 +114,7 @@ Example:
 
     {
       "description": "ingit runtime configuration file",
-      "ingit-version": "0.3.0",
+      "ingit-version": "0.4.0",
       "machines": [
         {
           "name": "desktop",
@@ -132,7 +132,7 @@ Example:
 repositories configuraion
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It's a file that lists all registered projects.
+It's a file that lists all registered projects and keeps their metadata.
 
 Example:
 
@@ -140,7 +140,7 @@ Example:
 
     {
       "description": "ingit repositories configuration file",
-      "ingit-version": "0.3.0",
+      "ingit-version": "0.4.0",
       "repos": [
         {
           "name": "ingit",
@@ -171,14 +171,14 @@ Example:
     }
 
 
-command details
----------------
+Command details
+===============
 
 Below, details of each command are described.
 
 
-ingit summary
-~~~~~~~~~~~~~
+``ingit summary``
+-----------------
 
 Show summary of registered repositories and status of configured repository root.
 
@@ -189,8 +189,8 @@ Independently, print a list of all unregistered repositories and all not version
 in the configured repositories root.
 
 
-ingit register
-~~~~~~~~~~~~~~
+``ingit register``
+------------------
 
 Start tracking a repository in ingit.
 
@@ -204,12 +204,13 @@ its currently configured remotes become "remotes". You can edit the
 configuration manually afterwards.
 
 Use ``PATH`` to provide the path to root directory of repository.
+If not provided, current working directory is used.
 
 Use ``--tags`` to provide tags for this repository, they will be added to the initial configuration.
 
 
-ingit status
-~~~~~~~~~~~~
+``ingit status``
+----------------
 
 Perform git status, as well as other diagnostic git commands.
 
@@ -222,16 +223,17 @@ Execute:
 Additionally, compare registered remotes with actual remotes to make sure that ingit
 configuration is in sync with the repository metadata.
 
-other commands
-~~~~~~~~~~~~~~
 
-TODO.
+Other commands
+--------------
+
+TODO: Write docs for other commands.
 
 
-requirements
+Requirements
 ============
 
-Python version >= 3.5.
+Python version 3.5 or later.
 
 Python libraries as specified in `<requirements.txt>`_.
 
