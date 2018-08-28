@@ -427,7 +427,7 @@ class Project:
             #    tracking_branch_data[0], ['{0}:{0}'.format(branch, tracking_branch_data[1])])
         not_merged_log = self._get_log(branch, tracking_branch)
         if not_merged_log:
-            self._print_log(not_pushed_log, '!! not merged commits from "{}" to "{}" in "{}":'
+            self._print_log(not_merged_log, '!! not merged commits from "{}" to "{}" in "{}":'
                             .format(tracking_branch, branch, self.path))
             '''
             answer = self.interface.get_answer('merge')
