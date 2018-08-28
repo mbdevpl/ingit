@@ -94,10 +94,10 @@ class Runtime:
             name = repo['name']
             if 'path' in repo:
                 path = pathlib.Path(normalize_path(repo['path']))
-                if not path.is_absolute():
-                    path = self.repos_path.joinpath(path)
             else:
-                path = self.repos_path.joinpath(name)
+                path = pathlib.Path(name)
+            if not path.is_absolute():
+                path = self.repos_path.joinpath(path)
             project = Project(name=name, tags=repo['tags'], path=path, remotes=repo['remotes'])
             projects.append(project)
         return projects
@@ -156,15 +156,19 @@ class Runtime:
             print(' -', project)
 
         if initialised_count == all_count:
-            print('all of them are initialised')
+            if all_count > 0:
+                print('All of them are initialised.')
+            else:
+                print('')
         else:
-            print('{} of them are initialised ({} not)'
+            print('{} of them are initialised ({} not).'
                   .format(initialised_count, all_count - initialised_count))
 
         if self.repos_path is not None:
             self._unregistered_folders_summary()
 
     def _unregistered_folders_summary(self):
+        assert self.repos_path is not None
         non_repo_paths_in_root = ordered_set.OrderedSet()
         unregistered_in_root = ordered_set.OrderedSet()
 
@@ -190,13 +194,13 @@ class Runtime:
             unregistered_in_root.add(path)
 
         if unregistered_in_root:
-            print('there are {} unregistered git repositories in configured repositories root "{}"'
+            print('There are {} unregistered git repositories in configured repositories root "{}".'
                   .format(len(unregistered_in_root), self.repos_path))
             for path in unregistered_in_root:
                 print(path)
 
         if non_repo_paths_in_root:
-            print('there are {} not versioned folders in configured repositories root "{}"'
+            print('There are {} not versioned folders in configured repositories root "{}".'
                   .format(len(non_repo_paths_in_root), self.repos_path))
             for path in non_repo_paths_in_root:
                 print(path)

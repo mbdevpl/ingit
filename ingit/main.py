@@ -154,8 +154,9 @@ def main(args=None):
     parsed_args = parser.parse_args(args)
     if (parsed_args.predicate is not None or parsed_args.regex is not None) \
             and parsed_args.command == 'register':
-        parser.error('predicate is not applicable to "{}" command'
-                     ' -- it can be used only with git commands'.format(parsed_args.command))
+        parser.error('project filtering is not applicable to "{}" command'
+                     ' -- it can be used only with summary command and with git-like commands'
+                     .format(parsed_args.command))
 
     level = logging.CRITICAL
     if parsed_args.verbose is not None:
@@ -187,6 +188,7 @@ def main(args=None):
     command = parsed_args.command
     if command is None:
         parser.error('no command provided')
+
     command_options = {}
     if command == 'register':
         command_options['tags'] = parsed_args.tags
