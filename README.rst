@@ -4,6 +4,9 @@
 .. role:: json(code)
     :language: json
 
+.. role:: python(code)
+    :language: python
+
 
 =====
 ingit
@@ -86,6 +89,50 @@ Currently available git-like commands are:
 *   ``ingit gc`` will do mass garbage collection of existing registered repositories;
 *   ``ingit status`` will give comprehensive status report for every existing registered repository.
 
+
+Filtering the repositories
+--------------------------
+
+Git-like commands of ingit
+(namely: ``ingit clone``, ``ingit init``, ``ingit fetch``, ``ingit checkout``,
+``ingit merge``, ``ingit push``, ``ingit gc`` and ``ingit status``)
+by default operate on all registered repositories.
+
+However, they all can take the options ``--regex``/``-r`` or ``--predicate``/``-p``
+that filter out the repositories using repository metadata (i.e. name, tags, path and remotes)
+which is stored in the repositories configuration.
+
+The ``--regex``/``-r`` option accepts any regular expression (also a simple string)
+and filters the repos by trying to simply find a match in any of the metadata.
+
+.. code:: python
+
+    def regex_predicate(regex, name, tags, path, remotes):
+        return (
+            re.search(regex, name) is not None
+            or any(re.search(regex, tag) is not None for tag in tags)
+            or re.search(regex, str(path)) is not None
+            or any(re.search(regex, name) for name, url in remotes.items()))
+
+The actual implementation is here: `<ingit/runtime.py#L23>`_
+
+The ``--predicate``/``-p`` option accepts a python expression which will be inserted
+into a predicate function template, as below:
+
+.. code:: python
+
+    lambda name, tags, path, remotes: (predicate)
+
+The actual implementation is here: `<ingit/main.py#L178>`_
+
+Therefore, executing ``ingit --predicate "'mytag' in tags" fetch`` results
+in the following predicate being applied:
+
+.. code:: python
+
+    lambda name, tags, path, remotes: ('mytag' in tags)
+
+And thus only repositories that have ``'mytag'`` in their tags are fetched.
 
 
 Configuration
@@ -206,7 +253,17 @@ configuration manually afterwards.
 Use ``PATH`` to provide the path to root directory of repository.
 If not provided, current working directory is used.
 
+Normally, resolved absolute path is stored in the configuration.
+However, if path is within the configured repos root directory (i.e. "repos_path" in runtime configuraion)
+then path relative to the repos root is stored instead.
+Additinally, if the repository is stored directly in the configured repos root
+(i.e. there are no intermediate directories) then path is not stored at all.
+
+Such behaviour is implemented to make configuration file much less verbose in typical usage scenarios.
+
 Use ``--tags`` to provide tags for this repository, they will be added to the initial configuration.
+
+Tags have no other effect than making repository filtering easier.
 
 
 ``ingit status``
