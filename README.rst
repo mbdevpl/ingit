@@ -261,6 +261,10 @@ Additinally, if the repository is stored directly in the configured repos root
 
 Such behaviour is implemented to make configuration file much less verbose in typical usage scenarios.
 
+To prevent this behaviour, and force all repository paths to be absolute,
+simply configure your repos root in runtime configuraion to JSON null,
+or something which is expected to never contain any repositories -- like "/dev/null".
+
 Use ``--tags`` to provide tags for this repository, they will be added to the initial configuration.
 
 Tags have no other effect than making repository filtering easier.

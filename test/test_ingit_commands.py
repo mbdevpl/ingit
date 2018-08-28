@@ -58,6 +58,20 @@ class Tests(unittest.TestCase):
             self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
             self.assertEqual(len(self.repos_config['repos']), i + 1)
 
+    def test_repos_path_not_set(self):
+        self.runtime_config['machines'][0]['repos_path'] = None
+        json_to_file(self.runtime_config, self.runtime_config_path)
+        self.runtime_config = acquire_configuration(self.runtime_config_path, 'runtime')
+
+        repo_path = pathlib.Path('..', 'ingit')
+        self.assertEqual(len(self.repos_config['repos']), 0)
+        self.call_main('register', str(repo_path))
+        self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
+        self.assertEqual(len(self.repos_config['repos']), 1)
+        self.assertEqual(str(repo_path.resolve()), self.repos_config['repos'][0].get('path'))
+
+        self.call_main('summary')
+
     def test_register_with_tags(self):
         repo_paths = [
             pathlib.Path('..', 'argunparse'), pathlib.Path('..', 'ingit'),

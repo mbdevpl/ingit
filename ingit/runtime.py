@@ -61,7 +61,10 @@ class Runtime:
 
     @property
     def repos_path(self):
-        return pathlib.Path(normalize_path(self._machine_config['repos_path']))
+        raw_path = self._machine_config['repos_path']
+        if raw_path is None:
+            return None
+        return pathlib.Path(normalize_path(raw_path))
 
     @property
     def interactive(self):
@@ -97,6 +100,10 @@ class Runtime:
             else:
                 path = pathlib.Path(name)
             if not path.is_absolute():
+                if self.repos_path is None:
+                    raise ValueError('configuration of repository "{}" must contain absolute path'
+                                     ' because repos_path in runtime configuration is not set'
+                                     .format(name))
                 path = self.repos_path.joinpath(path)
             project = Project(name=name, tags=repo['tags'], path=path, remotes=repo['remotes'])
             projects.append(project)
@@ -231,12 +238,14 @@ class Runtime:
         _LOG.warning('registering repository: %s', repo_data)
         repo_config = repo_data.generate_repo_configuration()
         try:
-            repo_config['path'] = str(pathlib.Path(repo_config['path']).resolve()
-                                      .relative_to(self.repos_path))
+            repo_path = pathlib.Path(repo_config['path']).resolve()
+            if self.repos_path is not None:
+                repo_path = repo_path.relative_to(self.repos_path)
+            repo_path = str(repo_path)
+            if repo_path != repo_config['name']:
+                repo_config['path'] = repo_path
         except ValueError:
             pass
-        if repo_config['path'] == repo_config['name']:
-            del repo_config['path']
         if tags is not None:
             repo_config['tags'] += tags
         _LOG.warning('adding repo to configuration: %s', repo_config)
