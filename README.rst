@@ -95,10 +95,11 @@ Filtering the repositories
 
 Git-like commands of ingit
 (namely: ``ingit clone``, ``ingit init``, ``ingit fetch``, ``ingit checkout``,
-``ingit merge``, ``ingit push``, ``ingit gc`` and ``ingit status``)
+``ingit merge``, ``ingit push``, ``ingit gc`` and ``ingit status``),
+as well as ``ingit summary``,
 by default operate on all registered repositories.
 
-However, they all can take the options ``--regex``/``-r`` or ``--predicate``/``-p``
+However, they all can take the options ``--regex``/``-r`` and ``--predicate``/``-p``
 that filter out the repositories using repository metadata (i.e. name, tags, path and remotes)
 which is stored in the repositories configuration.
 
@@ -133,6 +134,9 @@ in the following predicate being applied:
     lambda name, tags, path, remotes: ('mytag' in tags)
 
 And thus only repositories that have ``'mytag'`` in their tags are fetched.
+
+If both ``--regex``/``-r`` and ``--predicate``/``-p`` are provided,
+predicate is applied first.
 
 
 Configuration
