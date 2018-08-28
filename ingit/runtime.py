@@ -169,7 +169,7 @@ class Runtime:
         unregistered_in_root = ordered_set.OrderedSet()
 
         project_paths_in_root = ordered_set.OrderedSet()
-        for project in self._projects:
+        for project in self.projects:
             try:
                 project_paths_in_root.add(project.path.relative_to(self.repos_path))
             except:
