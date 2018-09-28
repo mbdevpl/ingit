@@ -310,6 +310,16 @@ and ``git fetch github``.
 Execute ``git init`` followed by ``git remote add`` for each configured remote.
 
 
+``ingit fetch``
+----------------
+
+Execute ``git fetch <remote-name>``, where the remote name is the remote of the current
+tracking branch, or all remotes of the repository if there's no tracking branch,
+or repository is in detached head state.
+
+Use ``--all`` to fetch all remotes in all cases.
+
+
 ``ingit gc``
 ----------------
 

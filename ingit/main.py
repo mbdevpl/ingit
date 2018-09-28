@@ -100,7 +100,8 @@ def prepare_parser():
         'fetch': (
             'perform git fetch',
             '''Execute "git fetch <remote-name>", where the remote name is the remote of the current
-            tracking branch, or default remote of the repository if there's no tracking branch.'''),
+            tracking branch, or all remotes of the repository if there's no tracking branch,
+            or repository is in detached head state.'''),
         'checkout': (
             'perform git checkout',
             '''Interactively select revision to checkout from list of local branches,
@@ -145,7 +146,7 @@ def prepare_parser():
         elif command == 'fetch':
             subparser.add_argument(
                 '--all', action='store_true',
-                help='fetch all remotes (instead of just the remote of current upstream branch)')
+                help='fetch all remotes in all cases')
         elif command == 'status':
             subparser.add_argument(
                 '-i', '--ignored', action='store_true',
