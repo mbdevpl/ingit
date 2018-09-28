@@ -281,7 +281,7 @@ Perform git status, as well as other diagnostic git commands.
 
 Execute:
 
-*   ``git status --short`` to inform about any uncommited changes,
+*   ``git status --short --branch`` to inform about any uncommited changes,
 *   ``git log tracking_branch..branch`` to inform about commits that are not yet pushed to the remote,
 *   ``git log branch..tracking_branch`` to inform about commits that are not yet merged from the remote.
 

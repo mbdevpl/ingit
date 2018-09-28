@@ -372,11 +372,11 @@ class Project:
             self.link_repo()
 
         try:
-            status_log = self.repo.git.status(short=True, ignored=ignored).splitlines()
+            status_log = self.repo.git.status(short=True, branch=True, ignored=ignored).splitlines()
         except git.GitCommandError as err:
             raise ValueError('error while getting status of "{}"'.format(self.path)) from err
 
-        if status_log:
+        if len(status_log) > 1:
             OUT.critical('!! unclear status in "{}":'.format(self.path))
             for line in status_log:
                 OUT.critical(line)

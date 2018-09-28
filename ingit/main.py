@@ -115,7 +115,7 @@ def prepare_parser():
         'gc': ('perform git gc', 'Execute "git gc --agressive --prune".'),
         'status': (
             'perform git status, as well as other diagnostic git commands',
-            '''Execute git status --short to inform about any uncommited changes,
+            '''Execute git status --short --branch to inform about any uncommited changes,
             git log tracking_branch..branch to inform about commits that are not yet pushed
             to the remote, and
             git log branch..tracking_branch to inform about commits that are not yet merged
