@@ -132,6 +132,7 @@ class Tests(GitRepoTests):
         self.repo.git.remote('add', 'origin', _REMOTE)
         project = Project('example', [], self.repo_path, {'origin': _REMOTE})
         project.status()
+        project.status(ignored=True)
 
     def test_status_unclear(self):
         self.git_init()
@@ -144,6 +145,7 @@ class Tests(GitRepoTests):
         project.status()
         self.git_modify_file(path, commit=True)
         project.status()
+        project.status(ignored=True)
 
     def test_status_not_pushed(self):
         self.git_clone('origin', _REMOTE)
