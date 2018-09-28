@@ -139,11 +139,11 @@ def prepare_parser():
                 'path', metavar='PATH', type=str, nargs='?',
                 help='''path to root directory of repository, use current working directory
                 if not provided''')
-        if command == 'fetch':
+        elif command == 'fetch':
             subparser.add_argument(
                 '--all', action='store_true',
                 help='fetch all remotes (instead of just the remote of current upstream branch)')
-        if command == 'status':
+        elif command == 'status':
             subparser.add_argument(
                 '-i', '--ignored', action='store_true',
                 help='''include ignored files in the status report
