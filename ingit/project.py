@@ -144,18 +144,7 @@ class Project:
         else:
             remote_names = self._determine_remotes_to_fetch()
 
-        for remote_name in remote_names:
-            fetch_infos = self._fetch_single_remote(remote_name)
-            if not fetch_infos:
-                _LOG.warning('no fetch info after fetching from remote "%s" in "%s"',
-                             remote_name, self.name)
-            for fetch_info in fetch_infos:
-                self._print_fetch_info(fetch_info)
-                if fetch_info.flags & fetch_info.FAST_FORWARD:
-                    # ans = ask('The fetch was fast-forward. Do you want to merge?')
-                    # if ans == 'y':
-                    #    raise NotImplementedError('merging not yet implemented')
-                    pass
+        self._fetch_remotes(*remote_names)
 
     def _determine_remotes_to_fetch(self):
         if self.repo.active_branch is None:
@@ -173,7 +162,8 @@ class Project:
             return self.repo.remotes
         return [remote_name]
 
-    def _fetch_single_remote(self, remote_name: str) -> t.Sequence[git.FetchInfo]:
+    def _fetch_remote(self, remote_name: str) -> None:
+        fetch_infos = None  # type: t.Sequence[git.FetchInfo]
         try:
             progress = ActionProgress()
             fetch_infos = self.repo.remotes[remote_name].fetch(prune=True, progress=progress)
@@ -181,7 +171,21 @@ class Project:
         except git.GitCommandError as err:
             raise ValueError('error while fetching remote "{}" ("{}") in "{}"'.format(
                 remote_name, self.repo.remotes[remote_name].url, self.name)) from err
-        return fetch_infos
+        if not fetch_infos:
+            _LOG.warning('no fetch info after fetching from remote "%s" in "%s"',
+                         remote_name, self.name)
+        for fetch_info in fetch_infos:
+            self._print_fetch_info(fetch_info)
+            if fetch_info.flags & fetch_info.FAST_FORWARD:
+                # ans = ask('The fetch was fast-forward. Do you want to merge?')
+                # if ans == 'y':
+                #    raise NotImplementedError('merging not yet implemented')
+                pass
+        # return fetch_infos
+
+    def _fetch_remotes(self, *remote_names: t.Sequence[str]) -> None:
+        for remote_name in remote_names:
+            self._fetch_remote(remote_name)
 
     def _print_fetch_info(self, fetch_info: git.FetchInfo) -> None:
         info_strings, prefix = create_fetch_info_strings(fetch_info)
