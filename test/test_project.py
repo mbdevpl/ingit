@@ -1,6 +1,8 @@
 """Unit tests for operations on a single project."""
 
+import contextlib
 import logging
+import os
 import pathlib
 import unittest
 import unittest.mock
@@ -84,6 +86,45 @@ class Tests(GitRepoTests):
 
     # def test_checkout(self):
     #    pass
+
+    def test_checkout_case_sensitive_no(self):
+        self.git_init()
+        self.git_commit_new_file()
+        for i in range(0, 88):
+            self.repo.git.branch('branch_{:02}'.format(i))
+        project = Project('example', [], self.repo_path, {})
+        project.link_repo()
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
+            project.checkout()
+
+        def readchar_once():
+            if readchar_once.returned:
+                raise TimeoutError
+            readchar_once.returned = True
+            return 'N'
+        readchar_once.returned = False
+        with unittest.mock.patch.object(readchar, 'readchar', readchar_once):
+            with self.assertRaises(TimeoutError):
+                project.checkout()
+                self.fail()
+
+    def test_checkout_too_many_branches(self):
+        self.git_init()
+        self.git_commit_new_file()
+        project = Project('example', [], self.repo_path, {})
+        project.link_repo()
+        for i in range(0, 88):
+            self.repo.git.branch('branch_{:02}'.format(i))
+            project.repo.refresh()
+            with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
+                with open(os.devnull, 'a') as devnull:
+                    with contextlib.redirect_stdout(devnull):
+                        project.checkout()
+        self.repo.git.branch('devel')
+        project.repo.refresh()
+        with self.assertRaises(RuntimeError):
+            with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
+                project.checkout()
 
     # @unittest.expectedFailure
     # def test_merge(self):

@@ -320,6 +320,36 @@ or repository is in detached head state.
 Use ``--all`` to fetch all remotes in all cases.
 
 
+``ingit checkout``
+----------------
+
+Interactively select revision to checkout from list of local branches,
+remote non-tracking branches and local tags.
+
+The list of branches to select from is composed by combinig:
+
+- local branches
+- non-tracking branches on all remotes
+- local tags
+
+Checking out a remote branch will create a local branch with the same unless it already exists.
+If it already exists, repository will end up in detached head state.
+
+Also, checking out any tag will put repository in detached head state.
+
+
+``ingit merge``
+----------------
+
+TODO: Write docs.
+
+
+``ingit push``
+----------------
+
+TODO: Write docs.
+
+
 ``ingit gc``
 ----------------
 
@@ -341,12 +371,6 @@ Additionally, compare registered remotes with actual remotes to make sure that i
 configuration is in sync with the repository metadata.
 
 Use ``--ignored`` to include ignored files in the status report, just as with ``git status``.
-
-
-Other commands
---------------
-
-TODO: Write docs for other commands.
 
 
 Requirements

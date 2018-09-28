@@ -20,8 +20,12 @@ OUT.addHandler(OUT_HANDLER)
 
 
 def default_template(question, answers, default):
-    answers_print = [(a.upper() if a == default else a) for a in answers]
-    return '{} [{}] '.format(question, '/'.join(answers_print))
+    case_insensitive_answers = {_.lower() for _ in answers}
+    case_insensitive = len(case_insensitive_answers) == len(answers)
+    if case_insensitive:
+        answers_print = [(a.upper() if a == default else a) for a in answers]
+        return '{} [{}] '.format(question, '/'.join(answers_print))
+    return '{} [{}] [default={}] '.format(question, '/'.join(answers), default)
 
 
 def ask(question: str, answers: t.Sequence[str] = None, default: str = None,
@@ -46,7 +50,9 @@ def ask(question: str, answers: t.Sequence[str] = None, default: str = None,
         answers = ['y', 'n']
     assert isinstance(answers, collections.abc.Sequence), type(answers)
     assert answers, answers
-    assert all(isinstance(_, str) and len(_) == 1 and not _.isupper() for _ in answers), answers
+    assert all(
+        isinstance(_, str) and len(_) == 1 and _ not in _INTERRUPTS and _ not in _NEWLINES
+        for _ in answers), answers
     assert len(answers) == len(set(answers)), answers
     if default is None:
         default = answers[-1]
@@ -61,11 +67,20 @@ def ask(question: str, answers: t.Sequence[str] = None, default: str = None,
     assert callable(template), type(template)
     # TODO: put this function in some library
     print(template(question, answers, default), end='', flush=True)
+    case_insensitive_answers = {_.lower() for _ in answers}
+    case_insensitive = len(case_insensitive_answers) == len(answers)
+    if case_insensitive:
+        answers = case_insensitive_answers
+        default = default.lower()
+        if autoanswer is not None:
+            autoanswer = autoanswer.lower()
     answer = autoanswer
     while answer not in answers:
         if answer is not None:
             print(answer, end='', flush=True)
-        answer = readchar.readchar().lower()
+        answer = readchar.readchar()
+        if case_insensitive:
+            answer = answer.lower()
         if answer in _INTERRUPTS:
             raise KeyboardInterrupt()
         if answer in _NEWLINES:

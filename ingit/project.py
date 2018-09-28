@@ -18,6 +18,8 @@ _LOG = logging.getLogger(__name__)
 
 OUT = logging.getLogger('ingit.interface.print')
 
+_SPECIAL_REFS = {'HEAD', 'FETCH_HEAD'}
+
 
 def normalize_url(url: str):
     return normalize_path(url)
@@ -202,8 +204,8 @@ class Project:
 
         The list of branches to select from is composed by combinig:
         - local branches
+        - non-tracking branches on all remotes
         - local tags
-        - branches on all remotes
         """
         if not self.is_existing:
             OUT.info('skipping non-existing "%s"...', self.path)
@@ -215,7 +217,9 @@ class Project:
         # if self.is_on_only_branch():
         #    return
 
-        keys = '1234567890abcdefghijklmopqrstuvwxz'
+        keys = r'1234567890abcdefghijklmopqrstuvwxz' \
+            r'ABCDEFGHIJKLMOPRSTUVWXZ' \
+            r''',.!?*&^%$#@;:'"/|\()[]<>{}-_+=~`'''
         revisions = self._prepare_checkout_list(keys)
 
         print('Checkout options:')
@@ -225,8 +229,7 @@ class Project:
             else:
                 print('  {}: {} ({})'.format(key, revision, comment))
 
-        answer = ask('Which branch to checkout?',
-                     answers=[key for key in keys[:len(revisions)]] + ['n'])
+        answer = ask('Which branch to checkout?', answers=list(keys[:len(revisions)] + 'n'))
         if answer == 'n':
             return
         target, _ = revisions[answer]
@@ -238,6 +241,21 @@ class Project:
     def _prepare_checkout_list(self, keys: str):
         revisions = collections.OrderedDict()
 
+        local_branches = list(self.repo.branches)
+        remote_tracking_branches = set(self.repo.tracking_branches.values())
+        remote_nontracking_branches = [
+            (remote, branch) for remote, branch in self.repo.remote_branches
+            if (remote, branch) not in remote_tracking_branches and branch not in _SPECIAL_REFS]
+        local_tags = list(self.repo._repo.tags)
+
+        all_candidates = local_branches + remote_nontracking_branches + local_tags
+        if len(all_candidates) > len(keys):
+            raise RuntimeError(
+                'not enough available keys to create a single list of checkout candidates'
+                ' - there are {} keys ("{}") but {} candidates:\n- branches:{}, {}\n- tags: {}'
+                .format(len(keys), keys, len(all_candidates), local_branches,
+                        remote_nontracking_branches, local_tags))
+
         index = 0
         for branch in self.repo.branches:
             revisions[keys[index]] = (branch, None)
@@ -247,13 +265,10 @@ class Project:
             revisions[keys[index]] = (tag, 'tag')
             index += 1
 
-        special_branches = {'HEAD', 'FETCH_HEAD'}
-        remote_tracking_branches = set(self.repo.tracking_branches.values())
-
         for (remote, branch) in self.repo.remote_branches:
             # remote_branch = '{}/{}'.format(remote, branch)
             if (remote, branch) in remote_tracking_branches \
-                    or branch in special_branches:
+                    or branch in _SPECIAL_REFS:
                 continue
             if branch in self.repo.branches:
                 to_checkout = '{}/{}'.format(remote, branch)
