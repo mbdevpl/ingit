@@ -44,7 +44,7 @@ class Tests(GitRepoTests):
 
     def test_clone_no_remote(self):
         project = Project('example', [], self.repo_path.joinpath('example'), {})
-        with self.assertRaises(StopIteration):
+        with self.assertRaises(ValueError):
             project.clone()
 
     def test_clone_no(self):

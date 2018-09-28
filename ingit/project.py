@@ -83,8 +83,10 @@ class Project:
         if self.is_existing:
             raise ValueError('directory already exists... please check, delete it, and try again')
 
-        remotes_iter = iter(self.remotes.items())
-        remote_name, remote_url = next(remotes_iter)
+        remotes = list(self.remotes.items())
+        if not remotes:
+            raise ValueError('no configured remotes in repo {}... cannot clone'.format(self.path))
+        (remote_name, remote_url), remaning_remotes = remotes[0], remotes[1:]
 
         if ask('Execute "git clone {} --recursive --origin={} {}"?'
                .format(remote_url, remote_name, self.path)) != 'y':
@@ -101,11 +103,10 @@ class Project:
             raise ValueError('error while cloning "{}" into "{}"'
                              .format(remote_url, self.path)) from err
 
-        for remote_name, remote_url in remotes_iter:
+        for remote_name, remote_url in remaning_remotes:
             self.repo.git.remote('add', remote_name, normalize_url(remote_url))
-
-        if len(self.remotes) >= 2:
-            self.fetch(all_remotes=True)
+            self.repo.refresh()
+            self._fetch_remote(remote_name)
 
     def init(self) -> None:
         """Execute "git init".
