@@ -89,8 +89,11 @@ def prepare_parser():
             You can edit the configuration manually afterwards.'''),
         'clone': (
             'perform git clone',
-            '''Execute "git clone --recursive --orign <remote-name> <remote-url>", where values
-            of <remote-...> are taken from default remote configuration of the repository.'''),
+            '''Execute "git clone <remote-url> --recursive --orign <remote-name> <path>",
+            where values of <path> and <remote-...> are taken from default remote configuration
+            of the repository.
+            After cloning, add all remaining configured remotes to the repository and fetch them.
+            '''),
         'init': (
             'perofrm git init',
             'Execute "git init", followed by "git remote add" for each configured remote.'),

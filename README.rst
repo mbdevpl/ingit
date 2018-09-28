@@ -274,6 +274,47 @@ Use ``--tags`` to provide tags for this repository, they will be added to the in
 Tags have no other effect than making repository filtering easier.
 
 
+``ingit clone``
+----------------
+
+Execute ``git clone <remote-url> --recursive --orign <remote-name> <path>``,
+where values of ``<path>`` and ``<remote-...>`` are taken from default remote configuration
+of the repository.
+
+After cloning, add all remaining configured remotes to the repository and fetch them.
+
+For example, if repository configuration is as follows:
+
+.. code:: json
+
+  {
+    "name": "pylint",
+    "remotes": {
+      "github": "git@github.com:mbdevpl/pylint.git",
+      "source": "https://github.com/PyCQA/pylint"
+    },
+    "tags": []
+  }
+
+The clone command will be:
+``git clone git@github.com:mbdevpl/pylint.git --recursive --orign github <repos_root>/pylint``
+because ``github`` is the first configured remote.
+The subsequent commands will be ``git remote add source https://github.com/PyCQA/pylint``
+and ``git fetch source``.
+
+
+``ingit init``
+----------------
+
+Execute ``git init`` followed by ``git remote add`` for each configured remote.
+
+
+``ingit gc``
+----------------
+
+Execute ``git gc --aggressive --prune``.
+
+
 ``ingit status``
 ----------------
 
