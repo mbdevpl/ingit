@@ -288,19 +288,20 @@ For example, if repository configuration is as follows:
 .. code:: json
 
   {
-    "name": "pylint",
+    "name": "Spack",
+    "path": "~/Software/Spack",
     "remotes": {
-      "github": "git@github.com:mbdevpl/pylint.git",
-      "source": "https://github.com/PyCQA/pylint"
+      "source": "https://github.com/spack/spack.git",
+      "github": "git@github.com:mbdevpl/spack.git"
     },
     "tags": []
   }
 
 The clone command will be:
-``git clone git@github.com:mbdevpl/pylint.git --recursive --orign github <repos_root>/pylint``
-because ``github`` is the first configured remote.
-The subsequent commands will be ``git remote add source https://github.com/PyCQA/pylint``
-and ``git fetch source``.
+``git clone https://github.com/spack/spack.git --recursive --orign source ~/Software/Spack``
+because ``source`` is the first configured remote.
+The subsequent commands will be ``git remote add github git@github.com:mbdevpl/spack.git``
+and ``git fetch github``.
 
 
 ``ingit init``
