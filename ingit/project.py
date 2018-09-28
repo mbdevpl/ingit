@@ -360,8 +360,11 @@ class Project:
         except git.GitCommandError as err:
             raise ValueError('error while collecting garbage in "{}"'.format(self.path)) from err
 
-    def status(self) -> None:
-        """Execute "git status --short" and run "git gui" if there is any output."""
+    def status(self, ignored: bool = False) -> None:
+        """Execute "git status --short" and run "git gui" if there is any output.
+
+        The "ignored" flag is equivalent to adding "--ignored".
+        """
         if not self.is_existing:
             OUT.info('skipping non-existing "%s"...', self.path)
             return
@@ -369,7 +372,7 @@ class Project:
             self.link_repo()
 
         try:
-            status_log = self.repo.git.status(short=True).splitlines()
+            status_log = self.repo.git.status(short=True, ignored=ignored).splitlines()
         except git.GitCommandError as err:
             raise ValueError('error while getting status of "{}"'.format(self.path)) from err
 

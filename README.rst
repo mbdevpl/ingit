@@ -288,6 +288,8 @@ Execute:
 Additionally, compare registered remotes with actual remotes to make sure that ingit
 configuration is in sync with the repository metadata.
 
+Use ``--ignored`` to include ignored files in the status report, just as with ``git status``.
+
 
 Other commands
 --------------

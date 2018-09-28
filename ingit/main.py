@@ -143,6 +143,11 @@ def prepare_parser():
             subparser.add_argument(
                 '--all', action='store_true',
                 help='fetch all remotes (instead of just the remote of current upstream branch)')
+        if command == 'status':
+            subparser.add_argument(
+                '-i', '--ignored', action='store_true',
+                help='''include ignored files in the status report
+                (identical to "--ignored" flag on "git status")''')
 
     return parser
 
@@ -196,6 +201,8 @@ def main(args=None):
             else pathlib.Path(parsed_args.path)
     elif command == 'fetch':
         command_options['all_remotes'] = parsed_args.all
+    elif command == 'status':
+        command_options['ignored'] = parsed_args.ignored
 
     interactive = None if parsed_args.batch is None else not parsed_args.batch
     runtime = Runtime(runtime_config_path, repos_config_path, interactive=interactive)
