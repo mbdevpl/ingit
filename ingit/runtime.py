@@ -44,7 +44,7 @@ class Runtime:
         self._interactive = interactive
 
         self.projects = None
-        self._projects = []
+        self.filtered_projects = []
 
         # prepare, possibly interactive
 
@@ -57,7 +57,7 @@ class Runtime:
 
         self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
         self.projects = self._read_projects()
-        self._projects = [project for project in self.projects]
+        self.filtered_projects = [project for project in self.projects]
 
     @property
     def repos_path(self):
@@ -114,7 +114,7 @@ class Runtime:
         assert isinstance(predicate, (collections.Callable, str)), type(predicate)
         if isinstance(predicate, str):
             predicate = functools.partial(regex_predicate, predicate)
-        self._projects = [project for project in self.projects
+        self.filtered_projects = [project for project in self.projects
                           if predicate(project.name, project.tags, project.path, project.remotes)]
 
     def execute(self, command: str, **command_options):
@@ -143,21 +143,21 @@ class Runtime:
     def execute_git_command(self, command: str, **command_options):
         command = {
             'gc': 'collect_garbage'}.get(command, command)
-        for project in self._projects:
+        for project in self.filtered_projects:
             implementation = getattr(project, command)
             implementation(**command_options)
 
     def repositories_summary(self):
         """Summarize registered repositories."""
 
-        all_count = len(self._projects)
+        all_count = len(self.filtered_projects)
         was_filtered = all_count < len(self.repos_config['repos'])
         if was_filtered:
             print('Registered projects matching given conditions ({}):'.format(all_count))
         else:
             print('All registered projects ({}):'.format(all_count))
         initialised_count = 0
-        for project in self._projects:
+        for project in self.filtered_projects:
             if project.is_initialised:
                 initialised_count += 1
             print(' -', project)
