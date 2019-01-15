@@ -63,3 +63,28 @@ class Tests(unittest.TestCase):
             runtime = Runtime(self.runtime_config_path, self.repos_config_path)
         self.assertIn(platform.node(), [
             machine.get('name') for machine in runtime.runtime_config['machines']])
+
+    def test_path_depends_on_machine(self):
+        runtime_config_path = pathlib.Path(HERE, 'examples', 'runtime_config',
+                                           'example_initial.json')
+        shutil.copy(str(runtime_config_path), str(self.runtime_config_path))
+        repos_config_path = pathlib.Path(HERE, 'examples', 'repos_config', 'example_paths.json')
+        shutil.copy(str(repos_config_path), str(self.repos_config_path))
+
+        for hostname, path in [
+                ('example_machine{}'.format(i), pathlib.Path('/example_path_{}'.format(i)))
+                for i in range(1, 4)]:
+            runtime = Runtime(self.runtime_config_path, self.repos_config_path, hostname=hostname)
+            runtime.filter_projects(lambda name, *_: name == 'example1')
+            self.assertEqual(len(runtime.filtered_projects), 1)
+            project = runtime.filtered_projects[0]
+            self.assertEqual(project.path, path)
+
+        for hostname, path in [
+                ('example_machine', pathlib.Path('$INGIT_TEST_REPOS_PATH', 'example2')),
+                ('special_machine', pathlib.Path('/special_path'))]:
+            runtime = Runtime(self.runtime_config_path, self.repos_config_path, hostname=hostname)
+            runtime.filter_projects(lambda name, *_: name == 'example2')
+            self.assertEqual(len(runtime.filtered_projects), 1)
+            project = runtime.filtered_projects[0]
+            self.assertEqual(project.path, path)

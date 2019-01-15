@@ -1,0 +1,28 @@
+{
+  "description": "ingit repositories configuration file",
+  "ingit-version": "0.4.5",
+  "repos": [
+    {
+      "name": "example1",
+      "paths": {
+        "example_machine1": "/example_path_1",
+        "example_machine2": "/example_path_2",
+        "": "/example_path_3"
+      },
+      "remotes": {
+        "source": "https://example.com/example1.git"
+      },
+      "tags": ["python"]
+    },
+    {
+      "name": "example2",
+      "paths": {
+        "special_machine": "/special_path"
+      },
+      "remotes": {
+        "source": "https://example.com/example2.git"
+      },
+      "tags": ["example"]
+    }
+  ]
+}

@@ -95,10 +95,18 @@ class Runtime:
         projects = []
         for repo in self.repos_config['repos']:
             name = repo['name']
+            assert not ('path' in repo and 'paths' in repo), repo
+            raw_path = None
             if 'path' in repo:
-                path = pathlib.Path(normalize_path(repo['path']))
-            else:
+                raw_path = repo['path']
+            elif 'paths' in repo and self._hostname in repo['paths']:
+                raw_path = repo['paths'][self._hostname]
+            elif 'paths' in repo and '' in repo['paths']:
+                raw_path = repo['paths']['']
+            if raw_path is None:
                 path = pathlib.Path(name)
+            else:
+                path = pathlib.Path(normalize_path(raw_path))
             if not path.is_absolute():
                 if self.repos_path is None:
                     raise ValueError('configuration of repository "{}" must contain absolute path'
