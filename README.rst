@@ -275,7 +275,7 @@ Tags have no other effect than making repository filtering easier.
 
 
 ``ingit clone``
-----------------
+---------------
 
 Execute ``git clone <remote-url> --recursive --orign <remote-name> <path>``,
 where values of ``<path>`` and ``<remote-...>`` are taken from default remote configuration
@@ -305,13 +305,13 @@ and ``git fetch github``.
 
 
 ``ingit init``
-----------------
+--------------
 
 Execute ``git init`` followed by ``git remote add`` for each configured remote.
 
 
 ``ingit fetch``
-----------------
+---------------
 
 Execute ``git fetch <remote-name>``, where the remote name is the remote of the current
 tracking branch, or all remotes of the repository if there's no tracking branch,
@@ -321,7 +321,7 @@ Use ``--all`` to fetch all remotes in all cases.
 
 
 ``ingit checkout``
-----------------
+------------------
 
 Interactively select revision to checkout from list of local branches,
 remote non-tracking branches and local tags.
@@ -339,19 +339,19 @@ Also, checking out any tag will put repository in detached head state.
 
 
 ``ingit merge``
-----------------
+---------------
 
 TODO: Write docs.
 
 
 ``ingit push``
-----------------
+--------------
 
 TODO: Write docs.
 
 
 ``ingit gc``
-----------------
+------------
 
 Execute ``git gc --aggressive --prune``.
 
