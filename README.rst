@@ -124,7 +124,7 @@ into a predicate function template, as below:
 
     lambda name, tags, path, remotes: (predicate)
 
-The actual implementation is here: `<ingit/main.py#L178>`_
+The actual implementation is here: `<ingit/main.py#L188>`_
 
 Therefore, executing ``ingit --predicate "'mytag' in tags" fetch`` results
 in the following predicate being applied:
