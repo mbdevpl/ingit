@@ -98,15 +98,15 @@ class Tests(GitRepoTests):
             project.checkout()
 
         def readchar_once():
-            if readchar_once.returned:
+            readchar_once.called_count += 1
+            if readchar_once.called_count > 1:
+                self.assertLessEqual(readchar_once.called_count, 2)
                 raise TimeoutError
-            readchar_once.returned = True
             return 'N'
-        readchar_once.returned = False
+        readchar_once.called_count = 0
         with unittest.mock.patch.object(readchar, 'readchar', readchar_once):
             with self.assertRaises(TimeoutError):
                 project.checkout()
-                self.fail()
 
     def test_checkout_too_many_branches(self):
         self.git_init()

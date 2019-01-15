@@ -75,9 +75,10 @@ class Runtime:
     def _read_machine_config(self):
         for machine in self.runtime_config['machines']:
             names = []
+            assert ('name' in machine) ^ ('names' in machine), machine
             if 'name' in machine:
                 names.append(machine['name'])
-            if 'names' in machine:
+            else:
                 names += machine['names']
             if '' in names or self._hostname in names:
                 return machine
