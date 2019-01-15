@@ -260,7 +260,7 @@ If not provided, current working directory is used.
 Normally, resolved absolute path is stored in the configuration.
 However, if path is within the configured repos root directory (i.e. "repos_path" in runtime configuraion)
 then path relative to the repos root is stored instead.
-Additinally, if the repository is stored directly in the configured repos root
+Additionally, if the repository is stored directly in the configured repos root
 (i.e. there are no intermediate directories) then path is not stored at all.
 
 Such behaviour is implemented to make configuration file much less verbose in typical usage scenarios.
