@@ -107,15 +107,20 @@ def prepare_parser():
             '''Interactively select revision to checkout from list of local branches,
             remote non-tracking branches and local tags.'''),
         'merge': (
-            'perform git merge',
-            '''Interactively merge all branches to their tracking branches. For each <branch>
-            <tracking-branch> pair, execute "git checkout <branch> && git merge <tracking-branch>".
-            If repository is dirty when this command is executed, you'll get errors. After merging
-            is done, return to the orginally checked-out branch.'''),
+            'perform git merge (not yet implemented)',
+            '''Interactively merge all branches to their tracking branches.
+            For each <branch>-<tracking-branch> pair,
+            execute "git checkout <branch>" and then if the merge can be fast-forward,
+            automatically execute "git merge <tracking-branch> --ff-only".
+            If not, then show more information about the situation of the repository, and propose:
+            "git merge --log <tracking-branch>", "git rebase -i <tracking-branch>" and
+            "git reset --hard <tracking-branch>".
+            If repository is dirty when this command is executed, the command will do nothing.
+            After work is done, return to the originally checked-out branch.'''),
         'push': (
-            'perform git push',
-            '''Execute "git push <remote-name> <branch>:<tracking-branch-name>" for every branch
-            that has a tracking branch.'''),
+            'perform git push (not yet fully implemented)',
+            '''Execute "git push <remote-name> <branch>:<tracking-branch-name>"
+            for the active branch.'''),
         'gc': ('perform git gc', 'Execute "git gc --agressive --prune".'),
         'status': (
             'perform git status, as well as other diagnostic git commands',
@@ -132,6 +137,12 @@ def prepare_parser():
         run "ingit command --help" to see detailed help for a given command'''
         .format('", "'.join(commands.keys())))
 
+    _prepare_command_subparsers(subparsers, commands)
+
+    return parser
+
+
+def _prepare_command_subparsers(subparsers, commands):
     for command, (help_, description) in commands.items():
         subparser = subparsers.add_parser(command, help=help_)
         subparser.description = description
@@ -147,13 +158,31 @@ def prepare_parser():
             subparser.add_argument(
                 '--all', action='store_true',
                 help='fetch all remotes in all cases')
+        elif command == 'push':
+            subparser.add_argument(
+                '--all', action='store_true',
+                help='''execute the push for every branch that has a remote tracking branch
+                (not yet implemented)''')
         elif command == 'status':
             subparser.add_argument(
                 '-i', '--ignored', action='store_true',
                 help='''include ignored files in the status report
                 (identical to "--ignored" flag on "git status")''')
 
-    return parser
+
+def _prepare_command_options(command, parsed_args):
+    command_options = {}
+    if command == 'register':
+        command_options['tags'] = parsed_args.tags
+        command_options['path'] = pathlib.Path(
+            '.' if parsed_args.path is None else parsed_args.path)
+    elif command == 'fetch':
+        command_options['all_remotes'] = parsed_args.all
+    elif command == 'push':
+        command_options['all_branches'] = parsed_args.all
+    elif command == 'status':
+        command_options['ignored'] = parsed_args.ignored
+    return command_options
 
 
 def main(args=None):
@@ -198,15 +227,7 @@ def main(args=None):
     if command is None:
         parser.error('no command provided')
 
-    command_options = {}
-    if command == 'register':
-        command_options['tags'] = parsed_args.tags
-        command_options['path'] = pathlib.Path() if parsed_args.path is None \
-            else pathlib.Path(parsed_args.path)
-    elif command == 'fetch':
-        command_options['all_remotes'] = parsed_args.all
-    elif command == 'status':
-        command_options['ignored'] = parsed_args.ignored
+    command_options = _prepare_command_options(command, parsed_args)
 
     interactive = None if parsed_args.batch is None else not parsed_args.batch
     runtime = Runtime(runtime_config_path, repos_config_path, interactive=interactive)

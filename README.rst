@@ -341,13 +341,26 @@ Also, checking out any tag will put repository in detached head state.
 ``ingit merge``
 ---------------
 
-TODO: Write docs.
+Not yet implemented!
+
+Interactively merge all branches to their tracking branches.
+For each ``<branch>``-``<tracking-branch>`` pair,
+execute ``git checkout <branch>`` and then if the merge can be fast-forward,
+automatically execute ``git merge <tracking-branch> --ff-only``.
+If not, then show more information about the situation of the repository, and propose:
+
+*   ``git merge --log <tracking-branch>``,
+*   ``git rebase -i <tracking-branch>`` and
+*   ``git reset --hard <tracking-branch>``.
+
+If repository is dirty when this command is executed, the command will do nothing.
+After work is done, return to the originally checked-out branch.
 
 
 ``ingit push``
 --------------
 
-TODO: Write docs.
+Execute ``git push <remote-name> <branch>:<tracking-branch-name>`` for the active branch.
 
 
 ``ingit gc``

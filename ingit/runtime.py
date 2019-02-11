@@ -123,8 +123,9 @@ class Runtime:
         assert isinstance(predicate, (collections.Callable, str)), type(predicate)
         if isinstance(predicate, str):
             predicate = functools.partial(regex_predicate, predicate)
-        self.filtered_projects = [project for project in self.projects
-                          if predicate(project.name, project.tags, project.path, project.remotes)]
+        self.filtered_projects = [
+            project for project in self.projects
+            if predicate(project.name, project.tags, project.path, project.remotes)]
 
     def execute(self, command: str, **command_options):
         """Execute the runtime."""
