@@ -6,6 +6,7 @@ import logging
 import pathlib
 import platform
 import re
+import subprocess
 import typing as t
 
 import git
@@ -132,6 +133,7 @@ class Runtime:
         command_executor = {
             'summary': self.execute_ingit_command,
             'register': self.execute_ingit_command,
+            'foreach': self.execute_ingit_command,
             'clone': self.execute_git_command,
             'init': self.execute_git_command,
             'fetch': self.execute_git_command,
@@ -143,10 +145,11 @@ class Runtime:
 
         command_executor(command, **command_options)
 
-    def execute_ingit_command(self, command, **command_options):
+    def execute_ingit_command(self, command: str, **command_options):
         command = {
             'summary': 'repositories_summary',
-            'register': 'register_repository'}[command]
+            'register': 'register_repository',
+            'foreach': 'execute_command'}.get(command, command)
         implementation = getattr(self, command)
         implementation(**command_options)
 
@@ -156,6 +159,17 @@ class Runtime:
         for project in self.filtered_projects:
             implementation = getattr(project, command)
             implementation(**command_options)
+
+    def execute_command(self, cmd: str, timeout: int = None):
+        for project in self.filtered_projects:
+            if not project.path.is_dir():
+                continue
+            try:
+                result = subprocess.run(cmd, timeout=timeout, shell=True, cwd=project.path)
+                if result.returncode != 0:
+                    _LOG.error('command "%s" failed in %s: %s', cmd, project, result)
+            except subprocess.TimeoutExpired:
+                _LOG.error('command "%s" in %s was aborted because it took too much time')
 
     def repositories_summary(self):
         """Summarize registered repositories."""

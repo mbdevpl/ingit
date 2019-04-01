@@ -75,7 +75,8 @@ Commands are of two kinds in general:
 Currently available ingit-only commands are:
 
 *   ``ingit summary`` will show summary of repositories registered in ingit;
-*   ``ingit register`` will add an existing git repository to ingit configuration.
+*   ``ingit register`` will add an existing git repository to ingit configuration;
+*   ``ingit foreach`` will execute a custom command for each repository.
 
 
 Currently available git-like commands are:
@@ -96,7 +97,7 @@ Filtering the repositories
 Git-like commands of ingit
 (namely: ``ingit clone``, ``ingit init``, ``ingit fetch``, ``ingit checkout``,
 ``ingit merge``, ``ingit push``, ``ingit gc`` and ``ingit status``),
-as well as ``ingit summary``,
+as well as ``ingit summary`` and ``ingit foreach``,
 by default operate on all registered repositories.
 
 However, they all can take the options ``--regex``/``-r`` and ``--predicate``/``-p``
@@ -272,6 +273,12 @@ or something which is expected to never contain any repositories -- like "/dev/n
 Use ``--tags`` to provide tags for this repository, they will be added to the initial configuration.
 
 Tags have no other effect than making repository filtering easier.
+
+
+``ingit foreach``
+------------------
+
+TODO.
 
 
 ``ingit clone``
