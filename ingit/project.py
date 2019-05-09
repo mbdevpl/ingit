@@ -468,8 +468,8 @@ class Project:
         assert all(len(list(v.urls)) == 1 for v in self.repo.remotes.values()), self.repo.remotes
         remote_names_in_config = set(self.remotes)
         remote_names = set(self.repo.remotes)
-        remotes_in_config = dict(self.remotes)
-        remotes = {k: tuple(v.urls)[0] for k, v in self.repo.remotes.items()}
+        remotes_in_config = {k: v.replace('\\', '/') for k, v in self.remotes.items()}
+        remotes = {k: tuple(v.urls)[0].replace('\\', '/') for k, v in self.repo.remotes.items()}
 
         extra_remote_names = remote_names - remote_names_in_config
         missing_remote_names = remote_names_in_config - remote_names
