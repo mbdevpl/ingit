@@ -87,6 +87,9 @@ def prepare_parser():
             its absolute path becomes "path",
             and its currently configured remotes become "remotes".
             You can edit the configuration manually afterwards.'''),
+        'foreach': (
+            'execute a custom command',
+            'The given command is executed in a shell in working directory of each project.'),
         'clone': (
             'perform git clone',
             '''Execute "git clone <remote-url> --recursive --orign <remote-name> <path>",
@@ -154,6 +157,16 @@ def _prepare_command_subparsers(subparsers, commands):
                 'path', metavar='PATH', type=str, nargs='?',
                 help='''path to root directory of repository, use current working directory
                 if not provided''')
+        elif command == 'foreach':
+            subparser.add_argument(
+                'cmd', metavar='COMMAND', type=str,
+                help='command to be executed in shell in working directory of each project')
+            subparser.add_argument(
+                '--recursive', action='store_true',
+                help='')  # TODO: write help
+            subparser.add_argument(
+                '--timeout', metavar='SECONDS', type=int, default=None,
+                help='')  # TODO: write help
         elif command == 'fetch':
             subparser.add_argument(
                 '--all', action='store_true',
@@ -176,6 +189,8 @@ def _prepare_command_options(command, parsed_args):
         command_options['tags'] = parsed_args.tags
         command_options['path'] = pathlib.Path(
             '.' if parsed_args.path is None else parsed_args.path)
+    elif command == 'foreach':
+        command_options['cmd'] = parsed_args.cmd
     elif command == 'fetch':
         command_options['all_remotes'] = parsed_args.all
     elif command == 'push':
