@@ -465,23 +465,55 @@ class Project:
             '''
 
     def _status_remotes(self):
-        remotes_in_config = set(self.remotes)
-        remotes = set(self.repo.remotes)
-        extra_remotes = remotes - remotes_in_config
-        missing_remotes = remotes_in_config - remotes
-        if extra_remotes or missing_remotes:
-            OUT.critical('!! repo "%s" has different remotes than it should', self.path)
-            for extra_remote in extra_remotes:
-                OUT.critical('!! extra remote: "%s"', extra_remote)
-            for missing_remote in missing_remotes:
-                OUT.critical('!! missing remote: "%s"', missing_remote)
-                if extra_remotes:
-                    # TODO: check extra remotes for identical urls
-                    continue
-                ans = ask('Add remote "{}" with url "{}"?'
-                          .format(missing_remote, self.remotes[missing_remote]))
+        assert all(len(list(v.urls)) == 1 for v in self.repo.remotes.values()), self.repo.remotes
+        remote_names_in_config = set(self.remotes)
+        remote_names = set(self.repo.remotes)
+        remotes_in_config = dict(self.remotes)
+        remotes = {k: tuple(v.urls)[0] for k, v in self.repo.remotes.items()}
+
+        extra_remote_names = remote_names - remote_names_in_config
+        missing_remote_names = remote_names_in_config - remote_names
+        extra_remotes = dict(set(remotes.items()) - set(remotes_in_config.items()))
+        missing_remotes = dict(set(remotes_in_config.items()) - set(remotes.items()))
+        if not extra_remotes and not missing_remotes:
+            return
+        OUT.critical('!! repo "%s" has different remotes than it should', self.path)
+
+        for name, url in extra_remotes.items():
+            if url in missing_remotes.values():
+                OUT.critical('!! renamed remote: "%s"', name)
+                new_name = [k for k, v in missing_remotes.items() if url == v][0]
+                ans = ask('Rename remote from "{}" to "{}"?'
+                          .format(name, new_name))
                 if ans == 'y':
-                    self.repo.git.remote('add', missing_remote, self.remotes[missing_remote])
+                    self.repo.git.remote('rename', name, new_name)
+                    del missing_remotes[new_name]
+            elif name in missing_remotes.keys():
+                OUT.critical('!! url changed for remote: "%s"', name)
+                ans = ask('Change URL of remote "{}" from "{}" to "{}"?'
+                          .format(name, url, remotes_in_config[name]))
+                if ans == 'y':
+                    self.repo.git.remote('set-url', name, remotes_in_config[name])
+                    del missing_remotes[name]
+            else:
+                OUT.critical('!! extra remote: "%s"', name)
+                if name not in extra_remote_names:
+                    OUT.critical('!! misconfigured remote: "%s"', name)
+                    continue
+                ans = ask('Remove remote "{}" with url "{}"?'
+                          .format(name, remotes[name]))
+                if ans == 'y':
+                    self.repo.git.remote('remove', name)
+
+        for name, url in missing_remotes.items():
+            OUT.critical('!! missing remote: "%s"', name)
+            if name not in missing_remote_names:
+                OUT.critical('!! misconfigured remote: "%s"', name)
+                continue
+            ans = ask('Add remote "{}" with url "{}"?'
+                      .format(name, self.remotes[name]))
+            if ans == 'y':
+                self.repo.git.remote('add', name, self.remotes[name])
 
     def __str__(self):
         fields = ['path="{}"'.format(self.path)]
