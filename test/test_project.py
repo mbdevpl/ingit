@@ -212,7 +212,8 @@ class Tests(GitRepoTests):
         self.repo.git.remote('add', 'origin', _REMOTE)
         self.repo.git.remote('add', 'mirror', _REMOTE)
         project = Project('example', [], self.repo_path, {'origin': _REMOTE})
-        project.status()
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
+            project.status()
 
     def test_status_missing_remote(self):
         self.git_init()
@@ -234,6 +235,7 @@ class Tests(GitRepoTests):
         self.git_init()
         self.repo.git.remote('add', 'mirror', _REMOTE)
         project = Project('example', [], self.repo_path, {'origin': _REMOTE})
-        project.status()
+        with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
+            project.status()
         self.assertNotIn('origin', self.repo.git.remote(v=True))
         self.assertIn(_REMOTE, self.repo.git.remote(v=True))
