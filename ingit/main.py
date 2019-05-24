@@ -1,9 +1,13 @@
 """Command-line interface of ingit."""
 
+# PYTHON_ARGCOMPLETE_OK
+
 import argparse
 import logging
 import pathlib
 import sys
+
+import argcomplete
 
 from ._version import VERSION
 from .json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
@@ -141,6 +145,7 @@ def prepare_parser():
         .format('", "'.join(commands.keys())))
 
     _prepare_command_subparsers(subparsers, commands)
+    argcomplete.autocomplete(parser)
 
     return parser
 
