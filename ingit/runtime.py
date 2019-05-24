@@ -274,10 +274,12 @@ class Runtime:
             repo_config['tags'] += tags
         _LOG.warning('adding repo to configuration: %s', repo_config)
         index = None
+        lowercase_name = repo_config['name'].lower()
         for i, project in enumerate(self.projects):
-            if index is None and project.name > repo_config['name']:
+            lowercase_project_name = project.name.lower()
+            if index is None and lowercase_project_name > lowercase_name:
                 index = i
-            if project.name == repo_config['name']:
+            if lowercase_project_name == lowercase_name:
                 raise ValueError('project named {} already exists in current configuration'
                                  .format(project.name))
         if index is None:
