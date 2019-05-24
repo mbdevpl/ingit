@@ -273,9 +273,14 @@ class Runtime:
         if tags is not None:
             repo_config['tags'] += tags
         _LOG.warning('adding repo to configuration: %s', repo_config)
-        for project in self.projects:
+        index = None
+        for i, project in enumerate(self.projects):
+            if index is None and project.name > repo_config['name']:
+                index = i
             if project.name == repo_config['name']:
                 raise ValueError('project named {} already exists in current configuration'
                                  .format(project.name))
-        self.repos_config['repos'].append(repo_config)
+        if index is None:
+            index = len(self.projects)
+        self.repos_config['repos'].insert(index, repo_config)
         json_to_file(self.repos_config, self.repos_config_path)
