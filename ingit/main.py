@@ -19,6 +19,11 @@ PREDICATE_EXAMPLES = ['''name.startswith('py_')''', ''' 'python' in tags''']
 
 REGEX_EXAMPLES = ['^py_.*', '^python$']
 
+SUGGESTED_TAGS = [
+    'appveyor', 'archived', 'assembla', 'bash', 'bitbucket', 'c', 'c++', 'c#', 'css', 'cython',
+    'docker', 'fortran', 'gist', 'github', 'html', 'java', 'latex', 'opencl', 'php', 'python',
+    'ruby', 'travis', 'vsonline']
+
 OUT = logging.getLogger('ingit.interface.print')
 
 
@@ -157,7 +162,8 @@ def _prepare_command_subparsers(subparsers, commands):
         if command == 'register':
             subparser.add_argument(
                 '--tags', metavar='TAG', type=str, default=None, nargs='+',
-                help='set tags for this repository, they will be added to initial configuration')
+                help='set tags for this repository, they will be added to initial configuration') \
+                .completer = argcomplete.completers.ChoicesCompleter(choices=SUGGESTED_TAGS)
             subparser.add_argument(
                 'path', metavar='PATH', type=str, nargs='?',
                 help='''path to root directory of repository, use current working directory
