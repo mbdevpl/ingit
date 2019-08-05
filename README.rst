@@ -235,6 +235,56 @@ Example:
       ]
     }
 
+Entry of each repository is a JSON object that can have the following fields:
+
+.. code:: json
+
+    {
+      "name": "name of the project",
+      "path": "path doesn't have to be specified, by default it will be 'repos_path/name'",
+      "paths": {
+        "machine name 1": "path used only on machine 1",
+        "machine name 2": "path used only on machine 2",
+        "": "if no machine name is given, the path is used in all other cases",
+        ...
+      }
+      "remotes": {
+        "remote name 1": "url 1",
+        "remote name 2": "url 2",
+        ...
+      },
+      "tags": [
+        "tags are completely optional",
+        "but repositories are much easier to manage if they are consistently tagged"
+      ]
+    }
+
+
+The ``repos_path`` mentioned above is taken from the runtime configuation of ingit.
+
+At most one of ``path`` or ``paths`` is allowed for each repo.
+
+The two path specifications below are equivalent:
+
+.. code:: json
+
+    {
+      ...
+      "path": "some path",
+      ...
+    }
+
+.. code:: json
+
+    {
+      ...
+      "paths": {
+        "": "some path"
+      },
+      ...
+    }
+
+
 
 Command details
 ===============
