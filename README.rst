@@ -12,6 +12,8 @@
 ingit
 =====
 
+Tool for managing a large collection of repositories in git.
+
 .. image:: https://img.shields.io/pypi/v/ingit.svg
     :target: https://pypi.org/project/ingit
     :alt: package version from PyPI
@@ -32,8 +34,7 @@ ingit
     :target: https://github.com/mbdevpl/ingit/blob/master/NOTICE
     :alt: license
 
-Tool for managing a large collection of repositories in git. If you have 100 git-versioned projects,
-keeping tabs on everything can be quite troublesome.
+If you have 100 git-versioned projects, keeping tabs on everything can be quite troublesome.
 
 That's where *ingit* comes in. It mimics selected git commands, however you can perform the same
 action on a group of repositories instead of just one.
@@ -104,8 +105,17 @@ However, they all can take the options ``--regex``/``-r`` and ``--predicate``/``
 that filter out the repositories using repository metadata (i.e. name, tags, path and remotes)
 which is stored in the repositories configuration.
 
+If both ``--regex``/``-r`` and ``--predicate``/``-p`` are provided,
+predicate is applied first.
+
+
+Filtering repositories by regular expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 The ``--regex``/``-r`` option accepts any regular expression (also a simple string)
 and filters the repos by trying to simply find a match in any of the metadata.
+
+Specifically, ingit will forward your input regular expression into this function:
 
 .. code:: python
 
@@ -116,16 +126,20 @@ and filters the repos by trying to simply find a match in any of the metadata.
             or re.search(regex, str(path)) is not None
             or any(re.search(regex, name) for name, url in remotes.items()))
 
-The actual implementation is here: `<ingit/runtime.py#L23>`_
+The actual implementation is here: `<ingit/runtime.py#L24>`_
 
-The ``--predicate``/``-p`` option accepts a python expression which will be inserted
+
+Filtering repositories by predicate
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``--predicate``/``-p`` option accepts a python boolean expression which will be inserted
 into a predicate function template, as below:
 
 .. code:: python
 
     lambda name, tags, path, remotes: (predicate)
 
-The actual implementation is here: `<ingit/main.py#L188>`_
+The actual implementation is here: `<ingit/main.py#L232>`_
 
 Therefore, executing ``ingit --predicate "'mytag' in tags" fetch`` results
 in the following predicate being applied:
@@ -135,9 +149,6 @@ in the following predicate being applied:
     lambda name, tags, path, remotes: ('mytag' in tags)
 
 And thus only repositories that have ``'mytag'`` in their tags are fetched.
-
-If both ``--regex``/``-r`` and ``--predicate``/``-p`` are provided,
-predicate is applied first.
 
 
 Configuration
@@ -185,6 +196,8 @@ Repositories configuraion
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It's a file that lists all registered projects and keeps their metadata.
+
+It is automatically updated when ``ingit register`` is used.
 
 Example:
 

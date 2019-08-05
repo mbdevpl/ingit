@@ -21,7 +21,8 @@ from .project import Project
 _LOG = logging.getLogger(__name__)
 
 
-def regex_predicate(regex, name, tags, path, remotes):
+def regex_predicate(regex: str, name, tags, path, remotes):
+    """Repo filtering function launched when "ingit -r 'regex' <command> ..." is used."""
     return (
         re.search(regex, name) is not None
         or any(re.search(regex, tag) is not None for tag in tags)
