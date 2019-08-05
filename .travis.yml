@@ -24,18 +24,12 @@ matrix:
       language: generic
       env: TRAVIS_PYTHON_VERSION="3.7"
 
-before_install: |
-  set -e
-  if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
-    TRAVIS_PYTHON_VERSION="$(pyenv install --list | grep -E " ${TRAVIS_PYTHON_VERSION}(\.[0-9brc]+)+$" | tail -n 1 | sed -e 's/^[[:space:]]*//')"
-    pyenv install "${TRAVIS_PYTHON_VERSION}"
-    export PATH="${HOME}/.pyenv/versions/${TRAVIS_PYTHON_VERSION}/bin:${PATH}"
-  fi
-  set +e
+before_install:
+  - .build/install_pyenv.sh
 
 install:
   - pip install -U pip
-  - pip install -U -r dev_requirements.txt
+  - pip install -U -r ci_requirements.txt
   # git repositories for testing
   - git clone https://github.com/mbdevpl/argunparse ../argunparse
   - git clone https://github.com/mbdevpl/transpyle ../transpyle

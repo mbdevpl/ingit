@@ -9,7 +9,7 @@ class Package(setup_boilerplate.Package):
 
     name = 'ingit'
     description = 'git repository collection management tool'
-    download_url = 'https://github.com/mbdevpl/ingit'
+    url = 'https://github.com/mbdevpl/ingit'
     license_str = 'GNU General Public License v3 or later (GPLv3+)'
     classifiers = [
         'Development Status :: 1 - Planning',
