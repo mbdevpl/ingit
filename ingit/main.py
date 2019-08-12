@@ -1,7 +1,5 @@
 """Command-line interface of ingit."""
 
-# PYTHON_ARGCOMPLETE_OK
-
 import argparse
 import logging
 import pathlib
