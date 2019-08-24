@@ -314,27 +314,27 @@ Start tracking a repository in ingit.
     ingit register [--tags TAG ...] [PATH]
 
 The initial configuration is set according to basic repository information:
-its root directory name becomes "name", its absolute path becomes "path", and
-its currently configured remotes become "remotes". You can edit the
-configuration manually afterwards.
+its root directory name becomes "name" and its currently configured remotes become
+"remotes". You can edit the configuration manually afterwards.
+
+The final "path" to the repository stored in the configuration depends on the
+``repos_path`` in runtime configuation. The configured "path" will be:
+
+*   resolved absolute path if there is no ``repos_path`` configured or repository path
+    is outside of the ``repos_path``;
+*   resolved relative path to the ``repos_path``, if the repository path is within it;
+*   nothing (i.e. not stored) if the if the repository is stored directly in
+    ``repos_path`` (i.e. there are no intermediate directories).
+
+Behaviour of storing relative/no paths in some cases is implemented to make
+configuration file much less verbose in typical usage scenarios. To prevent this
+behaviour, and force all repository paths to be absolute, simply set the ``repos_path``
+in your runtime configuraion to JSON ``null``.
 
 Use ``PATH`` to provide the path to root directory of repository.
 If not provided, current working directory is used.
 
-Normally, resolved absolute path is stored in the configuration.
-However, if path is within the configured repos root directory (i.e. "repos_path" in runtime configuraion)
-then path relative to the repos root is stored instead.
-Additionally, if the repository is stored directly in the configured repos root
-(i.e. there are no intermediate directories) then path is not stored at all.
-
-Such behaviour is implemented to make configuration file much less verbose in typical usage scenarios.
-
-To prevent this behaviour, and force all repository paths to be absolute,
-simply configure your repos root in runtime configuraion to JSON null,
-or something which is expected to never contain any repositories -- like "/dev/null".
-
 Use ``--tags`` to provide tags for this repository, they will be added to the initial configuration.
-
 Tags have no other effect than making repository filtering easier.
 
 

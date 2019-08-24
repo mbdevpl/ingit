@@ -90,10 +90,22 @@ def prepare_parser():
         'register': (
             'start tracking a repository in ingit',
             '''The initial configuration is set according to basic repository information:
-            its root directory name becomes "name",
-            its absolute path becomes "path",
-            and its currently configured remotes become "remotes".
-            You can edit the configuration manually afterwards.'''),
+            its root directory name becomes "name" and its currently configured remotes become
+            "remotes". You can edit the configuration manually afterwards.
+
+            The final "path" to the repository stored in the configuration depends on the
+            "repos_path" in runtime configuation. The configured "path" will be:
+
+            (1) resolved absolute path if there is no "repos_path" configured or repository path
+                is outside of the "repos_path";
+            (2) resolved relative path to the "repos_path", if the repository path is within it;
+            (3) nothing (i.e. not stored) if the if the repository is stored directly in
+                "repos_path" (i.e. there are no intermediate directories).
+
+            Behaviour of storing relative/no paths in some cases is implemented to make
+            configuration file much less verbose in typical usage scenarios. To prevent this
+            behaviour, and force all repository paths to be absolute, simply set the "repos_path"
+            in your runtime configuraion to JSON "null".'''),
         'foreach': (
             'execute a custom command',
             'The given command is executed in a shell in working directory of each project.'),

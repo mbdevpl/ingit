@@ -260,17 +260,35 @@ class Runtime:
         repo = git.Repo(str(path))
         repo_data = RepoData(repo)
         repo_data.refresh()
-        _LOG.warning('registering repository: %s', repo_data)
+        _LOG.debug('registering repository: %s', repo_data)
         repo_config = repo_data.generate_repo_configuration()
         try:
-            repo_path = pathlib.Path(repo_config['path']).resolve()
-            if self.repos_path is not None:
-                repo_path = repo_path.relative_to(self.repos_path)
-            repo_path = str(repo_path)
-            if repo_path != repo_config['name']:
-                repo_config['path'] = repo_path
+            absolute_repo_path = pathlib.Path(repo_config['path']).resolve()
+            if self.repos_path is None:
+                _LOG.warning('repos path is not configured - registering absolute repo path "%s"',
+                             absolute_repo_path)
+                repo_config['path'] = str(absolute_repo_path)
+            else:
+                try:
+                    repo_path = absolute_repo_path.relative_to(self.repos_path)
+                    if str(repo_path) == repo_config['name']:
+                        del repo_config['path']
+                        _LOG.warning('resolved repo path "%s" is within configured repos path "%s"'
+                                     ' and resolves to the repository name "%s"'
+                                     ' - registering without redundant path data',
+                                     absolute_repo_path, self.repos_path, repo_path)
+                    else:
+                        repo_config['path'] = str(repo_path)
+                        _LOG.warning('resolved repo path "%s" is within configured repos path "%s"'
+                                     '- registering relative path "%s"', absolute_repo_path,
+                                     self.repos_path, repo_path)
+                except ValueError:
+                    _LOG.warning(
+                        'resolved repo path "%s" is not within configured repos path "%s"'
+                        ' - registering absolute path', absolute_repo_path, self.repos_path)
+                    repo_config['path'] = str(absolute_repo_path)
         except ValueError:
-            pass
+            _LOG.info('canot resolve repo path %s', repo_config['path'])
         if tags is not None:
             repo_config['tags'] += tags
         _LOG.warning('adding repo to configuration: %s', repo_config)
