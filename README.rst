@@ -347,6 +347,8 @@ filtering easier.
 The given command is executed in a shell in working directory of each
 project.
 
+Use ``--timeout`` to set timeout of the command (in seconds).
+
 
 ``ingit clone``
 ---------------

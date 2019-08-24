@@ -203,8 +203,8 @@ def _prepare_command_subparsers(subparsers, commands):
             #     '--recursive', action='store_true',
             #     help='(not yet implemented)')
             subparser.add_argument(
-                '--timeout', metavar='SECONDS', type=int, default=None,
-                help='')  # TODO: write help
+                '--timeout', metavar='SECONDS', type=float, default=None,
+                help='timeout of the command (in seconds)')
         elif command == 'fetch':
             subparser.add_argument(
                 '--all', action='store_true',
@@ -229,6 +229,7 @@ def _prepare_command_options(command, parsed_args):
             '.' if parsed_args.path is None else parsed_args.path)
     elif command == 'foreach':
         command_options['cmd'] = parsed_args.cmd
+        command_options['timeout'] = parsed_args.timeout
     elif command == 'fetch':
         command_options['all_remotes'] = parsed_args.all
     elif command == 'push':
