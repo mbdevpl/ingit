@@ -297,11 +297,12 @@ Below, details of each command are described.
 
 Show summary of registered repositories and status of configured repository root.
 
-First of all, print a list of registered repositories. By default, all registered repositories
-are listed, but, as in case of most commands, the results can be filtered via a predicate or regex.
+First of all, print a list of registered repositories. By default, all
+registered repositories are listed, but, as in case of most commands, the
+results can be filtered via a predicate or regex.
 
-Independently, print a list of all unregistered repositories and all not versioned paths present
-in the configured repositories root.
+Independently, print a list of all unregistered repositories and all not
+versioned paths present in the configured repositories root.
 
 
 ``ingit register``
@@ -311,47 +312,51 @@ Start tracking a repository in ingit.
 
 .. code:: bash
 
-    ingit register [--tags TAG ...] [PATH]
+    ingit register [PATH] [--tags TAG ...]
 
 The initial configuration is set according to basic repository information:
-its root directory name becomes "name" and its currently configured remotes become
-"remotes". You can edit the configuration manually afterwards.
+its root directory name becomes "name" and its currently configured remotes
+become "remotes". You can edit the configuration manually afterwards.
 
 The final "path" to the repository stored in the configuration depends on the
 ``repos_path`` in runtime configuation. The configured "path" will be:
 
-*   resolved absolute path if there is no ``repos_path`` configured or repository path
-    is outside of the ``repos_path``;
-*   resolved relative path to the ``repos_path``, if the repository path is within it;
+*   resolved absolute path if there is no ``repos_path`` configured or
+    repository path is outside of the ``repos_path``;
+*   resolved relative path to the ``repos_path``, if the repository path is
+    within it;
 *   nothing (i.e. not stored) if the if the repository is stored directly in
     ``repos_path`` (i.e. there are no intermediate directories).
 
 Behaviour of storing relative/no paths in some cases is implemented to make
-configuration file much less verbose in typical usage scenarios. To prevent this
-behaviour, and force all repository paths to be absolute, simply set the ``repos_path``
-in your runtime configuraion to JSON ``null``.
+configuration file much less verbose in typical usage scenarios. To prevent
+this behaviour, and force all repository paths to be absolute, simply set the
+``repos_path`` in your runtime configuraion to JSON ``null``.
 
 Use ``PATH`` to provide the path to root directory of repository.
 If not provided, current working directory is used.
 
-Use ``--tags`` to provide tags for this repository, they will be added to the initial configuration.
-Tags have no other effect than making repository filtering easier.
+Use ``--tags`` to provide tags for this repository, they will be added to the
+initial configuration. Tags have no other effect than making repository
+filtering easier.
 
 
 ``ingit foreach``
 ------------------
 
-TODO.
+The given command is executed in a shell in working directory of each
+project.
 
 
 ``ingit clone``
 ---------------
 
 Execute ``git clone <remote-url> --recursive --orign <remote-name> <path>``,
-where values of ``<path>`` and ``<remote-...>`` are taken from default remote configuration
-of the repository.
+where values of ``<path>`` and ``<remote-...>`` are taken from default remote
+configuration of the repository.
 
-After cloning, add all remaining configured remotes to the repository and fetch them.
+After cloning, add all remaining configured remotes to the repository and
+fetch them.
 
 For example, if repository configuration is as follows:
 
@@ -377,15 +382,16 @@ and ``git fetch github``.
 ``ingit init``
 --------------
 
-Execute ``git init`` followed by ``git remote add`` for each configured remote.
+Execute ``git init`` followed by ``git remote add`` for each configured
+remote.
 
 
 ``ingit fetch``
 ---------------
 
-Execute ``git fetch <remote-name>``, where the remote name is the remote of the current
-tracking branch, or all remotes of the repository if there's no tracking branch,
-or repository is in detached head state.
+Execute ``git fetch <remote-name>``, where the remote name is the remote of
+the current tracking branch, or all remotes of the repository if there's no
+tracking branch,　or repository is in detached head state.
 
 Use ``--all`` to fetch all remotes in all cases.
 
@@ -393,44 +399,51 @@ Use ``--all`` to fetch all remotes in all cases.
 ``ingit checkout``
 ------------------
 
-Interactively select revision to checkout from list of local branches,
-remote non-tracking branches and local tags.
+Interactively select revision to checkout from list of local branches, remote
+non-tracking branches and local tags.
 
-The list of branches to select from is composed by combinig:
+The list of branches to select from is composed by combining:
 
-- local branches
-- non-tracking branches on all remotes
-- local tags
+*   local branches
+*   non-tracking branches on all remotes
+*   local tags
 
-Checking out a remote branch will create a local branch with the same unless it already exists.
-If it already exists, repository will end up in detached head state.
+Checking out a remote branch will create a local branch with the same unless
+it already exists. If it already exists, repository will end up in detached
+head state.
 
-Also, checking out any tag will put repository in detached head state.
+Also, checking out any tag will put repository in a detached head state.
 
 
 ``ingit merge``
 ---------------
 
-Not yet implemented!
+**Not yet implemented!** The following functionality is intended.
 
-Interactively merge all branches to their tracking branches.
-For each ``<branch>``-``<tracking-branch>`` pair,
-execute ``git checkout <branch>`` and then if the merge can be fast-forward,
-automatically execute ``git merge <tracking-branch> --ff-only``.
-If not, then show more information about the situation of the repository, and propose:
+Interactively merge all branches to their tracking branches. For each not
+merged ``<branch>``-``<tracking-branch>`` pair, execute
+``git checkout <branch>`` and then if the merge is fast-forward,
+automatically execute ``git merge <tracking-branch> --ff-only``. If not, then
+show more information about the situation of the repository, and propose:
 
 *   ``git merge --log <tracking-branch>``,
 *   ``git rebase -i <tracking-branch>`` and
 *   ``git reset --hard <tracking-branch>``.
 
-If repository is dirty when this command is executed, the command will do nothing.
-After work is done, return to the originally checked-out branch.
+If repository is dirty when this command is executed, do nothing. After work
+is done, return to the originally checked-out branch.
 
 
 ``ingit push``
 --------------
 
-Execute ``git push <remote-name> <branch>:<tracking-branch-name>`` for the active branch.
+Execute ``git push <remote-name> <branch>:<tracking-branch-name>`` for the
+active branch.
+
+The above functionality works, but the following functionality is **not yet implemented**.
+
+Use ``--all`` to execute the push for every branch that has a remote tracking
+branch.
 
 
 ``ingit gc``
@@ -446,14 +459,17 @@ Perform git status, as well as other diagnostic git commands.
 
 Execute:
 
-*   ``git status --short --branch`` to inform about any uncommited changes,
-*   ``git log tracking_branch..branch`` to inform about commits that are not yet pushed to the remote,
-*   ``git log branch..tracking_branch`` to inform about commits that are not yet merged from the remote.
+*   ``git status --short --branch`` to inform about any uncommitted changes,
+*   ``git log tracking_branch..branch`` to inform about commits that are not
+    yet pushed to the remote,
+*   ``git log branch..tracking_branch`` to inform about commits that are not
+    yet merged from the remote.
 
-Additionally, compare registered remotes with actual remotes to make sure that ingit
-configuration is in sync with the repository metadata.
+Additionally, compare registered remotes with actual remotes to make sure
+that ingit configuration is in sync with the repository metadata.
 
-Use ``--ignored`` to include ignored files in the status report, just as with ``git status``.
+Use ``--ignored`` to include ignored files in the status report, just as with
+``git status``.
 
 
 Requirements

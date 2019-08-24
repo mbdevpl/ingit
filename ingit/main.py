@@ -3,11 +3,12 @@
 import argparse
 import logging
 import pathlib
-import sys
 
 import argcomplete
 
-from ._version import VERSION
+from .cli_boilerplate import \
+    ArgumentDefaultsAndRawDescriptionHelpFormatter, make_copyright_notice, add_version_option, \
+    add_verbosity_group, get_verbosity_level, dedent_except_first_line
 from .json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
 from .runtime import Runtime
 
@@ -27,16 +28,15 @@ OUT = logging.getLogger('ingit.interface.print')
 
 def prepare_parser():
     """Prepare command-line arguments parser."""
-
     parser = argparse.ArgumentParser(
         prog='ingit',
         description='''Tool for managing a large collection of repositories in git. If you have
         100 git-versioned projects, keeping tabs on everything can be quite troublesome.''',
-        epilog='''Copyright (C) 2015-2018 by Mateusz Bysiek,
-        GNU General Public License v3 or later (GPLv3+), https://github.com/mbdevpl/ingit''',
+        epilog=make_copyright_notice(
+            2015, 2019, license_name='GNU General Public License v3 or later (GPLv3+)',
+            url='https://github.com/mbdevpl/ingit'),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter, allow_abbrev=True)
-    parser.add_argument('--version', action='version',
-                        version='ingit {}, Python {}'.format(VERSION, sys.version))
+    add_version_option(parser)
 
     interactivity_group = parser.add_mutually_exclusive_group(required=False)
     interactivity_group.add_argument(
@@ -47,19 +47,7 @@ def prepare_parser():
         help='force interactive mode even if configuration sets batch mode as default')
     parser.set_defaults(batch=None)
 
-    verbosity_group = parser.add_mutually_exclusive_group(required=False)
-    verbosity_group.add_argument(
-        '--verbose', '-v', action='count',
-        help='ingit should be more verbose than by default'
-        ' (repeat up to 2 times for stronger effect)')
-    verbosity_group.add_argument(
-        '--quiet', '-q', action='count',
-        help='ingit should be more quiet than by default'
-        ' (repeat up to 3 times for stronger effect)')
-    verbosity_group.add_argument(
-        '--verbosity', metavar='LEVEL', type=int, default=logging.CRITICAL - logging.WARNING,
-        help='set verbosity level explicitly (normally from {} to {})'
-        .format(logging.CRITICAL - logging.CRITICAL, logging.CRITICAL - logging.NOTSET))
+    add_verbosity_group(parser)
 
     parser.add_argument(
         '--config', metavar='PATH', type=str, default=str(RUNTIME_CONFIG_PATH),
@@ -83,76 +71,104 @@ def prepare_parser():
     commands = {
         'summary': (
             'show summary of registered repositories and status of configured repository root',
-            '''First of all, print a list of registered repositories. By default, all registered
-            repositories are listed, but, as in case of most commands, the results can be filtered
-            via a predicate or regex. Independently, print a list of all unregistered repositories
-            and all not versioned paths present in the configured repositories root.'''),
+            '''First of all, print a list of registered repositories. By default, all
+            registered repositories are listed, but, as in case of most commands, the
+            results can be filtered via a predicate or regex.
+
+            Independently, print a list of all unregistered repositories and all not
+            versioned paths present in the configured repositories root.'''),
         'register': (
             'start tracking a repository in ingit',
             '''The initial configuration is set according to basic repository information:
-            its root directory name becomes "name" and its currently configured remotes become
-            "remotes". You can edit the configuration manually afterwards.
+            its root directory name becomes "name" and its currently configured remotes
+            become "remotes". You can edit the configuration manually afterwards.
 
             The final "path" to the repository stored in the configuration depends on the
             "repos_path" in runtime configuation. The configured "path" will be:
 
-            (1) resolved absolute path if there is no "repos_path" configured or repository path
-                is outside of the "repos_path";
-            (2) resolved relative path to the "repos_path", if the repository path is within it;
-            (3) nothing (i.e. not stored) if the if the repository is stored directly in
+            *   resolved absolute path if there is no "repos_path" configured or
+                repository path is outside of the "repos_path";
+            *   resolved relative path to the "repos_path", if the repository path is
+                within it;
+            *   nothing (i.e. not stored) if the if the repository is stored directly in
                 "repos_path" (i.e. there are no intermediate directories).
 
             Behaviour of storing relative/no paths in some cases is implemented to make
-            configuration file much less verbose in typical usage scenarios. To prevent this
-            behaviour, and force all repository paths to be absolute, simply set the "repos_path"
-            in your runtime configuraion to JSON "null".'''),
+            configuration file much less verbose in typical usage scenarios. To prevent
+            this behaviour, and force all repository paths to be absolute, simply set the
+            "repos_path" in your runtime configuraion to JSON "null".'''),
         'foreach': (
             'execute a custom command',
-            'The given command is executed in a shell in working directory of each project.'),
+            '''The given command is executed in a shell in working directory of each
+            project.'''),
         'clone': (
             'perform git clone',
             '''Execute "git clone <remote-url> --recursive --orign <remote-name> <path>",
-            where values of <path> and <remote-...> are taken from default remote configuration
-            of the repository.
-            After cloning, add all remaining configured remotes to the repository and fetch them.
-            '''),
+            where values of <path> and <remote-...> are taken from default remote
+            configuration of the repository.
+
+            After cloning, add all remaining configured remotes to the repository and
+            fetch them.'''),
         'init': (
             'perofrm git init',
-            'Execute "git init", followed by "git remote add" for each configured remote.'),
+            '''Execute "git init", followed by "git remote add" for each configured
+            remote.'''),
         'fetch': (
             'perform git fetch',
-            '''Execute "git fetch <remote-name>", where the remote name is the remote of the current
-            tracking branch, or all remotes of the repository if there's no tracking branch,
-            or repository is in detached head state.'''),
+            '''Execute "git fetch <remote-name>", where the remote name is the remote of
+            the current　tracking branch, or all remotes of the repository if there's no
+            tracking branch,　or repository is in detached head state.'''),
         'checkout': (
             'perform git checkout',
-            '''Interactively select revision to checkout from list of local branches,
-            remote non-tracking branches and local tags.'''),
+            '''Interactively select revision to checkout from list of local branches, remote
+            non-tracking branches and local tags.
+
+            The list of branches to select from is composed by combining:
+
+            *   local branches
+            *   non-tracking branches on all remotes
+            *   local tags
+
+            Checking out a remote branch will create a local branch with the same unless
+            it already exists. If it already exists, repository will end up in detached
+            head state.
+
+            Also, checking out any tag will put repository in a detached head state.'''),
         'merge': (
             'perform git merge (not yet implemented)',
-            '''Interactively merge all branches to their tracking branches.
-            For each <branch>-<tracking-branch> pair,
-            execute "git checkout <branch>" and then if the merge can be fast-forward,
-            automatically execute "git merge <tracking-branch> --ff-only".
-            If not, then show more information about the situation of the repository, and propose:
-            "git merge --log <tracking-branch>", "git rebase -i <tracking-branch>" and
-            "git reset --hard <tracking-branch>".
-            If repository is dirty when this command is executed, the command will do nothing.
-            After work is done, return to the originally checked-out branch.'''),
+            '''Not yet implemented! The following functionality is intended.
+
+            Interactively merge all branches to their tracking branches. For each not
+            merged <branch>-<tracking-branch> pair, execute
+            "git checkout <branch>" and then if the merge is fast-forward,
+            automatically execute "git merge <tracking-branch> --ff-only". If not, then
+            show more information about the situation of the repository, and propose:
+
+            *   "git merge --log <tracking-branch>",
+            *   "git rebase -i <tracking-branch>" and
+            *   "git reset --hard <tracking-branch>".
+
+            If repository is dirty when this command is executed, do nothing. After work
+            is done, return to the originally checked-out branch.'''),
         'push': (
             'perform git push (not yet fully implemented)',
-            '''Execute "git push <remote-name> <branch>:<tracking-branch-name>"
-            for the active branch.'''),
+            '''Execute "git push <remote-name> <branch>:<tracking-branch-name>" for the
+            active branch.'''),
         'gc': ('perform git gc', 'Execute "git gc --agressive --prune".'),
         'status': (
             'perform git status, as well as other diagnostic git commands',
-            '''Execute git status --short --branch to inform about any uncommited changes,
-            git log tracking_branch..branch to inform about commits that are not yet pushed
-            to the remote, and
-            git log branch..tracking_branch to inform about commits that are not yet merged
-            from the remote.
-            Additionally, compare registered remotes with actual remotes to make sure that ingit
-            configuration is in sync with the repository metadata.''')}
+            '''Perform git status, as well as other diagnostic git commands.
+
+            Execute:
+
+            *   "git status --short --branch" to inform about any uncommitted changes,
+            *   "git log tracking_branch..branch" to inform about commits that are not
+                yet pushed to the remote,
+            *   "git log branch..tracking_branch" to inform about commits that are not
+                yet merged from the remote.
+
+            Additionally, compare registered remotes with actual remotes to make sure
+            that ingit configuration is in sync with the repository metadata..''')}
 
     subparsers = parser.add_subparsers(
         dest='command', metavar='command', help='''main command to execute; one of: "{}";
@@ -167,8 +183,9 @@ def prepare_parser():
 
 def _prepare_command_subparsers(subparsers, commands):
     for command, (help_, description) in commands.items():
-        subparser = subparsers.add_parser(command, help=help_)
-        subparser.description = description
+        subparser = subparsers.add_parser(
+            command, help=help_, formatter_class=ArgumentDefaultsAndRawDescriptionHelpFormatter)
+        subparser.description = dedent_except_first_line(description)
         if command == 'register':
             subparser.add_argument(
                 '--tags', metavar='TAG', type=str, default=None, nargs='+',
@@ -182,9 +199,9 @@ def _prepare_command_subparsers(subparsers, commands):
             subparser.add_argument(
                 'cmd', metavar='COMMAND', type=str,
                 help='command to be executed in shell in working directory of each project')
-            subparser.add_argument(
-                '--recursive', action='store_true',
-                help='')  # TODO: write help
+            # subparser.add_argument(
+            #     '--recursive', action='store_true',
+            #     help='(not yet implemented)')
             subparser.add_argument(
                 '--timeout', metavar='SECONDS', type=int, default=None,
                 help='')  # TODO: write help
@@ -195,8 +212,8 @@ def _prepare_command_subparsers(subparsers, commands):
         elif command == 'push':
             subparser.add_argument(
                 '--all', action='store_true',
-                help='''execute the push for every branch that has a remote tracking branch
-                (not yet implemented)''')
+                help='''(not yet implemented) execute the push for every branch that has a remote
+                tracking branch''')
         elif command == 'status':
             subparser.add_argument(
                 '-i', '--ignored', action='store_true',
@@ -232,13 +249,7 @@ def main(args=None):
                      ' -- it can be used only with summary command and with git-like commands'
                      .format(parsed_args.command))
 
-    level = logging.CRITICAL
-    if parsed_args.verbose is not None:
-        level -= 10 * parsed_args.verbose
-    if parsed_args.quiet is not None:
-        level += 10 * parsed_args.quiet
-    if parsed_args.verbosity is not None:
-        level -= parsed_args.verbosity
+    level = logging.CRITICAL - 10 * get_verbosity_level(parsed_args)
     OUT.setLevel(level)
     assert level == OUT.getEffectiveLevel(), (level, OUT.getEffectiveLevel())
 
