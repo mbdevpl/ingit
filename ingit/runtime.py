@@ -216,7 +216,7 @@ class Runtime:
                 continue
             try:
                 _ = git.Repo(str(path))
-            except git.exc.InvalidGitRepositoryError:
+            except git.InvalidGitRepositoryError:
                 # TODO: recurse into non-git dir here
                 non_repo_paths_in_root.add(path)
                 continue

@@ -38,11 +38,8 @@ class Tests(unittest.TestCase):
         repo_paths = [
             pathlib.Path('..', 'argunparse'), pathlib.Path('..', 'ingit'),
             pathlib.Path('..', 'transpyle'), pathlib.Path('..', 'typed-astunparse')]
-        for i, repo_path in enumerate(repo_paths):
-            # self.assertEqual(len(self.repos_config['repos']), i)
+        for repo_path in repo_paths:
             self.call_main('register', str(repo_path))
-            # self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
-            # self.assertEqual(len(self.repos_config['repos']), i + 1)
             self.call_main('summary')
 
     def test_summary_empty(self):
@@ -117,8 +114,8 @@ class Tests(unittest.TestCase):
 
     def test_register_nonrepo(self):
         repo_path = pathlib.Path('blah blah blah')
-        with self.assertRaises(git.exc.NoSuchPathError):
+        with self.assertRaises(git.NoSuchPathError):
             self.call_main('register', str(repo_path))
         repo_path = pathlib.Path('test', 'examples')
-        with self.assertRaises(git.exc.InvalidGitRepositoryError):
+        with self.assertRaises(git.InvalidGitRepositoryError):
             self.call_main('register', str(repo_path))

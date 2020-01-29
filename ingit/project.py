@@ -26,7 +26,6 @@ def normalize_url(url: str):
 
 
 class Project:
-
     """Single project."""
 
     def __init__(self, name: str, tags: t.Iterable[str], path: pathlib.Path,
@@ -36,35 +35,35 @@ class Project:
         assert isinstance(path, pathlib.Path), type(path)
         assert isinstance(remotes, collections.abc.Mapping), type(remotes)
         self.name = name
-        self.tags = {tag for tag in tags}
+        self.tags = set(tags)
         self.path = path
-        self.remotes = collections.OrderedDict([(k, v) for k, v in remotes.items()])
+        self.remotes = collections.OrderedDict(list(remotes.items()))
 
         self.repo = None
 
     @property
     def is_existing(self) -> bool:
-        """True if this project's working directory exists."""
+        """Return True if this project's working directory exists."""
         return self.path.is_dir()
 
     @property
     def has_git_folder(self) -> bool:
-        """True if repo has .git folder."""
+        """Return True if repo has .git folder."""
         return self.path.joinpath('.git').is_dir()
 
     @property
     def has_git_file(self) -> bool:
-        """True if repo has .git file."""
+        """Return True if repo has .git file."""
         return self.path.joinpath('.git').is_file()
 
     @property
     def has_git_folder_or_file(self) -> bool:
-        """True if repo has .git folder or it has .git file."""
+        """Return True if repo has .git folder or it has .git file."""
         return self.has_git_folder or self.has_git_file
 
     @property
     def is_initialised(self) -> bool:
-        """True if repo exists."""
+        """Return True if repo exists."""
         return self.is_existing and self.has_git_folder_or_file
 
     def link_repo(self):
@@ -80,7 +79,7 @@ class Project:
         configured remotes.
         """
         if self.is_initialised:
-            OUT.info('repo {} already initialised'.format(self.path))
+            OUT.info('repo %s already initialised', self.path)
             return
         if self.is_existing:
             raise ValueError('directory already exists... please check, delete it, and try again')
@@ -92,7 +91,7 @@ class Project:
 
         if ask('Execute "git clone {} --recursive --origin={} {}"?'
                .format(remote_url, remote_name, self.path)) != 'y':
-            OUT.warning('skipping {}'.format(self.path))
+            OUT.warning('skipping %s', self.path)
             return
 
         try:
@@ -116,13 +115,13 @@ class Project:
         This is followed by "git remote add <remote-name> <remote-url>" for each configured remote.
         """
         if self.is_initialised:
-            OUT.error('repo {} already initialised'.format(self.path))
+            OUT.error('repo %s already initialised', self.path)
             return
         if self.is_existing:
             raise ValueError('directory already exists... please check, delete it, and try again')
 
-        if ask('Execute "git init {}"?'.format(self.path)) != 'y':
-            OUT.warning('skipping {}'.format(self.path))
+        if ask(f'Execute "git init {self.path}"?') != 'y':
+            OUT.warning('skipping %s', self.path)
             return
 
         self.repo = RepoData(git.Repo.init(normalize_path(str(self.path))))
@@ -196,8 +195,8 @@ class Project:
             return
         level = logging.WARNING if fetch_info.flags & git.FetchInfo.HEAD_UPTODATE \
             else logging.CRITICAL
-        OUT.log(level, '{} fetched "{}" in "{}"; {}'.format(
-            prefix, fetch_info.ref, self.name, ', '.join(info_strings)))
+        OUT.log(level, '%s fetched "%s" in "%s"; %s',
+                prefix, fetch_info.ref, self.name, ', '.join(info_strings))
 
     def checkout(self) -> None:
         """Interactively select revision and execute "git checkout <revision>" on it.

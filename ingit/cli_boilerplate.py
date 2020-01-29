@@ -10,7 +10,7 @@ import argcomplete
 
 from ._version import VERSION
 
-__updated__ = '2019-08-24'
+__updated__ = '2020-01-29'
 
 VERBOSITY_DEFAULT = (logging.CRITICAL - logging.WARNING) // 10  # integer from 0 to 5
 
@@ -23,7 +23,7 @@ class ArgumentDefaultsAndRawDescriptionHelpFormatter(
 def make_copyright_notice(
         year_from: int, year_to: t.Optional[int] = None, author: str = 'Mateusz Bysiek',
         license_name: str = 'Apache License 2.0', url: t.Optional[str] = None):
-    """Assemble a copyright notice like "Copyright 2019 by Author(s). License Name. http://url/"."""
+    """Assemble a copyright notice like "Copyright YYYY by Author(s). License Name. http://url/"."""
     if year_to is None or year_to == year_from:
         years = year_from
     else:

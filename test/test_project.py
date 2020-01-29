@@ -21,6 +21,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class Tests(GitRepoTests):
+    # pylint: disable = too-many-public-methods
 
     def test_example(self):
         project = Project('example', ['tag1', 'tag2'], self.repo_path, {})

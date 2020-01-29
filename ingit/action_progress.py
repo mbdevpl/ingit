@@ -25,6 +25,7 @@ _KNOWN_OPERATIONS_STRINGS = {
     # git.remote.RemoteProgress.CHECKING_OUT
 }
 _KNOWN_OPERATIONS = functools.reduce(operator.or_, _KNOWN_OPERATIONS_STRINGS.keys())
+_KNOWN_OPERATIONS: int
 _KNOWN_OPERATIONS_PHASES = git.remote.RemoteProgress.BEGIN | git.remote.RemoteProgress.END
 
 _CARET_UP = '\033[1A'  # TODO: works only in bash, but what about cmd?
@@ -38,7 +39,7 @@ def _create_operation_strings(op_code: int):
     for key, value in _KNOWN_OPERATIONS_STRINGS.items():
         if op_code & key:
             operation_strings.append(value)
-    unknown_operations = op_code & ~(_KNOWN_OPERATIONS)
+    unknown_operations = op_code & ~_KNOWN_OPERATIONS
     if unknown_operations:
         operation_strings.append(
             'unknown operation code(s): {0} ({0:032b})'.format(unknown_operations))

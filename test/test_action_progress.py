@@ -30,7 +30,7 @@ class StreamToLog:
 
     def flush(self):
         """Flush can be a no-op."""
-        pass
+        # pass
 
 
 class ActionProgressTests(unittest.TestCase):
