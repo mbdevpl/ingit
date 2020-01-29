@@ -6,6 +6,7 @@ import pathlib
 
 import argcomplete
 
+from .config_boilerplate import initialize_config_directory
 from .cli_boilerplate import \
     ArgumentDefaultsAndRawDescriptionHelpFormatter, make_copyright_notice, add_version_option, \
     add_verbosity_group, get_verbosity_level, dedent_except_first_line
@@ -254,6 +255,8 @@ def main(args=None):
     assert level == OUT.getEffectiveLevel(), (level, OUT.getEffectiveLevel())
 
     OUT.info('parsed args: %s', parsed_args)
+
+    initialize_config_directory('ingit')
 
     runtime_config_path = pathlib.Path(parsed_args.config)
     repos_config_path = pathlib.Path(parsed_args.repos)

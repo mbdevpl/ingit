@@ -2,32 +2,20 @@
 
 import json
 import json.decoder
-import os
 import pathlib
 import platform
-import typing as t
 
 from ._version import VERSION
+from .config_boilerplate import CONFIG_PATH, normalize_path
 from .runtime_interface import ask
 
 JSON_INDENT = 2
 
 JSON_ENSURE_ASCII = False
 
-CONFIG_DIRECTORIES = {
-    'Linux': pathlib.Path('~', '.config', 'ingit'),
-    'Darwin': pathlib.Path('~', 'Library', 'Preferences', 'ingit'),
-    'Windows': pathlib.Path('%LOCALAPPDATA%', 'ingit')}
-
-CONFIG_DIRECTORY = CONFIG_DIRECTORIES[platform.system()]
-RUNTIME_CONFIG_PATH = pathlib.Path(CONFIG_DIRECTORY, 'ingit_config.json')
-REPOS_CONFIG_PATH = pathlib.Path(CONFIG_DIRECTORY, 'ingit_repos.json')
-
-
-def normalize_path(path: t.Union[pathlib.Path, str]) -> t.Union[pathlib.Path, str]:
-    if isinstance(path, str):
-        return os.path.expanduser(os.path.expandvars(path))
-    return pathlib.Path(normalize_path(str(path)))
+CONFIG_DIRECTORY = CONFIG_PATH.joinpath('ingit')
+RUNTIME_CONFIG_PATH = CONFIG_DIRECTORY.joinpath('ingit_config.json')
+REPOS_CONFIG_PATH = CONFIG_DIRECTORY.joinpath('ingit_repos.json')
 
 
 def json_to_str(data: dict) -> str:
