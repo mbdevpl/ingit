@@ -477,7 +477,7 @@ Use ``--ignored`` to include ignored files in the status report, just as with
 Requirements
 ============
 
-Python version 3.5 or later.
+Python version 3.6 or later.
 
 Python libraries as specified in `<requirements.txt>`_.
 
