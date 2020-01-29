@@ -6,3 +6,4 @@ include ./*/py.typed
 
 include test_requirements.txt
 recursive-include ./test __init__.py
+recursive-include ./test/examples *
