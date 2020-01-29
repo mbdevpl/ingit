@@ -10,7 +10,7 @@ import git
 
 _LOG = logging.getLogger(__name__)
 
-__updated__ = '2018-04-18'
+__updated__ = '2020-01-29'
 
 
 class GitRepoTests(unittest.TestCase):
