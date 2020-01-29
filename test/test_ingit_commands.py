@@ -76,7 +76,7 @@ class Tests(unittest.TestCase):
         for i, repo_path in enumerate(repo_paths):
             self.assertEqual(len(self.repos_config['repos']), i)
             self.call_main('register', str(repo_path),
-                           '--tags', *['tag{}'.format(_) for _ in range(1, i + 2)])
+                           '--tags', *[f'tag{_}' for _ in range(1, i + 2)])
             self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
             self.assertEqual(len(self.repos_config['repos']), i + 1)
 

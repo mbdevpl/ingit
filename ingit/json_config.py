@@ -41,9 +41,9 @@ def str_to_json(text: str) -> dict:
         return json.loads(text)
     except json.decoder.JSONDecodeError as err:
         lines = text.splitlines(keepends=True)
-        raise ValueError('\n{}{}\n{}'.format(
-            ''.join(lines[max(0, err.lineno - 10):err.lineno]), '-' * err.colno,
-            ''.join(lines[err.lineno:min(err.lineno + 10, len(lines))]))) from err
+        raise ValueError(
+            f'\n{"".join(lines[max(0, err.lineno - 10):err.lineno])}{"-" * err.colno}'
+            f'\n{"".join(lines[err.lineno:min(err.lineno + 10, len(lines))])}') from err
 
 
 def json_to_file(data: dict, path: pathlib.Path) -> None:
@@ -51,19 +51,20 @@ def json_to_file(data: dict, path: pathlib.Path) -> None:
     assert isinstance(data, dict), type(data)
     assert isinstance(path, pathlib.Path), type(path)
     text = json_to_str(data)
-    with open(normalize_path(str(path)), 'w', encoding='utf-8') as json_file:
+    with normalize_path(path).open('w', encoding='utf-8') as json_file:
         json_file.write(text)
         json_file.write('\n')
 
 
 def file_to_json(path: pathlib.Path) -> dict:
     """Create JSON object from a file."""
-    with open(normalize_path(str(path)), 'r', encoding='utf-8') as json_file:
+    assert isinstance(path, pathlib.Path), type(path)
+    with normalize_path(path).open('r', encoding='utf-8') as json_file:
         text = json_file.read()
     try:
         data = str_to_json(text)
     except ValueError as err:
-        raise ValueError('in file "{}"'.format(path)) from err
+        raise ValueError(f'in file "{path}"') from err
     return data
 
 
@@ -99,8 +100,8 @@ def acquire_configuration(path: pathlib.Path, config_type: str):
     try:
         return file_to_json(path)
     except FileNotFoundError as err:
-        ans = ask('{} configuration file {} does not exist. Create a default one?'
-                  .format(config_type_name, path))
+        ans = ask(f'{config_type_name} configuration file {path} does not exist.'
+                  ' Create a default one?')
         if ans != 'y':
             raise err
         path.parent.mkdir(parents=True, exist_ok=True)

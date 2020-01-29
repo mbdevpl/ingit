@@ -51,30 +51,30 @@ class Tests(unittest.TestCase):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
             self.assertFalse(repo_path.is_dir())
-            call_main('-p', 'name == "{}"'.format(project_name), 'clone')
+            call_main('-p', f'name == "{project_name}"', 'clone')
             self.assertTrue(repo_path.is_dir())
             self.assertTrue(repo_path.joinpath('.git').is_dir())
 
     def test_clone_no(self):
         project_name = 'argunparse'
         repo_path = pathlib.Path(self.repos_path, project_name)
-        call_main('-p', 'name == "{}"'.format(project_name), 'clone', answer='n')
+        call_main('-p', f'name == "{project_name}"', 'clone', answer='n')
         self.assertFalse(repo_path.is_dir())
 
     def test_clone_to_repo_dir(self):
         project_name = 'argunparse'
         repo_path = pathlib.Path(self.repos_path, project_name)
-        call_main('-p', 'name == "{}"'.format(project_name), 'clone')
+        call_main('-p', f'name == "{project_name}"', 'clone')
         self.assertTrue(repo_path.is_dir())
         self.assertTrue(repo_path.joinpath('.git').is_dir())
-        call_main('-r', '^{}$'.format(project_name), 'clone')
+        call_main('-r', f'^{project_name}$', 'clone')
 
     def test_clone_to_nonrepo_dir(self):
         project_name = 'argunparse'
         repo_path = pathlib.Path(self.repos_path, project_name)
         repo_path.mkdir()
         with self.assertRaises(ValueError):
-            call_main('-p', 'name == "{}"'.format(project_name), 'clone')
+            call_main('-p', f'name == "{project_name}"', 'clone')
         self.assertTrue(repo_path.is_dir())
 
     # def test_clone_with_multiple_remotes(self):
@@ -83,39 +83,39 @@ class Tests(unittest.TestCase):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
             self.assertFalse(repo_path.is_dir())
-            call_main('-p', 'name == "{}"'.format(project_name), 'init')
+            call_main('-p', f'name == "{project_name}"', 'init')
             self.assertTrue(repo_path.is_dir())
             self.assertTrue(repo_path.joinpath('.git').is_dir())
 
     def test_init_in_repo_dir(self):
         project_name = 'argunparse'
         repo_path = pathlib.Path(self.repos_path, project_name)
-        call_main('-p', 'name == "{}"'.format(project_name), 'clone')
+        call_main('-p', f'name == "{project_name}"', 'clone')
         self.assertTrue(repo_path.is_dir())
         self.assertTrue(repo_path.joinpath('.git').is_dir())
-        call_main('-p', 'name == "{}"'.format(project_name), 'init')
+        call_main('-p', f'name == "{project_name}"', 'init')
 
     def test_init_no(self):
         project_name = 'argunparse'
-        call_main('-p', 'name == "{}"'.format(project_name), 'init')
+        call_main('-p', f'name == "{project_name}"', 'init')
         project_name = 'ingit'
         repo_path = pathlib.Path(self.repos_path, project_name)
-        call_main('-p', 'name == "{}"'.format(project_name), 'init', answer='n')
+        call_main('-p', f'name == "{project_name}"', 'init', answer='n')
         self.assertFalse(repo_path.is_dir())
 
     def test_fetch(self):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
-            call_main('-p', 'name == "{}"'.format(project_name), 'init')
-            call_main('-p', 'name == "{}"'.format(project_name), 'fetch')
+            call_main('-p', f'name == "{project_name}"', 'init')
+            call_main('-p', f'name == "{project_name}"', 'fetch')
             self.assertTrue(repo_path.is_dir())
             self.assertTrue(repo_path.joinpath('.git').is_dir())
 
     def test_fetch_all(self):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
-            call_main('-p', 'name == "{}"'.format(project_name), 'init')
-            call_main('-p', 'name == "{}"'.format(project_name), 'fetch', '--all')
+            call_main('-p', f'name == "{project_name}"', 'init')
+            call_main('-p', f'name == "{project_name}"', 'fetch', '--all')
             self.assertTrue(repo_path.is_dir())
             self.assertTrue(repo_path.joinpath('.git').is_dir())
 
@@ -123,25 +123,25 @@ class Tests(unittest.TestCase):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
             self.assertFalse(repo_path.is_dir())
-            call_main('-p', 'name == "{}"'.format(project_name), 'clone')
+            call_main('-p', f'name == "{project_name}"', 'clone')
             self.assertTrue(repo_path.is_dir())
             repo = git.Repo(str(repo_path))
             head_ref = repo.head.commit.hexsha
             initial_commit = collections.deque(repo.iter_commits(), maxlen=1).pop()
             initial_ref = initial_commit.hexsha
             repo.git.checkout(initial_ref)
-            call_main('-p', 'name == "{}"'.format(project_name), 'checkout', answer='n')
+            call_main('-p', f'name == "{project_name}"', 'checkout', answer='n')
             self.assertEqual(repo.head.commit.hexsha, initial_ref)
-            call_main('-p', 'name == "{}"'.format(project_name), 'checkout', answer='1')
+            call_main('-p', f'name == "{project_name}"', 'checkout', answer='1')
             self.assertEqual(repo.head.commit.hexsha, head_ref)
 
     def test_checkout(self):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
-            call_main('-p', 'name == "{}"'.format(project_name), 'clone')
+            call_main('-p', f'name == "{project_name}"', 'clone')
             self.assertTrue(repo_path.is_dir())
             self.assertTrue(repo_path.joinpath('.git').is_dir())
-            call_main('-p', 'name == "{}"'.format(project_name), 'checkout', answer='n')
+            call_main('-p', f'name == "{project_name}"', 'checkout', answer='n')
 
     @unittest.expectedFailure
     def test_checkout_conflicting(self):
@@ -155,38 +155,38 @@ class Tests(unittest.TestCase):
     def test_merge(self):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
-            call_main('-p', 'name == "{}"'.format(project_name), 'init')
+            call_main('-p', f'name == "{project_name}"', 'init')
             self.assertTrue(repo_path.is_dir())
-            call_main('-p', 'name == "{}"'.format(project_name), 'merge')
+            call_main('-p', f'name == "{project_name}"', 'merge')
 
     def test_push(self):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
-            call_main('-p', 'name == "{}"'.format(project_name), 'init')
+            call_main('-p', f'name == "{project_name}"', 'init')
             self.assertTrue(repo_path.is_dir())
-            call_main('-p', 'name == "{}"'.format(project_name), 'push')
+            call_main('-p', f'name == "{project_name}"', 'push')
             self.assertTrue(repo_path.is_dir())
 
     def test_gc(self):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
-            call_main('-p', 'name == "{}"'.format(project_name), 'clone')
+            call_main('-p', f'name == "{project_name}"', 'clone')
             self.assertTrue(repo_path.is_dir())
             self.assertTrue(repo_path.joinpath('.git').is_dir())
-            call_main('-p', 'name == "{}"'.format(project_name), 'gc')
+            call_main('-p', f'name == "{project_name}"', 'gc')
 
     def test_status(self):
         for project_name in PROJECT_NAMES:
             repo_path = pathlib.Path(self.repos_path, project_name)
-            call_main('-p', 'name == "{}"'.format(project_name), 'clone')
+            call_main('-p', f'name == "{project_name}"', 'clone')
             self.assertTrue(repo_path.is_dir())
             self.assertTrue(repo_path.joinpath('.git').is_dir())
-            call_main('-p', 'name == "{}"'.format(project_name), 'status', answer='n')
+            call_main('-p', f'name == "{project_name}"', 'status', answer='n')
 
     def test_skip_nonexisting(self):
         for command in ('fetch', 'checkout', 'merge', 'push', 'gc', 'status'):
             project_name = 'argunparse'
             repo_path = pathlib.Path(self.repos_path, project_name)
             self.assertFalse(repo_path.is_dir())
-            call_main('-p', 'name == "{}"'.format(project_name), command)
+            call_main('-p', f'name == "{project_name}"', command)
             self.assertFalse(repo_path.is_dir())

@@ -32,12 +32,11 @@ def info_for_known_flags(
 
 
 def info_for_unknown_flags(flags: int, known_flags: int) -> t.MutableSequence[str]:
-    """Create string sequence that represents unknown flags according to given known flags mask.s"""
+    """Create string sequence that represents unknown flags according to given known flags mask."""
     info_strings = []
     unknown_flags = flags & ~(known_flags)
     if unknown_flags:
-        info_strings.append(
-            'unknown flag(s): {0} ({0:032b})'.format(unknown_flags))
+        info_strings.append(f'unknown flag(s): {unknown_flags} ({unknown_flags:032b})')
     return info_strings
 
 
@@ -49,5 +48,5 @@ def create_fetch_info_strings(info: git.FetchInfo):
         prefix = '--'
     info_strings += info_for_unknown_flags(info.flags, _KNOWN_FLAGS)
     if info.note:
-        info_strings.append('note: {0}'.format(info.note.strip()))
+        info_strings.append(f'note: {info.note.strip()}')
     return (info_strings, prefix)

@@ -60,13 +60,13 @@ def prepare_parser():
         can be absolute, or relative to current woking directory''')
 
     parser.add_argument(
-        '--predicate', '-p', type=str, default=None, help='''a Python expression used to select
+        '--predicate', '-p', type=str, default=None, help=f'''a Python expression used to select
         repositories operated on; it is evaluated on each repository metadata;
-        examples: "{}"'''.format('", "'.join(PREDICATE_EXAMPLES)))
+        examples: "{'", "'.join(PREDICATE_EXAMPLES)}"''')
     parser.add_argument(
-        '--regex', '-r', type=str, default=None, help='''a regular expression used to select
+        '--regex', '-r', type=str, default=None, help=f'''a regular expression used to select
         repositories operated on; repository matches if any of its metadata match;
-        examples: "{}"'''.format('", "'.join(REGEX_EXAMPLES)))
+        examples: "{'", "'.join(REGEX_EXAMPLES)}"''')
 
     commands = {
         'summary': (
@@ -171,9 +171,9 @@ def prepare_parser():
             that ingit configuration is in sync with the repository metadata..''')}
 
     subparsers = parser.add_subparsers(
-        dest='command', metavar='command', help='''main command to execute; one of: "{}";
-        run "ingit command --help" to see detailed help for a given command'''
-        .format('", "'.join(commands.keys())))
+        dest='command', metavar='command', help=f'''main command to execute; one of:
+        "{'", "'.join(commands.keys())}";
+        run "ingit command --help" to see detailed help for a given command''')
 
     _prepare_command_subparsers(subparsers, commands)
     argcomplete.autocomplete(parser)
@@ -246,9 +246,8 @@ def main(args=None):
     parsed_args = parser.parse_args(args)
     if (parsed_args.predicate is not None or parsed_args.regex is not None) \
             and parsed_args.command == 'register':
-        parser.error('project filtering is not applicable to "{}" command'
-                     ' -- it can be used only with summary command and with git-like commands'
-                     .format(parsed_args.command))
+        parser.error(f'project filtering is not applicable to "{parsed_args.command}" command'
+                     ' -- it can be used only with summary command and with git-like commands')
 
     level = logging.CRITICAL - 10 * get_verbosity_level(parsed_args)
     OUT.setLevel(level)
@@ -262,7 +261,7 @@ def main(args=None):
     if parsed_args.predicate is None:
         predicate = None
     else:
-        predicate_code = "lambda name, tags, path, remotes: ({})".format(parsed_args.predicate)
+        predicate_code = f"lambda name, tags, path, remotes: ({parsed_args.predicate})"
         _LOG.warning('prepared predicate lambda: %s', predicate_code)
         predicate = eval(predicate_code)
 

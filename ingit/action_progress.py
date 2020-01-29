@@ -42,12 +42,11 @@ def _create_operation_strings(op_code: int):
     unknown_operations = op_code & ~_KNOWN_OPERATIONS
     if unknown_operations:
         operation_strings.append(
-            'unknown operation code(s): {0} ({0:032b})'.format(unknown_operations))
+            f'unknown operation code(s): {unknown_operations} ({unknown_operations:032b})')
     return operation_strings
 
 
 class ActionProgress(git.remote.RemoteProgress):
-
     """Emulate usual git progress reports in the console when working with GitPython."""
 
     def __init__(self, inline: bool = True, f_d=None):
@@ -79,9 +78,9 @@ class ActionProgress(git.remote.RemoteProgress):
         print(text, file=self.f_d)
 
     def update(self, op_code: int, cur_count: t.Any, max_count: t.Any = None, message: str = ''):
-        """Override git.remote.RemoteProgress.update()."""
+        """Override git.remote.RemoteProgress.update."""
         operation_strings = _create_operation_strings(op_code)
-        description = '{}: '.format(' '.join(operation_strings)) if operation_strings else ''
+        description = f'{" ".join(operation_strings)}: ' if operation_strings else ''
         progress = ''
         if cur_count:
             progress += str(int(cur_count))
@@ -91,7 +90,7 @@ class ActionProgress(git.remote.RemoteProgress):
             progress += str(int(max_count))
         if cur_count and max_count:
             max_c = max_count or 100
-            progress = '{:3.0%} ({})'.format(cur_count / max_c, progress)
+            progress = f'{cur_count / max_c:3.0%} ({progress})'
         if message:
             if message.startswith(', '):
                 message = message[2:]
@@ -100,18 +99,18 @@ class ActionProgress(git.remote.RemoteProgress):
             message = ''
         if self.inline and self.line_len > 0:
             if self.line_len < self.line_width:
-                self._print_without_nl('\r{}\r'.format(' ' * self.line_len))
+                self._print_without_nl(f'\r{" " * self.line_len}\r')
             else:
-                self._print_without_nl('\r{}\r'.format(' ' * (self.line_width - 1)))
+                self._print_without_nl(f'\r{" " * (self.line_width - 1)}\r')
                 self._print_without_nl(_CARET_UP)
-                self._print_without_nl('{}\r'.format(' ' * (self.line_width - 1)))
-        line = '{}{}{}'.format(description, progress, message)
+                self._print_without_nl(f'{" " * (self.line_width - 1)}\r')
+        line = f'{description}{progress}{message}'
         self.line_len = len(line)
         self._print_without_nl(line)
         self.printed_lines = True
 
     def finalize(self):
-        """This should be ran after the last progress report."""
+        """To be ran after the last progress report."""
         if self.printed_lines:
             if self.inline:
                 self._print_with_nl('')

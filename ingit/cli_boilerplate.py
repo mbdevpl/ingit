@@ -27,15 +27,14 @@ def make_copyright_notice(
     if year_to is None or year_to == year_from:
         years = year_from
     else:
-        years = '{}-{}'.format(year_from, year_to)
-    return 'Copyright {} by {}. {}. {}'.format(
-        years, author, license_name, '' if url is None else url).rstrip()
+        years = f'{year_from}-{year_to}'
+    return f'Copyright {years} by {author}. {license_name}. {"" if url is None else url}'.rstrip()
 
 
 def add_version_option(parser: argparse.ArgumentParser):
     """Add --version option to a given parser."""
-    parser.add_argument('--version', action='version',
-                        version='ingit {}, Python {}'.format(VERSION, sys.version))
+    parser.add_argument(
+        '--version', action='version', version=f'{parser.prog} {VERSION}, Python {sys.version}')
 
 
 def add_verbosity_group(parser: argparse.ArgumentParser) -> 'argparse._MutuallyExclusiveGroup':
@@ -49,7 +48,7 @@ def add_verbosity_group(parser: argparse.ArgumentParser) -> 'argparse._MutuallyE
         help='be more quiet than by default (repeat up to 3 times for stronger effect)')
     verbosity_group.add_argument(
         '--verbosity', metavar='LEVEL', type=int, default=VERBOSITY_DEFAULT,
-        help='set verbosity level explicitly (normally from {} to {})'.format(0, 5)) \
+        help=f'set verbosity level explicitly (normally from {0} to {5})') \
         .completer = argcomplete.completers.ChoicesCompleter(choices=list(range(0, 5 + 1, 1)))
     return verbosity_group
 

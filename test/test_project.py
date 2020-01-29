@@ -92,7 +92,7 @@ class Tests(GitRepoTests):
         self.git_init()
         self.git_commit_new_file()
         for i in range(0, 88):
-            self.repo.git.branch('branch_{:02}'.format(i))
+            self.repo.git.branch(f'branch_{i:02}')
         project = Project('example', [], self.repo_path, {})
         project.link_repo()
         with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
@@ -115,7 +115,7 @@ class Tests(GitRepoTests):
         project = Project('example', [], self.repo_path, {})
         project.link_repo()
         for i in range(0, 88):
-            self.repo.git.branch('branch_{:02}'.format(i))
+            self.repo.git.branch(f'branch_{i:02}')
             project.repo.refresh()
             with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
                 with open(os.devnull, 'a') as devnull:

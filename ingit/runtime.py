@@ -31,7 +31,6 @@ def regex_predicate(regex: str, name, tags, path, remotes):
 
 
 class Runtime:
-
     """The ingit runtime."""
 
     def __init__(self, runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
@@ -59,7 +58,7 @@ class Runtime:
 
         self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
         self.projects = self._read_projects()
-        self.filtered_projects = [project for project in self.projects]
+        self.filtered_projects = list(self.projects)
 
     @property
     def repos_path(self):
@@ -85,11 +84,10 @@ class Runtime:
             if '' in names or self._hostname in names:
                 return machine
 
-        ans = ask('No matching machine for "{}" found in configuration. Add it?'
-                  .format(self._hostname))
+        ans = ask(f'No matching machine for "{self._hostname}" found in configuration. Add it?')
         if ans != 'y':
-            raise ValueError('No matching machine for "{}" found in configuration """{}"""'
-                             .format(self._hostname, self.runtime_config))
+            raise ValueError(f'No matching machine for "{self._hostname}"'
+                             f' found in configuration """{self.runtime_config}"""')
         machine = self.register_machine(self._hostname)
         return machine
 
@@ -112,9 +110,8 @@ class Runtime:
                 path = pathlib.Path(normalize_path(raw_path))
             if not path.is_absolute():
                 if self.repos_path is None:
-                    raise ValueError('configuration of repository "{}" must contain absolute path'
-                                     ' because repos_path in runtime configuration is not set'
-                                     .format(name))
+                    raise ValueError(f'configuration of repository "{name}" must contain absolute'
+                                     ' path because repos_path in runtime configuration is not set')
                 path = self.repos_path.joinpath(path)
             project = Project(name=name, tags=repo['tags'], path=path, remotes=repo['remotes'])
             projects.append(project)
@@ -178,9 +175,9 @@ class Runtime:
         all_count = len(self.filtered_projects)
         was_filtered = all_count < len(self.repos_config['repos'])
         if was_filtered:
-            print('Registered projects matching given conditions ({}):'.format(all_count))
+            print(f'Registered projects matching given conditions ({all_count}):')
         else:
-            print('All registered projects ({}):'.format(all_count))
+            print(f'All registered projects ({all_count}):')
         initialised_count = 0
         for project in self.filtered_projects:
             if project.is_initialised:
@@ -193,8 +190,8 @@ class Runtime:
             else:
                 print('')
         else:
-            print('{} of them are initialised ({} not).'
-                  .format(initialised_count, all_count - initialised_count))
+            print(f'{initialised_count} of them are initialised'
+                  f' ({all_count - initialised_count} not).')
 
         if self.repos_path is not None:
             self._unregistered_folders_summary()
@@ -226,14 +223,14 @@ class Runtime:
             unregistered_in_root.add(path)
 
         if unregistered_in_root:
-            print('There are {} unregistered git repositories in configured repositories root "{}".'
-                  .format(len(unregistered_in_root), self.repos_path))
+            print(f'There are {len(unregistered_in_root)} unregistered git repositories'
+                  f' in configured repositories root "{self.repos_path}".')
             for path in unregistered_in_root:
                 print(path)
 
         if non_repo_paths_in_root:
-            print('There are {} not versioned folders in configured repositories root "{}".'
-                  .format(len(non_repo_paths_in_root), self.repos_path))
+            print(f'There are {len(non_repo_paths_in_root)} not versioned folders'
+                  f' in configured repositories root "{self.repos_path}".')
             for path in non_repo_paths_in_root:
                 print(path)
 
@@ -248,7 +245,7 @@ class Runtime:
             if 'names' in machine:
                 names += machine['names']
             if '' in names or name in names:
-                raise ValueError('machine "{}" already in configuration'.format(name))
+                raise ValueError(f'machine "{name}" already in configuration')
         machine_config = default_machine_configuration(name)
         _LOG.warning('adding machine to configuration: %s', machine_config)
         self.runtime_config['machines'].append(machine_config)
@@ -299,8 +296,8 @@ class Runtime:
             if index is None and lowercase_project_name > lowercase_name:
                 index = i
             if lowercase_project_name == lowercase_name:
-                raise ValueError('project named {} already exists in current configuration'
-                                 .format(project.name))
+                raise ValueError(
+                    f'project named {project.name} already exists in current configuration')
         if index is None:
             index = len(self.projects)
         self.repos_config['repos'].insert(index, repo_config)

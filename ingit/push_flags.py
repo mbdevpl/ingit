@@ -33,5 +33,5 @@ def create_push_info_strings(info: git.PushInfo):
         prefix = '--'
     info_strings += info_for_unknown_flags(info.flags, _KNOWN_FLAGS)
     if info.summary:
-        info_strings.append('summary: {0}'.format(info.summary.strip()))
+        info_strings.append(f'summary: {info.summary.strip()}')
     return (info_strings, prefix)

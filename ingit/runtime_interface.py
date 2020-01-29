@@ -23,8 +23,8 @@ def default_template(question, answers, default):
     case_insensitive = len(case_insensitive_answers) == len(answers)
     if case_insensitive:
         answers_print = [(a.upper() if a == default else a) for a in answers]
-        return '{} [{}] '.format(question, '/'.join(answers_print))
-    return '{} [{}] [default={}] '.format(question, '/'.join(answers), default)
+        return f'{question} [{"/".join(answers_print)}] '
+    return f'{question} [{"/".join(answers)}] [default={default}] '
 
 
 def ask(question: str, answers: t.Sequence[str] = None, default: str = None,

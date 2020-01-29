@@ -65,7 +65,7 @@ class GitRepoTests(unittest.TestCase):
             repo_file.write('spam spam lovely spam\n')
             path = pathlib.Path(repo_file.name)
         self.repo.index.add([path.name])
-        self.repo.index.commit('created file {}'.format(path))
+        self.repo.index.commit(f'created file {path}')
         _LOG.debug('commited file %s as %s', path, self.repo_head_hexsha)
         self._repo_files.append(path)
         return path
@@ -80,7 +80,7 @@ class GitRepoTests(unittest.TestCase):
         if add or commit:
             self.repo.index.add([path.name])
         if commit:
-            self.repo.index.commit('modified file {}'.format(path))
+            self.repo.index.commit(f'modified file {path}')
 
 
 class GitRepoSelfTests(GitRepoTests):

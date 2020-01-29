@@ -72,7 +72,7 @@ class Tests(unittest.TestCase):
         shutil.copy(str(repos_config_path), str(self.repos_config_path))
 
         for hostname, path in [
-                ('example_machine{}'.format(i), pathlib.Path('/example_path_{}'.format(i)))
+                (f'example_machine{i}', pathlib.Path(f'/example_path_{i}'))
                 for i in range(1, 4)]:
             runtime = Runtime(self.runtime_config_path, self.repos_config_path, hostname=hostname)
             runtime.filter_projects(lambda name, *_: name == 'example1')

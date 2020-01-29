@@ -64,7 +64,7 @@ class RepoData:
         self.remotes.update(collections.OrderedDict([(str(_), _) for _ in self._repo.remotes]))
 
         self.remote_branches = {
-            (remote_name, str(_).replace('{}/'.format(remote_name), '')): _
+            (remote_name, str(_).replace(f'{remote_name}/', '')): _
             for remote_name, remote in self.remotes.items() for _ in remote.refs}
 
     def generate_repo_configuration(self) -> t.Mapping[str, t.Any]:
@@ -77,5 +77,4 @@ class RepoData:
             'tags': []}
 
     def __str__(self):
-        return '{}:(branches={},remotes={})'.format(
-            self._repo, self.tracking_branches, self.remotes)
+        return f'{self._repo}:(branches={self.tracking_branches},remotes={self.remotes})'
