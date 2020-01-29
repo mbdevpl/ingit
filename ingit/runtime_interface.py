@@ -1,6 +1,5 @@
 """Interactive runtime interface of ingit."""
 
-import collections
 import collections.abc
 import logging
 import sys
@@ -30,7 +29,7 @@ def default_template(question, answers, default):
 
 def ask(question: str, answers: t.Sequence[str] = None, default: str = None,
         autoanswer: t.Union[bool, str] = None,
-        template: collections.Callable = default_template) -> str:
+        template: collections.abc.Callable = default_template) -> str:
     """Ask a question that is to be answered with a single keystroke.
 
     By default, it is asked like this: "question [y/N] ".

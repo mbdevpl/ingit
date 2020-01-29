@@ -1,6 +1,6 @@
 """The ingit runtime."""
 
-import collections
+import collections.abc
 import functools
 import logging
 import pathlib
@@ -120,9 +120,9 @@ class Runtime:
             projects.append(project)
         return projects
 
-    def filter_projects(self, predicate: t.Union[collections.Callable, str]):
+    def filter_projects(self, predicate: t.Union[collections.abc.Callable, str]):
         """Select subset of all of the projects registered projects for processing."""
-        assert isinstance(predicate, (collections.Callable, str)), type(predicate)
+        assert isinstance(predicate, (collections.abc.Callable, str)), type(predicate)
         if isinstance(predicate, str):
             predicate = functools.partial(regex_predicate, predicate)
         self.filtered_projects = [

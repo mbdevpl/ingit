@@ -1,6 +1,6 @@
 """Tests for git operation progress reporting."""
 
-import collections
+import collections.abc
 import logging
 import sys
 import unittest
@@ -16,7 +16,7 @@ class StreamToLog:
     For example: StreamToLog(logging.warning) will redirect all writes to logging.warning().
     """
 
-    def __init__(self, logging_function: collections.Callable):
+    def __init__(self, logging_function: collections.abc.Callable):
         """Construct StreamToLog."""
         assert callable(logging_function)
 
