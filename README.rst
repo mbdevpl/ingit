@@ -18,8 +18,8 @@ Tool for managing a large collection of repositories in git.
     :target: https://pypi.org/project/ingit
     :alt: package version from PyPI
 
-.. image:: https://travis-ci.org/mbdevpl/ingit.svg?branch=master
-    :target: https://travis-ci.org/mbdevpl/ingit
+.. image:: https://travis-ci.com/mbdevpl/ingit.svg?branch=master
+    :target: https://travis-ci.com/mbdevpl/ingit
     :alt: build status from Travis CI
 
 .. image:: https://ci.appveyor.com/api/projects/status/github/mbdevpl/ingit?branch=master&svg=true
