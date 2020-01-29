@@ -35,6 +35,7 @@ install:
 build: off
 
 test_script:
+  - set TEST_PACKAGING=1
   - python -m coverage run --branch --source . -m unittest -v
 
 after_test:

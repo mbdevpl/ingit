@@ -39,7 +39,7 @@ install:
   - git clone https://github.com/mbdevpl/typed-astunparse ../typed-astunparse
 
 script:
-  - python -m coverage run --branch --source . -m unittest -v
+  - TEST_PACKAGING=1 python -m coverage run --branch --source . -m unittest -v
 
 after_success:
   - python -m coverage report --show-missing
