@@ -53,6 +53,22 @@ def add_verbosity_group(parser: argparse.ArgumentParser) -> 'argparse._MutuallyE
     return verbosity_group
 
 
+def __(parser):
+    parser.add_argument(
+        '--quiet', '-q', action='store_true', default=False, required=False,
+        help='''do not output anything but critical errors; overrides "--verbose" and "--debug"
+        if present; sets logging level to CRITICAL''')
+
+    parser.add_argument(
+        '--verbose', '-v', action='store_true', default=False, required=False,
+        help='''output non-critical information; sets logging level to INFO''')
+
+    parser.add_argument(
+        '--debug', action='store_true', default=False, required=False,
+        help='''output information at debugging level; overrides "--verbose" if present; sets
+        logging level to DEBUG''')
+
+
 def get_verbosity_level(parsed_args: argparse.Namespace) -> int:
     """Use to get verbosity level after using add_verbosity_group()."""
     level = parsed_args.verbosity
