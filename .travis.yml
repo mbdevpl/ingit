@@ -18,17 +18,22 @@ matrix:
       language: python
       python: "3.9-dev"
     - os: osx
+      osx_image: xcode12u
       language: generic
       env: TRAVIS_PYTHON_VERSION="3.6"
     - os: osx
+      osx_image: xcode12u
       language: generic
       env: TRAVIS_PYTHON_VERSION="3.7"
     - os: osx
+      osx_image: xcode12u
       language: generic
       env: TRAVIS_PYTHON_VERSION="3.8"
 
 before_install:
-  - .build/install_pyenv.sh
+  # for MacOS, install Python via pyenv
+  - DIAGNOSE_PYENV=1 .build/install_pyenv_python.sh
+  - if [[ "$(uname)" == "Darwin" ]]; then eval "$(pyenv init -)"; fi
 
 install:
   - pip install -U pip
