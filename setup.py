@@ -1,4 +1,4 @@
-"""This is setup.py file for ingit."""
+"""Setup script for ingit package."""
 
 import setup_boilerplate
 

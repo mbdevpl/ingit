@@ -1,4 +1,4 @@
-"""Tests of ingit package."""
+"""Initialization of tests of ingit package."""
 
 import logging
 import pathlib
