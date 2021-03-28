@@ -24,9 +24,9 @@ jobs:
       - run: git clone https://github.com/mbdevpl/argunparse ../argunparse
       - run: git clone https://github.com/mbdevpl/transpyle ../transpyle
       - run: git clone https://github.com/mbdevpl/typed-astunparse ../typed-astunparse
-      - python -m coverage run --branch --source . -m unittest -v
-      - python -m coverage report --show-missing
-      - codecov
+      - run: python -m coverage run --branch --source . -m unittest -v
+      - run: python -m coverage report --show-missing
+      - run: codecov
       - name: Slack notification
         uses: rtCamp/action-slack-notify@v2
         env:
