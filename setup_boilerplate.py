@@ -7,6 +7,7 @@ See the implementation of setup_boilerplate.Package for default metadata values 
 options.
 """
 
+import logging
 import pathlib
 import runpy
 import sys
@@ -17,7 +18,9 @@ import docutils.parsers.rst
 import docutils.utils
 import setuptools
 
-__updated__ = '2020-01-29'
+__updated__ = '2021-03-28'
+
+_LOG = logging.getLogger(__name__)
 
 SETUP_TEMPLATE = '''"""Setup script."""
 
@@ -36,6 +39,7 @@ class Package(setup_boilerplate.Package):
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3 :: Only']
     keywords = []
 
@@ -84,9 +88,10 @@ def parse_requirements(
 
 def partition_version_classifiers(
         classifiers: t.Sequence[str], version_prefix: str = 'Programming Language :: Python :: ',
-        only_suffix: str = ' :: Only') -> t.Tuple[t.List[str], t.List[str]]:
+        only_suffix: str = ' :: Only') -> t.Tuple[t.List[t.Sequence[int]], t.List[t.Sequence[int]]]:
     """Find version number classifiers in given list and partition them into 2 groups."""
-    versions_min, versions_only = [], []
+    versions_min: t.List[t.Sequence[int]] = []
+    versions_only: t.List[t.Sequence[int]] = []
     for classifier in classifiers:
         version = classifier.replace(version_prefix, '')
         versions = versions_min
@@ -138,33 +143,37 @@ def parse_rst(text: str) -> docutils.nodes.document:
     return document
 
 
-class SimpleRefCounter(docutils.nodes.NodeVisitor):
-    """Find all simple references in a given docutils document."""
+class RelativeRefFinder(docutils.nodes.NodeVisitor):
+    """Find all relative references in a given docutils document that point to existing files."""
 
-    def __init__(self, *args, **kwargs):
-        """Initialize the SimpleRefCounter object."""
+    def __init__(self, root_dir: pathlib.Path, *args, **kwargs):
+        """Initialize the RelativeRefFinder object."""
         super().__init__(*args, **kwargs)
-        self.references = []
+        self.root_dir = root_dir
+        self.references: t.List[docutils.nodes.reference] = []
 
     def visit_reference(self, node: docutils.nodes.reference) -> None:
         """Call for "reference" nodes."""
-        if len(node.children) != 1 or not isinstance(node.children[0], docutils.nodes.Text) \
-                or not all(_ in node.attributes for _ in ('name', 'refuri')):
+        assert isinstance(node, docutils.nodes.TextElement), type(node)
+        _LOG.debug('RelativeRefFinder: examining reference %s', node)
+        if len(node.children) != 1 or 'refuri' not in node.attributes \
+                or any(node.attributes['refuri'].startswith(_) for _ in {'http://', 'https://'}):
             return
+        # _LOG.debug('  RelativeRefFinder: reference passed initial check')
         path = pathlib.Path(node.attributes['refuri'])
-        try:
-            if path.is_absolute():
-                return
-            resolved_path = path.resolve()
-        except OSError:  # in is_absolute() and resolve(), on URLs in Windows
+        if path.is_absolute():
             return
         try:
-            resolved_path.relative_to(HERE)
+            resolved_path = path.resolve(strict=True)
+        except FileNotFoundError:
+            return
+        try:
+            resolved_path.relative_to(self.root_dir)
         except ValueError:
             return
         if not path.is_file():
             return
-        assert node.attributes['name'] == node.children[0].astext()
+        _LOG.debug('RelativeRefFinder: reference points to existing file')
         self.references.append(node)
 
     def unknown_visit(self, node: docutils.nodes.Node) -> None:
@@ -175,80 +184,95 @@ class SimpleRefCounter(docutils.nodes.NodeVisitor):
 def resolve_relative_rst_links(text: str, base_link: str) -> str:
     """Resolve all relative links in a given string representing an RST document.
 
-    All links of form `link`_ become `link <base_link/link>`_.
+    Links are resolved only if they point to files existing in the project's working directory.
+
+    All links of form `link`_ become `link <absolute_link>`_.
+
+    And all linka of the form :target: link become :target: absolute_link.
+
+    Where absolute_link is made by concatenating base_link to link with no separator added
+    in between. So in most cases base_link should and with a slash.
     """
     document = parse_rst(text)
-    visitor = SimpleRefCounter(document)
-    document.walk(visitor)
-    for target in visitor.references:
-        name = target.attributes['name']
-        uri = target.attributes['refuri']
-        new_link = f'`{name} <{base_link}{uri}>`_'
-        if name == uri:
-            text = text.replace(f'`<{uri}>`_', new_link)
+    finder = RelativeRefFinder(HERE, document)
+    document.walk(finder)
+    for target in finder.references:
+        _LOG.info('resolve_relative_rst_links: resolving reference %s', target)
+        assert isinstance(target, docutils.nodes.TextElement), type(target)
+        refuri = target.attributes['refuri']
+        if 'name' in target.attributes:
+            name = target.attributes['name']
+            if name == refuri:
+                old_link = f'`<{refuri}>`_'
+            else:
+                old_link = f'`{name} <{refuri}>`_'
+            new_link = f'`{name} <{base_link}{refuri}>`_'
         else:
-            text = text.replace(f'`{name} <{uri}>`_', new_link)
+            old_link = f' :target: {refuri}'
+            new_link = f' :target: {base_link}{refuri}'
+        text = text.replace(old_link, new_link)
+        _LOG.info('resolve_relative_rst_links: replaced "%s" with "%s"', old_link, new_link)
     return text
 
 
 class Package:
     """Default metadata and behaviour for a Python package setup script."""
 
-    root_directory = '.'  # type: str
+    root_directory: str = '.'
     """Root directory of the source code of the package, relative to the setup.py file location."""
 
-    name = None  # type: str
+    name: str = None
 
-    version = None  # type: str
+    version: str = None
     """"If None, it will be obtained from "package_name._version.VERSION" variable."""
 
-    description = None  # type: str
+    description: str = None
 
-    long_description = None  # type: str
+    long_description: str = None
     """If None, it will be generated from readme."""
 
-    long_description_content_type = None  # type: str
+    long_description_content_type: str = None
     """If None, it will be set accodring to readme file extension.
 
     For this field to be automatically set, also long_description field has to be None.
     """
 
-    url = 'https://github.com/mbdevpl'  # type: str
-    download_url = None  # type: str
-    author = 'Mateusz Bysiek'  # type: str
-    author_email = 'mateusz.bysiek@gmail.com'  # type: str
-    # maintainer = None  # type: str
-    # maintainer_email = None  # type: str
-    license_str = 'Apache License 2.0'  # type: str
+    url: str = 'https://github.com/mbdevpl'
+    download_url: str = None
+    author: str = 'Mateusz Bysiek'
+    author_email: str = 'mateusz.bysiek@gmail.com'
+    # maintainer: str = None
+    # maintainer_email: str = None
+    license_str: str = 'Apache License 2.0'
 
-    classifiers = []  # type: t.List[str]
+    classifiers: t.List[str] = []
     """List of valid project classifiers: https://pypi.org/pypi?:action=list_classifiers"""
 
-    keywords = []  # type: t.List[str]
+    keywords: t.List[str] = []
 
-    packages = None  # type: t.List[str]
+    packages: t.List[str] = None
     """If None, determined with help of setuptools."""
 
-    package_data = {}
-    exclude_package_data = {}
+    package_data: t.Dict[str, t.List[str]] = {}
+    exclude_package_data: t.Dict[str, t.List[str]] = {}
 
-    install_requires = None  # type: t.List[str]
+    install_requires: t.List[str] = None
     """If None, determined using requirements.txt."""
 
-    extras_require = {}  # type: t.Mapping[str, t.List[str]]
+    extras_require: t.Mapping[str, t.List[str]] = {}
     """A dictionary containing entries of type 'some_feature': ['requirement1', 'requirement2']."""
 
-    python_requires = None  # type: str
+    python_requires: str = None
     """If None, determined from provided classifiers."""
 
-    entry_points = {}  # type: t.Mapping[str, t.List[str]]
+    entry_points: t.Mapping[str, t.List[str]] = {}
     """A dictionary used to enable automatic creation of console scripts, gui scripts and plugins.
 
     Example entry:
     'console_scripts': ['script_name = package.subpackage:function']
     """
 
-    test_suite = 'test'  # type: str
+    test_suite: str = 'test'
 
     @classmethod
     def try_fields(cls, *names) -> t.Optional[t.Any]:
@@ -259,15 +283,15 @@ class Package:
         raise AttributeError((cls, names))
 
     @classmethod
-    def parse_readme(cls, readme_path: str = 'README.rst',
+    def parse_readme(cls, readme_filename: str = 'README.rst',
                      encoding: str = 'utf-8') -> t.Tuple[str, str]:
         """Parse readme and resolve relative links in it if it is feasible.
 
         Links are resolved if readme is in rst format and the package is hosted on GitHub.
         """
-        readme_path = pathlib.Path(readme_path)
-        with HERE.joinpath(readme_path).open(encoding=encoding) as readme_file:
-            long_description = readme_file.read()  # type: str
+        readme_path = HERE.joinpath(readme_filename)
+        with readme_path.open(encoding=encoding) as readme_file:
+            long_description: str = readme_file.read()
 
         if readme_path.suffix.lower() == '.rst' and cls.url.startswith('https://github.com/'):
             base_url = f'{cls.url}/blob/v{cls.version}/'
