@@ -1,0 +1,7 @@
+codecov >= 2.0.15
+coverage >= 5.0.3
+mypy >= 0.910
+pycodestyle >= 2.7.0
+pydocstyle >= 5.1.1
+pylint >= 2.12.0
+-rrequirements_test.txt

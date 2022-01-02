@@ -5,22 +5,22 @@
     {
       "name": "argunparse",
       "remotes": {
-        "host": "../argunparse",
-        "mirror": "../argunparse"
+        "host": "${EXAMPLE_PROJECTS_PATH}/argunparse",
+        "mirror": "${EXAMPLE_PROJECTS_PATH}/argunparse"
       },
       "tags": ["python"]
     },
     {
       "name": "transpyle",
       "remotes": {
-        "host": "../transpyle"
+        "host": "${EXAMPLE_PROJECTS_PATH}/transpyle"
       },
       "tags": ["python", "transpilation"]
     },
     {
       "name": "typed-astunparse",
       "remotes": {
-        "host": "../typed-astunparse"
+        "host": "${EXAMPLE_PROJECTS_PATH}/typed-astunparse"
       },
       "tags": ["python", "transpilation"]
     }

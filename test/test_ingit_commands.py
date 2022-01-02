@@ -12,10 +12,16 @@ import readchar
 from ingit.json_config import normalize_path, json_to_file, acquire_configuration
 from ingit.main import main
 
+EXAMPLE_PROJECTS_PATH = pathlib.Path(os.environ['EXAMPLE_PROJECTS_PATH'])
+EXAMPLE_REPO_NAMES = ['argunparse', 'transpyle', 'typed-astunparse']
+EXAMPLE_REPO_NAME = EXAMPLE_REPO_NAMES[0]
+
 
 class Tests(unittest.TestCase):
 
     def setUp(self):
+        for example_repo_name in EXAMPLE_REPO_NAMES:
+            self.assertTrue(EXAMPLE_PROJECTS_PATH.joinpath(example_repo_name).is_dir())
         with tempfile.NamedTemporaryFile() as tmp_file:
             self.runtime_config_path = pathlib.Path(tmp_file.name)
         with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
@@ -35,23 +41,17 @@ class Tests(unittest.TestCase):
                  + list(args))
 
     def test_summary(self):
-        repo_paths = [
-            pathlib.Path('..', 'argunparse'), pathlib.Path('..', 'ingit'),
-            pathlib.Path('..', 'transpyle'), pathlib.Path('..', 'typed-astunparse')]
-        for repo_path in repo_paths:
-            self.call_main('register', str(repo_path))
+        for example_repo_name in EXAMPLE_REPO_NAMES:
+            self.call_main('register', str(EXAMPLE_PROJECTS_PATH.joinpath(example_repo_name)))
             self.call_main('summary')
 
     def test_summary_empty(self):
         self.call_main('summary')
 
     def test_register(self):
-        repo_paths = [
-            pathlib.Path('..', 'argunparse'), pathlib.Path('..', 'ingit'),
-            pathlib.Path('..', 'transpyle'), pathlib.Path('..', 'typed-astunparse')]
-        for i, repo_path in enumerate(repo_paths):
+        for i, example_repo_name in enumerate(EXAMPLE_REPO_NAMES):
             self.assertEqual(len(self.repos_config['repos']), i)
-            self.call_main('register', str(repo_path))
+            self.call_main('register', str(EXAMPLE_PROJECTS_PATH.joinpath(example_repo_name)))
             self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
             self.assertEqual(len(self.repos_config['repos']), i + 1)
 
@@ -60,7 +60,7 @@ class Tests(unittest.TestCase):
         json_to_file(self.runtime_config, self.runtime_config_path)
         self.runtime_config = acquire_configuration(self.runtime_config_path, 'runtime')
 
-        repo_path = pathlib.Path('..', 'ingit')
+        repo_path = EXAMPLE_PROJECTS_PATH.joinpath(EXAMPLE_REPO_NAME)
         self.assertEqual(len(self.repos_config['repos']), 0)
         self.call_main('register', str(repo_path))
         self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
@@ -70,12 +70,9 @@ class Tests(unittest.TestCase):
         self.call_main('summary')
 
     def test_register_with_tags(self):
-        repo_paths = [
-            pathlib.Path('..', 'argunparse'), pathlib.Path('..', 'ingit'),
-            pathlib.Path('..', 'transpyle'), pathlib.Path('..', 'typed-astunparse')]
-        for i, repo_path in enumerate(repo_paths):
+        for i, example_repo_name in enumerate(EXAMPLE_REPO_NAMES):
             self.assertEqual(len(self.repos_config['repos']), i)
-            self.call_main('register', str(repo_path),
+            self.call_main('register', str(EXAMPLE_PROJECTS_PATH.joinpath(example_repo_name)),
                            '--tags', *[f'tag{_}' for _ in range(1, i + 2)])
             self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
             self.assertEqual(len(self.repos_config['repos']), i + 1)
@@ -83,7 +80,7 @@ class Tests(unittest.TestCase):
     def test_register_equivalents(self):
         path1 = pathlib.Path('.')
         path2 = pathlib.Path('.').resolve()
-        path3 = pathlib.Path('..', 'ingit')
+        path3 = pathlib.Path('..', pathlib.Path(os.getcwd()).name)
         self.call_main('register')
         with self.assertRaises(ValueError):
             self.call_main('register', str(path1))
@@ -96,14 +93,14 @@ class Tests(unittest.TestCase):
         self.runtime_config['machines'][0]['repos_root'] = str(tempfile.gettempprefix())
         json_to_file(self.runtime_config, self.runtime_config_path)
         # self.runtime_config = acquire_configuration(self.runtime_config_path, 'runtime')
-        repo_path = pathlib.Path('..', 'ingit')
+        repo_path = EXAMPLE_PROJECTS_PATH.joinpath(EXAMPLE_REPO_NAME)
         self.call_main('register', str(repo_path))
 
     def test_register_from_elsewhere(self):
         cwd = pathlib.Path(os.getcwd())
         with tempfile.TemporaryDirectory() as tmp_dir:
             os.chdir(tmp_dir)
-            repo_path = pathlib.Path(cwd, '..', 'argunparse')
+            repo_path = cwd.resolve()
             self.call_main('register', str(repo_path))
             os.chdir(str(cwd))
         self.repos_config = acquire_configuration(self.repos_config_path, 'repos')

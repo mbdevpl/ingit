@@ -1,10 +1,9 @@
 """Initialization of tests of ingit package."""
 
 import logging
-import pathlib
+import os
 
 logging.basicConfig()
 
-assert pathlib.Path('..', 'argunparse').is_dir()
-assert pathlib.Path('..', 'transpyle').is_dir()
-assert pathlib.Path('..', 'typed-astunparse').is_dir()
+if 'EXAMPLE_PROJECTS_PATH' not in os.environ:
+    os.environ['EXAMPLE_PROJECTS_PATH'] = '..'
