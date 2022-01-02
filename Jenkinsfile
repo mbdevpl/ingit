@@ -32,9 +32,6 @@ pipeline {
         steps {
           sh """#!/usr/bin/env bash
             set -Eeux pipefail
-            echo ${env.GIT_URL}
-            echo 
-            echo ${PYTHON_VERSION}
             python -m pylint ${PYTHON_MODULES} | tee pylint.log
             echo "\${PIPESTATUS[0]}" | tee pylint_status.log
             python -m mypy ${PYTHON_MODULES} | tee mypy.log
@@ -49,13 +46,11 @@ pipeline {
 
       stage('Coverage') {
         environment {
-          GIT_REPO_NAME = "${env.GIT_URL.tokenize('/')[-2].tokenize('/')[-1].tokenize(':')[-1]}/${env.GIT_URL.tokenize('/')[-1].replaceFirst(/.git$/, '')}"
-          CODECOV_TOKEN = credentials("codecov-token-${GIT_REPO_NAME.replace('/', '-').toLowerCase()}")
+          CODECOV_TOKEN = credentials("codecov-token-mbdevpl-ingit")
         }
         steps {
           sh """#!/usr/bin/env bash
             set -Eeuxo pipefail
-            echo ${PYTHON_VERSION}
             TEST_PACKAGING=1 python -m coverage run --branch --source . -m unittest -v
             python -m coverage report --show-missing
             python -m codecov --token ${CODECOV_TOKEN}
