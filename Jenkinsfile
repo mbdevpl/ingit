@@ -24,6 +24,7 @@ pipeline {
     agent { dockerfile {
       filename 'Dockerfile'
       additionalBuildArgs '--build-arg USER_ID=${USER_ID} --build-arg GROUP_ID=${GROUP_ID} --build-arg AUX_GROUP_IDS="${AUX_GROUP_IDS}" --build-arg TIMEZONE=${TIMEZONE} --build-arg PYTHON_VERSION=${PYTHON_VERSION}'
+      label 'docker'
     } }
 
     stages {

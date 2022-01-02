@@ -20,11 +20,7 @@ Tool for managing a large collection of repositories in git.
 
 .. image:: https://github.com/mbdevpl/ingit/actions/workflows/python.yml/badge.svg
     :target: https://github.com/mbdevpl/ingit/actions
-    :alt: build status from GitHu
-
-.. image:: https://ci.appveyor.com/api/projects/status/github/mbdevpl/ingit?branch=master&svg=true
-    :target: https://ci.appveyor.com/project/mbdevpl/ingit
-    :alt: build status from AppVeyor
+    :alt: build status from GitHub
 
 .. image:: https://codecov.io/gh/mbdevpl/ingit/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/mbdevpl/ingit
