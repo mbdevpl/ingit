@@ -18,7 +18,7 @@ Tool for managing a large collection of repositories in git.
     :target: https://pypi.org/project/ingit
     :alt: package version from PyPI
 
-.. image:: https://github.com/mbdevpl/ingit/actions/workflows/python.yml/badge.svg
+.. image:: https://github.com/mbdevpl/ingit/actions/workflows/python.yml/badge.svg?branch=main
     :target: https://github.com/mbdevpl/ingit/actions
     :alt: build status from GitHub
 
@@ -137,14 +137,14 @@ into a predicate function template, as below:
 
 The actual implementation is here: `<ingit/main.py#L232>`_
 
-Therefore, executing ``ingit --predicate "'mytag' in tags" fetch`` results
+Therefore, executing ``ingit --predicate "'python' in tags" fetch`` results
 in the following predicate being applied:
 
 .. code:: python
 
-    lambda name, tags, path, remotes: ('mytag' in tags)
+    lambda name, tags, path, remotes: ('python' in tags)
 
-And thus only repositories that have ``'mytag'`` in their tags are fetched.
+And thus only repositories that have ``'python'`` in their tags are fetched.
 
 
 Configuration
@@ -153,16 +153,16 @@ Configuration
 Ingit works based on configuration in 2 JSON files:
 
 *   runtime configuration
-*   repositories configuraion
+*   repositories configuration
 
-If either of the files doesn't exist, detaults will be generated.
+If either of the files doesn't exist, defaults will be generated.
 
-The default paths to the files can be overriden via ``--config`` and ``--repos``
+The default paths to the files can be overridden via ``--config`` and ``--repos``
 command-line options.
 
 
-Runtime configuraion
-~~~~~~~~~~~~~~~~~~~~
+Runtime configuration
+~~~~~~~~~~~~~~~~~~~~~
 
 Most importantly, stores repositories root directory -- it's a directory which ingit assumes
 to contain git-versioned projects.
@@ -188,8 +188,8 @@ Example:
     }
 
 
-Repositories configuraion
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Repositories configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It's a file that lists all registered projects and keeps their metadata.
 
@@ -241,13 +241,11 @@ Entry of each repository is a JSON object that can have the following fields:
       "paths": {
         "machine name 1": "path used only on machine 1",
         "machine name 2": "path used only on machine 2",
-        "": "if no machine name is given, the path is used in all other cases",
-        ...
-      }
+        "": "if no machine name is given, the path is used in all other cases"
+      },
       "remotes": {
         "remote name 1": "url 1",
-        "remote name 2": "url 2",
-        ...
+        "remote name 2": "url 2"
       },
       "tags": [
         "tags are completely optional",
@@ -256,7 +254,7 @@ Entry of each repository is a JSON object that can have the following fields:
     }
 
 
-The ``repos_path`` mentioned above is taken from the runtime configuation of ingit.
+The ``repos_path`` mentioned above is taken from the runtime configuration of ingit.
 
 At most one of ``path`` or ``paths`` is allowed for each repo.
 
@@ -265,19 +263,17 @@ The two path specifications below are equivalent:
 .. code:: json
 
     {
-      ...
-      "path": "some path",
-      ...
+      "name": "name of the project",
+      "path": "some path"
     }
 
 .. code:: json
 
     {
-      ...
+      "name": "name of the project",
       "paths": {
         "": "some path"
-      },
-      ...
+      }
     }
 
 
@@ -315,7 +311,7 @@ its root directory name becomes "name" and its currently configured remotes
 become "remotes". You can edit the configuration manually afterwards.
 
 The final "path" to the repository stored in the configuration depends on the
-``repos_path`` in runtime configuation. The configured "path" will be:
+``repos_path`` in runtime configuration. The configured "path" will be:
 
 *   resolved absolute path if there is no ``repos_path`` configured or
     repository path is outside of the ``repos_path``;
@@ -327,7 +323,7 @@ The final "path" to the repository stored in the configuration depends on the
 Behaviour of storing relative/no paths in some cases is implemented to make
 configuration file much less verbose in typical usage scenarios. To prevent
 this behaviour, and force all repository paths to be absolute, simply set the
-``repos_path`` in your runtime configuraion to JSON ``null``.
+``repos_path`` in your runtime configuration to JSON ``null``.
 
 Use ``PATH`` to provide the path to root directory of repository.
 If not provided, current working directory is used.
@@ -349,7 +345,7 @@ Use ``--timeout`` to set timeout of the command (in seconds).
 ``ingit clone``
 ---------------
 
-Execute ``git clone <remote-url> --recursive --orign <remote-name> <path>``,
+Execute ``git clone <remote-url> --recursive --origin <remote-name> <path>``,
 where values of ``<path>`` and ``<remote-...>`` are taken from default remote
 configuration of the repository.
 
@@ -371,7 +367,7 @@ For example, if repository configuration is as follows:
   }
 
 The clone command will be:
-``git clone https://github.com/spack/spack.git --recursive --orign source ~/Software/Spack``
+``git clone https://github.com/spack/spack.git --recursive --origin source ~/Software/Spack``
 because ``source`` is the first configured remote.
 The subsequent commands will be ``git remote add github git@github.com:mbdevpl/spack.git``
 and ``git fetch github``.
@@ -389,7 +385,7 @@ remote.
 
 Execute ``git fetch <remote-name>``, where the remote name is the remote of
 the current tracking branch, or all remotes of the repository if there's no
-tracking branch,　or repository is in detached head state.
+tracking branch, or repository is in detached head state.
 
 Use ``--all`` to fetch all remotes in all cases.
 
@@ -473,10 +469,10 @@ Use ``--ignored`` to include ignored files in the status report, just as with
 Requirements
 ============
 
-Python version 3.6 or later.
+Python version 3.7 or later.
 
 Python libraries as specified in `<requirements.txt>`_.
 
 Building and running tests additionally requires packages listed in `<test_requirements.txt>`_.
 
-Tested on Linux, OS X and Windows.
+Tested on Linux, macOS and Windows.

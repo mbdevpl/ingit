@@ -1,3 +1,5 @@
 """Initialization of ingit package."""
 
-__all__ = []
+import typing as t
+
+__all__: t.List[str] = []
