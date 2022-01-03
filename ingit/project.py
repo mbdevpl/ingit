@@ -1,6 +1,7 @@
 """Single project."""
 
 import collections
+import collections.abc
 import logging
 import pathlib
 import typing as t
@@ -39,7 +40,7 @@ class Project:
         self.path = path
         self.remotes = collections.OrderedDict(list(remotes.items()))
 
-        self.repo = None
+        self.repo: t.Optional[RepoData] = None
 
     @property
     def is_existing(self) -> bool:
@@ -67,10 +68,11 @@ class Project:
         return self.is_existing and self.has_git_folder_or_file
 
     def link_repo(self):
+        assert self.repo is None, self.repo
         self.repo = RepoData(git.Repo(normalize_path(str(self.path))))
 
     def clone(self) -> None:
-        """Execute "git clone --recursive --orign <remote-name> <remote-url> <path>".
+        """Execute "git clone --recursive --origin <remote-name> <remote-url> <path>".
 
         All of the <...> values are taken from project configuration.
         Values of <remote-...> are taken from default remote.
@@ -129,7 +131,7 @@ class Project:
             self.repo.git.remote('add', remote_name, normalize_url(remote_url))
 
     def fetch(self, all_remotes: bool = False) -> None:
-        """Execute "git fetch --prune" on a remote of trancking branch of current branch.
+        """Execute "git fetch --prune" on a remote of tracking branch of current branch.
 
         Or execute "git fetch --prune" for all remotes.
         """
@@ -138,6 +140,7 @@ class Project:
             return
         if self.repo is None:
             self.link_repo()
+        assert self.repo is not None
         self.repo.refresh()
 
         if all_remotes:
@@ -148,6 +151,7 @@ class Project:
         self._fetch_remotes(*remote_names)
 
     def _determine_remotes_to_fetch(self):
+        assert self.repo is not None
         if self.repo.active_branch is None:
             OUT.warning('!! "%s" is not on any branch, fetching all remotes', self.path)
             return self.repo.remotes
@@ -164,7 +168,8 @@ class Project:
         return [remote_name]
 
     def _fetch_remote(self, remote_name: str) -> None:
-        fetch_infos = None  # type: t.Sequence[git.FetchInfo]
+        assert self.repo is not None
+        fetch_infos: t.Sequence[git.FetchInfo]
         try:
             progress = ActionProgress()
             fetch_infos = self.repo.remotes[remote_name].fetch(prune=True, progress=progress)
@@ -184,7 +189,7 @@ class Project:
                 pass
         # return fetch_infos
 
-    def _fetch_remotes(self, *remote_names: t.Sequence[str]) -> None:
+    def _fetch_remotes(self, *remote_names: str) -> None:
         for remote_name in remote_names:
             self._fetch_remote(remote_name)
 
@@ -200,7 +205,7 @@ class Project:
     def checkout(self) -> None:
         """Interactively select revision and execute "git checkout <revision>" on it.
 
-        The list of branches to select from is composed by combinig:
+        The list of branches to select from is composed by combining:
         - local branches
         - non-tracking branches on all remotes
         - local tags
@@ -210,6 +215,7 @@ class Project:
             return
         if self.repo is None:
             self.link_repo()
+        assert self.repo is not None
         self.repo.refresh()
 
         # if self.is_on_only_branch():
@@ -237,20 +243,22 @@ class Project:
         self.repo.git.checkout(target)
 
     def _prepare_checkout_list(self, keys: str):
+        assert self.repo is not None
         revisions = collections.OrderedDict()
 
         local_branches = list(self.repo.branches)
         remote_tracking_branches = set(self.repo.tracking_branches.values())
         remote_nontracking_branches = [
-            (remote, branch) for remote, branch in self.repo.remote_branches
+            (remote, branch) for remote, branch in self.repo.remote_branches.items()
             if (remote, branch) not in remote_tracking_branches and branch not in _SPECIAL_REFS]
         local_tags = list(self.repo._repo.tags)
 
-        all_candidates = local_branches + remote_nontracking_branches + local_tags
-        if len(all_candidates) > len(keys):
+        all_candidates_count: int = \
+            len(local_branches) + len(remote_nontracking_branches) + len(local_tags)
+        if all_candidates_count > len(keys):
             raise RuntimeError(
                 'not enough available keys to create a single list of checkout candidates'
-                f' - there are {len(keys)} keys ("{keys}") but {len(all_candidates)} candidates:'
+                f' - there are {len(keys)} keys ("{keys}") but {all_candidates_count} candidates:'
                 f'\n- branches:{local_branches}, {remote_nontracking_branches}'
                 f'\n- tags: {local_tags}')
 
@@ -263,7 +271,7 @@ class Project:
             revisions[keys[index]] = (tag, 'tag')
             index += 1
 
-        for (remote, branch) in self.repo.remote_branches:
+        for (remote, branch) in self.repo.remote_branches.items():
             if (remote, branch) in remote_tracking_branches \
                     or branch in _SPECIAL_REFS:
                 continue
@@ -306,6 +314,7 @@ class Project:
             return
         if self.repo is None:
             self.link_repo()
+        assert self.repo is not None
 
         branches_to_push = []  # type: t.List[str]
 
@@ -340,6 +349,7 @@ class Project:
     def _push_single_remote(
             self, remote_name: str,
             branch_mapping: t.Mapping[str, t.Optional[str]]) -> t.Sequence[git.PushInfo]:
+        assert self.repo is not None
         push_refspec = [f'{local_branch}' if remote_branch is None
                         else f'{local_branch}:{remote_branch}'
                         for local_branch, remote_branch in branch_mapping.items()]
@@ -371,6 +381,7 @@ class Project:
             return
         if self.repo is None:
             self.link_repo()
+        assert self.repo is not None
 
         try:
             self.repo.git.gc(aggressive=True, prune=True)
@@ -387,6 +398,7 @@ class Project:
             return
         if self.repo is None:
             self.link_repo()
+        assert self.repo is not None
 
         try:
             status_log = self.repo.git.status(short=True, branch=True, ignored=ignored).splitlines()
@@ -404,6 +416,7 @@ class Project:
 
     def _get_log(self, start_ref: str, end_ref: str) -> str:
         """Get log as if start_ref..end_ref was used."""
+        assert self.repo is not None
         refs = f'{start_ref}..{end_ref}'
         # return self.repo.git.log('--pretty=oneline', refs, color='always').splitlines()
         return self.repo.git.log('--color=always', '--pretty=oneline', refs).splitlines()
@@ -428,6 +441,7 @@ class Project:
 
         auto-answers used in this function: create_remote_branch, push, merge, forget_locally
         """
+        assert self.repo is not None
         if branch is None:
             branch = self.repo.active_branch
         if branch is None:
@@ -460,6 +474,7 @@ class Project:
             #     self.repo.git.update_ref(f'refs/remotes/{remote}/{branch}', branch)
 
     def _status_remotes(self):
+        assert self.repo is not None
         assert all(len(list(v.urls)) == 1 for v in self.repo.remotes.values()), self.repo.remotes
         remote_names_in_config = set(self.remotes)
         remote_names = set(self.repo.remotes)

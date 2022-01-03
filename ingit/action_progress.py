@@ -9,6 +9,7 @@ import typing as t
 
 import git
 import git.remote
+from git.util import RemoteProgress
 
 # list used by __create_operation_strings()
 _KNOWN_OPERATIONS_STRINGS = {
@@ -25,7 +26,6 @@ _KNOWN_OPERATIONS_STRINGS = {
     # git.remote.RemoteProgress.CHECKING_OUT
 }
 _KNOWN_OPERATIONS = functools.reduce(operator.or_, _KNOWN_OPERATIONS_STRINGS.keys())
-_KNOWN_OPERATIONS: int
 _KNOWN_OPERATIONS_PHASES = git.remote.RemoteProgress.BEGIN | git.remote.RemoteProgress.END
 
 _CARET_UP = '\033[1A'  # TODO: works only in bash, but what about cmd?
@@ -57,7 +57,7 @@ class ActionProgress(git.remote.RemoteProgress):
         self.printed_lines = False
         self.line_len = 0  # type: int
         try:
-            term_size = shutil.get_terminal_size()  # type: t.Tuple[int, int]
+            term_size = shutil.get_terminal_size()
             _LOG.log(logging.WARNING if term_size.columns < 16 else logging.NOTSET,
                      'detected terminal width is %i', term_size.columns)
             self.line_width = term_size.columns if term_size.columns else 100

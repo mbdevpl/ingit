@@ -11,8 +11,18 @@ from ._logging import Logging
 Logging.configure()
 ""
 
+"" "Logging configuration." ""
+
+import logging_boilerplate
+
+
+class Logging(logging_boilerplate.Logging):
+    "" "Logging configuration." ""
+
+    directory = ''
 """
 
+import collections.abc
 import datetime
 import logging
 import logging.config
@@ -25,19 +35,7 @@ import colorlog
 
 from .config_boilerplate import normalize_path
 
-__updated__ = '2019-09-20'
-
-SETUP_TEMPLATE = '''"""Logging configuration."""
-
-import logging_boilerplate
-
-
-class Logging(logging_boilerplate.Logging):
-    """Logging configuration."""
-
-    directory = ''
-
-'''
+__version__ = '2022.01.03'
 
 LOGS_PATHS = {
     'Linux': pathlib.Path('~', '.local', 'share'),
@@ -46,6 +44,7 @@ LOGS_PATHS = {
 
 LOGS_PATH = LOGS_PATHS[platform.system()]
 
+'''
 logging.basicConfig()
 
 logging.basicConfig(level=logging.INFO)
@@ -64,6 +63,7 @@ _LOG_LEVEL = logging.INFO
 
 _LOG.setLevel(_LOG_LEVEL)
 _LOG.log(_LOG_LEVEL, '%s logger level set to %s', __name__, logging.getLevelName(_LOG_LEVEL))
+'''
 
 DEFAULT_LEVEL = logging.WARNING
 LEVEL_ENVVAR_NAME = 'LOGGING_LEVEL'
@@ -100,7 +100,7 @@ def log_filename_precise(app_name: str) -> str:
 class Logging:
     """Boilerplate to configure logging for an application."""
 
-    directory = None  # type: str
+    directory: str
     filename = None  # type: str
 
     enable_console = True  # type: bool
@@ -165,8 +165,8 @@ def unittest_verbosity() -> t.Optional[int]:
 
     Default verbosity level is 1, 0 means quiet and 2 means verbose.
     """
-    import inspect
-    import unittest
+    import inspect  # pylint: disable=import-outside-toplevel
+    import unittest  # pylint: disable=import-outside-toplevel
 
     frame = inspect.currentframe()
     while frame:
@@ -175,3 +175,25 @@ def unittest_verbosity() -> t.Optional[int]:
             return self_.verbosity
         frame = frame.f_back
     return None
+
+
+class StreamToCall:
+    """Redirect stream writes to a function call.
+
+    Enable using logging instances as a file-like objects.
+    Given a logging_function, convert write(text) calls to logging_function(text) calls.
+    For example: StreamToLog(logging.warning) will redirect all writes to logging.warning().
+    """
+
+    def __init__(self, logging_function: collections.abc.Callable):
+        assert callable(logging_function)
+        self.logging_function = logging_function
+
+    def write(self, message: str, *args):
+        """Redirect the write to the logging function."""
+        while message.endswith('\r') or message.endswith('\n'):
+            message = message[:-1]
+        self.logging_function(message, *args)
+
+    def flush(self):
+        """Flush can be a no-op."""

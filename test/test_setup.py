@@ -12,7 +12,7 @@ import types
 import typing as t
 import unittest
 
-__updated__ = '2020-01-29'
+__version__ = '2022-01-03'
 
 
 def run_program(*args, glob: bool = False):
@@ -284,13 +284,13 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(Package.version, version_)
         self.assertEqual(Package.long_description, long_description_)
 
-        Package.long_description = None
-        Package.packages = None
-        Package.install_requires = None
-        Package.python_requires = None
+        del Package.long_description
+        del Package.packages
+        del Package.install_requires
+        del Package.python_requires
         Package.prepare()
 
-        Package.version = None
+        del Package.version
         with self.assertRaises(FileNotFoundError):
             Package.prepare()
 

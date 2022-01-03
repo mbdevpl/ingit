@@ -21,8 +21,8 @@ REGEX_EXAMPLES = ['^py_.*', '^python$']
 
 SUGGESTED_TAGS = [
     'appveyor', 'archived', 'assembla', 'bash', 'bitbucket', 'c', 'c++', 'c#', 'css', 'cython',
-    'docker', 'fortran', 'gist', 'github', 'html', 'java', 'latex', 'opencl', 'php', 'python',
-    'ruby', 'travis', 'vsonline']
+    'docker', 'fortran', 'gist', 'github', 'html', 'java', 'javascript', 'latex', 'opencl', 'php',
+    'python', 'ruby', 'travis', 'vsonline']
 
 OUT = logging.getLogger('ingit.interface.print')
 
@@ -85,7 +85,7 @@ def prepare_parser():
             become "remotes". You can edit the configuration manually afterwards.
 
             The final "path" to the repository stored in the configuration depends on the
-            "repos_path" in runtime configuation. The configured "path" will be:
+            "repos_path" in runtime configuration. The configured "path" will be:
 
             *   resolved absolute path if there is no "repos_path" configured or
                 repository path is outside of the "repos_path";
@@ -97,28 +97,28 @@ def prepare_parser():
             Behaviour of storing relative/no paths in some cases is implemented to make
             configuration file much less verbose in typical usage scenarios. To prevent
             this behaviour, and force all repository paths to be absolute, simply set the
-            "repos_path" in your runtime configuraion to JSON "null".'''),
+            "repos_path" in your runtime configuration to JSON "null".'''),
         'foreach': (
             'execute a custom command',
             '''The given command is executed in a shell in working directory of each
             project.'''),
         'clone': (
             'perform git clone',
-            '''Execute "git clone <remote-url> --recursive --orign <remote-name> <path>",
+            '''Execute "git clone <remote-url> --recursive --origin <remote-name> <path>",
             where values of <path> and <remote-...> are taken from default remote
             configuration of the repository.
 
             After cloning, add all remaining configured remotes to the repository and
             fetch them.'''),
         'init': (
-            'perofrm git init',
+            'perform git init',
             '''Execute "git init", followed by "git remote add" for each configured
             remote.'''),
         'fetch': (
             'perform git fetch',
             '''Execute "git fetch <remote-name>", where the remote name is the remote of
-            the current　tracking branch, or all remotes of the repository if there's no
-            tracking branch,　or repository is in detached head state.'''),
+            the current tracking branch, or all remotes of the repository if there's no
+            tracking branch, or repository is in detached head state.'''),
         'checkout': (
             'perform git checkout',
             '''Interactively select revision to checkout from list of local branches, remote
@@ -242,7 +242,6 @@ def _prepare_command_options(command, parsed_args):
 
 def main(args=None):
     """Parse command line arguments and run ingit accordingly."""
-
     parser = prepare_parser()
     parsed_args = parser.parse_args(args)
     if (parsed_args.predicate is not None or parsed_args.regex is not None) \

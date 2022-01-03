@@ -10,7 +10,7 @@ import argcomplete
 
 from ._version import VERSION
 
-__updated__ = '2020-01-29'
+__version__ = '2022.01.03'
 
 VERBOSITY_DEFAULT = (logging.CRITICAL - logging.WARNING) // 10  # integer from 0 to 5
 
@@ -25,7 +25,7 @@ def make_copyright_notice(
         license_name: str = 'Apache License 2.0', url: t.Optional[str] = None):
     """Assemble a copyright notice like "Copyright YYYY by Author(s). License Name. http://url/"."""
     if year_to is None or year_to == year_from:
-        years = year_from
+        years = str(year_from)
     else:
         years = f'{year_from}-{year_to}'
     return f'Copyright {years} by {author}. {license_name}. {"" if url is None else url}'.rstrip()

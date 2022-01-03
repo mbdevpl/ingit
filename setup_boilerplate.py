@@ -13,7 +13,6 @@ import setup_boilerplate
 
 
 class Package(setup_boilerplate.Package):
-
     "" "Package metadata." ""
 
     name = ''
@@ -379,33 +378,6 @@ class Package:
     def setup(cls) -> None:
         """Call setuptools.setup with correct arguments."""
         cls.prepare()
-        # kwargs_dict = {
-        #     'name': cls.name,
-        #     'version': cls.version,
-        #     'description': cls.description,
-        #     'long_description': cls.long_description,
-        #     'long_description_content_type': cls.long_description_content_type,
-        #     'url': cls.url,
-        #     'download_url': cls.download_url,
-        #     'author': cls.author,
-        #     'author_email': cls.author_email,
-        #     'maintainer': cls.try_fields('maintainer', 'author'),
-        #     'maintainer_email': cls.try_fields('maintainer_email', 'author_email'),
-        #     'license': cls.license_str,
-        #     'classifiers': cls.classifiers,
-        #     'keywords': cls.keywords,
-        #     'packages': cls.packages,
-        #     'package_dir': {'': cls.root_directory},
-        #     'include_package_data': True,
-        #     'package_data': cls.package_data,
-        #     'exclude_package_data': cls.exclude_package_data,
-        #     'install_requires': cls.install_requires,
-        #     'extras_require': cls.extras_require,
-        #     'python_requires': cls.python_requires,
-        #     'entry_points': cls.entry_points,
-        #     'test_suite': cls.test_suite
-        # }
-        # setuptools.setup(**kwargs_dict)
         setuptools.setup(
             name=cls.name, version=cls.version, description=cls.description,
             long_description=cls.long_description,

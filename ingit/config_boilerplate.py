@@ -14,7 +14,7 @@ import pathlib
 import platform
 import typing as t
 
-__updated__ = '2020-01-29'
+__version__ = '2022.01.03'
 
 CONFIG_PATHS = {
     'Linux': pathlib.Path('~', '.config'),
@@ -23,11 +23,15 @@ CONFIG_PATHS = {
 
 CONFIG_PATH = CONFIG_PATHS[platform.system()]
 
+PathOrStr = t.TypeVar('PathOrStr', pathlib.Path, str)
 
-def normalize_path(path: t.Union[pathlib.Path, str]) -> t.Union[pathlib.Path, str]:
+
+def normalize_path(path: PathOrStr) -> PathOrStr:
     if isinstance(path, str):
         return os.path.expanduser(os.path.expandvars(path))
-    return pathlib.Path(normalize_path(str(path)))
+    # assert isinstance(path, pathlib.Path), type(path)
+    _ = normalize_path(str(path))
+    return pathlib.Path(_)
 
 
 def initialize_config_directory(app_name: str):
