@@ -1,4 +1,4 @@
-"""This is entry point of ingit package."""
+"""Entry point of ingit package."""
 
 # PYTHON_ARGCOMPLETE_OK
 
