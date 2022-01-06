@@ -1,9 +1,6 @@
 [build-system]
 requires = ['docutils', 'setuptools', 'version-query', 'wheel']
 
-[tool.pydocstyle]
-ignore = ['D102', 'D103', 'D105', 'D107', 'D203', 'D213', 'D406', 'D407', 'D412', 'D413']
-
 [[tool.mypy.overrides]]
 module = [
     'argcomplete',
@@ -11,6 +8,9 @@ module = [
     'readchar'
 ]
 ignore_missing_imports = true
+
+[tool.pydocstyle]
+ignore = ['D102', 'D103', 'D105', 'D107', 'D203', 'D213', 'D406', 'D407', 'D412', 'D413']
 
 [tool.pylint.MASTER]
 load-plugins = [

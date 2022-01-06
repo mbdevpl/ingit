@@ -214,7 +214,6 @@ class UnitTests(unittest.TestCase):
 
 
 class PackageTests(unittest.TestCase):
-
     """Test methods of Package class."""
 
     def test_try_fields(self):
@@ -298,7 +297,6 @@ class PackageTests(unittest.TestCase):
 @unittest.skipUnless(os.environ.get('TEST_PACKAGING') or os.environ.get('CI'),
                      'skipping packaging tests for actual package')
 class IntergrationTests(unittest.TestCase):
-
     """Test if the boilerplate can actually create a valid package."""
 
     pkg_name = get_package_folder_name()
