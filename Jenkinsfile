@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-library 'jenkins-mbdev-pl-libs@feature/more-utils'
+library 'jenkins-mbdev-pl-libs'
 
 pipeline {
 
