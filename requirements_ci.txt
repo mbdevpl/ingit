@@ -6,4 +6,4 @@ pydocstyle ~= 6.1
 pylint ~= 2.12
 types-docutils ~= 0.17
 types-setuptools ~= 57.4
--rrequirements_test.txt
+-r requirements_test.txt
