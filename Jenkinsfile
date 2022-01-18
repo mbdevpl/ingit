@@ -12,7 +12,7 @@ pipeline {
     PYTHON_MODULES = 'ingit test *.py'
   }
 
-  agent none
+  agent any
 
   stages {
     stage('Matrix') {
