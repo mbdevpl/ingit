@@ -12,24 +12,23 @@ import types
 import typing as t
 import unittest
 
-__version__ = '2022-01-03'
+__version__ = '2022.01.30'
 
 
-def run_program(*args, glob: bool = False):
+def run_program(*args, glob: bool = False) -> None:
     """Run subprocess with given args. Use path globbing for each arg that contains an asterisk."""
     if glob:
         cwd = pathlib.Path.cwd()
         args = tuple(itertools.chain.from_iterable(
             list(str(_.relative_to(cwd)) for _ in cwd.glob(arg)) if '*' in arg else [arg]
             for arg in args))
-    process = subprocess.Popen(args)
-    process.wait()
-    if process.returncode != 0:
-        raise AssertionError(f'execution of {args} returned {process.returncode}')
-    return process
+    try:
+        subprocess.run(args, check=True)
+    except subprocess.CalledProcessError as err:
+        raise AssertionError(f'execution of {args} failed') from err
 
 
-def run_pip(*args, **kwargs):
+def run_pip(*args, **kwargs) -> None:
     python_exec_name = pathlib.Path(sys.executable).name
     pip_exec_name = python_exec_name.replace('python', 'pip')
     run_program(pip_exec_name, *args, **kwargs)
@@ -135,8 +134,8 @@ class UnitTests(unittest.TestCase):
 
     def test_requirements_empty(self):
         parse_requirements = import_module_member('setup_boilerplate', 'parse_requirements')
-        reqs_file = tempfile.NamedTemporaryFile('w', delete=False)
-        reqs_file.close()
+        with tempfile.NamedTemporaryFile('w', delete=False) as reqs_file:
+            pass
         results = parse_requirements(reqs_file.name)
         self.assertIsInstance(results, list)
         self.assertEqual(len(results), 0)
@@ -145,10 +144,9 @@ class UnitTests(unittest.TestCase):
     def test_requirements_comments(self):
         parse_requirements = import_module_member('setup_boilerplate', 'parse_requirements')
         reqs = ['# comment', 'numpy', '', '# another comment', 'scipy', '', '# one more comment']
-        reqs_file = tempfile.NamedTemporaryFile('w', delete=False)
-        for req in reqs:
-            print(req, file=reqs_file)
-        reqs_file.close()
+        with tempfile.NamedTemporaryFile('w', delete=False) as reqs_file:
+            for req in reqs:
+                print(req, file=reqs_file)
         results = parse_requirements(reqs_file.name)
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
@@ -314,26 +312,32 @@ class IntergrationTests(unittest.TestCase):
         self.assertTrue(os.path.isdir('dist'))
 
     def test_install_code(self):
-        run_pip('install', '.')
-        run_pip('uninstall', '-y', self.pkg_name)
+        with tempfile.TemporaryDirectory() as temporary_folder:
+            run_pip('install', f'--prefix="{temporary_folder}"', '.')
+        self.assertFalse(pathlib.Path(temporary_folder).exists())
 
     def test_install_source_tar(self):
         find_version = import_module_member('setup_boilerplate', 'find_version')
         version = find_version(self.pkg_name)
-        run_pip('install', f'dist/*-{version}.tar.gz', glob=True)
-        run_pip('uninstall', '-y', self.pkg_name)
+        with tempfile.TemporaryDirectory() as temporary_folder:
+            run_pip(
+                'install', f'--prefix="{temporary_folder}"', f'dist/*-{version}.tar.gz', glob=True)
+        self.assertFalse(pathlib.Path(temporary_folder).exists())
 
     def test_install_source_zip(self):
         find_version = import_module_member('setup_boilerplate', 'find_version')
         version = find_version(self.pkg_name)
-        run_pip('install', f'dist/*-{version}.zip', glob=True)
-        run_pip('uninstall', '-y', self.pkg_name)
+        with tempfile.TemporaryDirectory() as temporary_folder:
+            run_pip('install', f'--prefix="{temporary_folder}"', f'dist/*-{version}.zip', glob=True)
+        self.assertFalse(pathlib.Path(temporary_folder).exists())
 
     def test_install_wheel(self):
         find_version = import_module_member('setup_boilerplate', 'find_version')
         version = find_version(self.pkg_name)
-        run_pip('install', f'dist/*-{version}-*.whl', glob=True)
-        run_pip('uninstall', '-y', self.pkg_name)
+        with tempfile.TemporaryDirectory() as temporary_folder:
+            run_pip(
+                'install', f'--prefix="{temporary_folder}"', f'dist/*-{version}-*.whl', glob=True)
+        self.assertFalse(pathlib.Path(temporary_folder).exists())
 
     def test_pip_error(self):
         with self.assertRaises(AssertionError):
