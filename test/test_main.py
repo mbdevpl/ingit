@@ -23,7 +23,7 @@ class Tests(unittest.TestCase):
         run_module('ingit', run_name='not_main')
 
     def test_help(self):
-        with open(os.devnull, 'a') as devnull:
+        with open(os.devnull, 'a', encoding='utf-8') as devnull:
             for flags in (['-h'], ['--help']):
                 with self.assertRaises(SystemExit):
                     with contextlib.redirect_stdout(devnull):
