@@ -418,8 +418,11 @@ class Project:
         """Get log as if start_ref..end_ref was used."""
         assert self.repo is not None
         refs = f'{start_ref}..{end_ref}'
-        # return self.repo.git.log('--pretty=oneline', refs, color='always').splitlines()
-        return self.repo.git.log('--color=always', '--pretty=oneline', refs).splitlines()
+        try:
+            git_log = self.repo.git.log('--color=always', '--pretty=oneline', refs)
+        except git.GitCommandError as err:
+            raise RuntimeError(f'error while getting log for "{refs}" of "{self.path}"') from err
+        return git_log.splitlines()
 
     def _print_log(self, ref_log, printed_header: str = '', head_count: int = 10,
                    tail_count: int = 10) -> None:
@@ -453,6 +456,13 @@ class Project:
                         ' -- current branch has no tracking branch', self.path)
             return
         tracking_branch = '/'.join(tracking_branch_data)
+        try:
+            self.repo.git.rev_parse(tracking_branch)
+        except:
+            OUT.warning(
+                'cannot diagnose branch status in "%s"'
+                ' -- tracking branch of the current branch does not exist', self.path)
+            return
         not_pushed_log = self._get_log(tracking_branch, branch)
         if not_pushed_log:
             self._print_log(not_pushed_log, f'!! not pushed commits from "{branch}"'
