@@ -1,6 +1,6 @@
-argcomplete ~= 1.12
+argcomplete ~= 2.0
 colorlog ~= 6.6
 GitPython ~= 3.1
-ordered-set ~= 4.0
+ordered-set ~= 4.1
 readchar ~= 3.0
 version-query ~= 1.1
