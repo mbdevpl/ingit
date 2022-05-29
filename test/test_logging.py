@@ -8,8 +8,7 @@ import unittest
 import unittest.mock
 
 from ingit.logging_boilerplate import \
-    DEFAULT_LEVEL, logging_level_from_envvar, \
-    log_filename_basic, log_filename_daily, log_filename_precise, \
+    logging_level_from_envvar, log_filename_basic, log_filename_daily, log_filename_precise, \
     Logging, unittest_verbosity, StreamToCall
 
 __version__ = '2022.08.15'
@@ -18,26 +17,27 @@ __version__ = '2022.08.15'
 class LoggingTests(unittest.TestCase):
 
     def test_configure_basic(self):
+        Logging.packages = ['my_software']
         Logging.enable_console = True
         Logging.enable_file = False
         with unittest.mock.patch.object(logging, 'basicConfig') as mocked:
             Logging.configure_basic()
-            self.assertEqual(mocked.call_args.args, ())
-            self.assertIn('level', mocked.call_args.kwargs)
-            self.assertIn('handlers', mocked.call_args.kwargs)
-            self.assertNotIn('filename', mocked.call_args.kwargs)
+            self.assertEqual(mocked.call_args.args, (), msg=mocked.call_args)
+            self.assertIn('level', mocked.call_args.kwargs, msg=mocked.call_args)
+            self.assertIn('handlers', mocked.call_args.kwargs, msg=mocked.call_args)
+            self.assertNotIn('filename', mocked.call_args.kwargs, msg=mocked.call_args)
         Logging.enable_console = False
         with unittest.mock.patch.object(logging, 'basicConfig') as mocked:
             Logging.configure_basic()
-            self.assertNotIn('handlers', mocked.call_args.kwargs)
-            self.assertNotIn('filename', mocked.call_args.kwargs)
+            self.assertNotIn('handlers', mocked.call_args.kwargs, msg=mocked.call_args)
+            self.assertNotIn('filename', mocked.call_args.kwargs, msg=mocked.call_args)
         Logging.enable_file = True
         Logging.directory = 'my_software'
         with unittest.mock.patch.object(logging, 'basicConfig') as mocked:
             with unittest.mock.patch.object(pathlib.Path, 'mkdir', return_value=None):
                 Logging.configure_basic()
-            self.assertNotIn('handlers', mocked.call_args.kwargs)
-            self.assertIn('filename', mocked.call_args.kwargs)
+            self.assertNotIn('handlers', mocked.call_args.kwargs, msg=mocked.call_args)
+            self.assertIn('filename', mocked.call_args.kwargs, msg=mocked.call_args)
 
     def test_configure(self):
         Logging.directory = 'my_software'
@@ -46,15 +46,13 @@ class LoggingTests(unittest.TestCase):
             Logging.enable_console = enable_console
             Logging.enable_file = enable_file
             with unittest.mock.patch.object(logging.config, 'dictConfig') as mocked:
-                with (
-                        unittest.mock.patch.object(pathlib.Path, 'mkdir', return_value=None),
-                        unittest.mock.patch.object(pathlib.Path, 'is_dir', return_value=True)):
+                with unittest.mock.patch.object(pathlib.Path, 'is_dir', return_value=True):
                     Logging.configure()
                 arg = mocked.call_args.args[0]
                 if enable_console:
-                    self.assertIn('console', arg['root']['handlers'])
+                    self.assertIn('console', arg['root']['handlers'], msg=mocked.call_args)
                 if enable_file:
-                    self.assertIn('file', arg['root']['handlers'])
+                    self.assertIn('file', arg['root']['handlers'], msg=mocked.call_args)
 
     def test_configure_from_json(self):
         with self.assertRaises(NotImplementedError):
@@ -65,11 +63,11 @@ class UtilityTests(unittest.TestCase):
 
     def test_logging_level_from_envvar(self):
         envvar = 'MY_UNIQUE_ENVVAR_FOR_TESTING'
-        self.assertEqual(logging_level_from_envvar(envvar), DEFAULT_LEVEL)
+        self.assertEqual(logging_level_from_envvar(envvar, default=42), 42)
         os.environ[envvar] = 'debug'
         self.assertEqual(logging_level_from_envvar(envvar), logging.DEBUG)
         os.environ[envvar] = 'debugging'
-        self.assertEqual(logging_level_from_envvar(envvar), DEFAULT_LEVEL)
+        self.assertEqual(logging_level_from_envvar(envvar, default=42), 42)
         os.environ[envvar] = '35'
         self.assertEqual(logging_level_from_envvar(envvar), 35)
         del os.environ[envvar]

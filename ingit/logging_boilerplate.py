@@ -1,25 +1,26 @@
 """Boilerplate useful to setup logging.
 
 To reduce boilerplate necessary to setup logging for your application, first
-create a file _logging.py with contents as shown in SETUP_TEMPLATE.
-
-Then, add the following to your __init__.py, or somewhere else you want:
-
-""
-from ._logging import Logging
-
-Logging.configure()
-""
+create a file _logging.py with contents as below:
 
 "" "Logging configuration." ""
 
-import logging_boilerplate
+from . import logging_boilerplate
 
 
 class Logging(logging_boilerplate.Logging):
     "" "Logging configuration." ""
 
     directory = ''
+
+You can and should adjust the class fields to your needs, please take a look at the Logging class
+implementation for details.
+
+Then, add the following to your __init__.py, or somewhere else you want:
+
+from ._logging import Logging
+
+Logging.configure()
 """
 
 import collections.abc
@@ -35,7 +36,7 @@ import colorlog
 
 from .config_boilerplate import normalize_path
 
-__version__ = '2022.01.03'
+__version__ = '2022.02.07'
 
 LOGS_PATHS = {
     'Linux': pathlib.Path('~', '.local', 'share'),
@@ -44,29 +45,24 @@ LOGS_PATHS = {
 
 LOGS_PATH = LOGS_PATHS[platform.system()]
 
-'''
-logging.basicConfig()
+# _LOG.setLevel(_LOG_LEVEL)
+# _LOG.log(_LOG_LEVEL, '%s logger level set to %s', __name__, logging.getLevelName(_LOG_LEVEL))
 
-logging.basicConfig(level=logging.INFO)
-# logging.getLogger('music_metadata_sync').setLevel(logging.WARNING)
+DEFAULT_LOGGING_LEVEL_GLOBAL = logging.NOTSET
+DEFAULT_LOGGING_LEVEL_PACKAGE = logging.DEBUG
+DEFAULT_LOGGING_LEVEL_TEST = logging.DEBUG
+DEFAULT_LOGGING_LEVEL_OTHER = logging.WARNING
+DEFAULT_LEVEL = logging.DEBUG
 
-logging.basicConfig(
-    level=getattr(logging, os.environ.get('LOGGING_LEVEL', 'warning').upper(), logging.WARNING))
-
-_HANDLER = logging.StreamHandler()
-_HANDLER.setFormatter(colorlog.ColoredFormatter(
-    '{name} [{log_color}{levelname}{reset}] {message}', style='{'))
-logging.basicConfig(level=logging.INFO, handlers=[_HANDLER])
-
-_LOG = logging.getLogger(__name__)
-_LOG_LEVEL = logging.INFO
-
-_LOG.setLevel(_LOG_LEVEL)
-_LOG.log(_LOG_LEVEL, '%s logger level set to %s', __name__, logging.getLevelName(_LOG_LEVEL))
-'''
-
-DEFAULT_LEVEL = logging.WARNING
 LEVEL_ENVVAR_NAME = 'LOGGING_LEVEL'
+
+DATETIME_FORMAT_DAILY = r'%Y%m%d'
+DATETIME_FORMAT_PRECISE = r'%Y%m%d-%H%M%S'
+
+LOG_FORMAT_BRIEF = r'{name} [{levelname}] {message}'
+LOG_FORMAT_BRIEF_COLOURED = r'{name} [{log_color}{levelname}{reset}] {message}'
+LOG_FORMAT_PRECISE = f'{{asctime}} {LOG_FORMAT_BRIEF}'
+LOG_FORMAT_PRECISE_COLOURED = f'{{asctime}} {LOG_FORMAT_BRIEF_COLOURED}'
 
 
 def logging_level_from_envvar(envvar: str, default: int = logging.WARNING) -> int:
@@ -88,46 +84,106 @@ def log_filename_basic(app_name: str) -> str:
 
 
 def log_filename_daily(app_name: str) -> str:
-    _ = datetime.datetime.now().strftime(r'%Y%m%d')
-    return f'{app_name}-{_}.log'
+    timestamp = datetime.datetime.now().strftime(DATETIME_FORMAT_DAILY)
+    return f'{app_name}_{timestamp}.log'
 
 
 def log_filename_precise(app_name: str) -> str:
-    _ = datetime.datetime.now().strftime(r'%Y%m%d-%H%M%S')
-    return f'{app_name}-{_}.log'
+    timestamp = datetime.datetime.now().strftime(DATETIME_FORMAT_PRECISE)
+    return f'{app_name}_{timestamp}.log'
 
 
 class Logging:
     """Boilerplate to configure logging for an application."""
 
+    packages: t.List[str]
+
     directory: str
-    filename = None  # type: str
+    filename: t.Optional[str] = None
 
-    enable_console = True  # type: bool
-    enable_file = False  # type: bool
-    level = None  # type: int
+    enable_console: bool = True
+    enable_file: bool = False
 
-    # @classmethod
-    # def configure_basic(cls):
-    #     logging.basicConfig(
-    #         level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=DEFAULT_LEVEL),
-    #         filename=normalize_path(str(LOGS_PATH.joinpath(cls.directory, cls.filename))))
+    level_global: int = DEFAULT_LOGGING_LEVEL_GLOBAL
+    """Global logging cut-off filter.
+
+    If set higher than any other level_* fields, it overrides then and filters all messages
+    below the level.
+
+    If set lower than some of other level_* fields, the values of respective fields still apply.
+    """
+
+    level_package: int = DEFAULT_LOGGING_LEVEL_PACKAGE
+    """Logging level for in-package logging.
+
+    This applies to the packages in the packages field.
+    """
+
+    level_test: int = DEFAULT_LOGGING_LEVEL_TEST
+    """Logging level"""
+
+    level_other: int = DEFAULT_LOGGING_LEVEL_OTHER
+
+    @property
+    @classmethod
+    def _absolute_path(cls) -> pathlib.Path:
+        assert cls.directory is not None
+        filename = log_filename_precise(cls.directory) if cls.filename is None else cls.filename
+        return normalize_path(LOGS_PATH.joinpath(cls.directory, filename))
 
     @classmethod
-    def configure(cls):
+    def _create_logs_folder(cls):
         assert cls.directory is not None
         logs_path = normalize_path(LOGS_PATH.joinpath(cls.directory))
         if not logs_path.is_dir():
             logs_path.mkdir(parents=True)
+
+    @classmethod
+    def configure_basic(cls):
+        """Configure basic logging for an application.
+
+        Basic logging is logging to the console with colored logging, or logging to a single file.
+        """
+        if cls.enable_console:
+            assert not cls.enable_file
+            cls._configure_basic_console()
+        elif cls.enable_file:
+            cls._create_logs_folder()
+            logging.basicConfig(
+                level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=DEFAULT_LEVEL),
+                filename=str(cls._absolute_path))
+        else:
+            logging.basicConfig(
+                level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=DEFAULT_LEVEL))
+
+        logging.getLogger().setLevel(cls.level_other)
+        for package in cls.packages:
+            logging.getLogger(package).setLevel(cls.level_package)
+        logging.getLogger('test').setLevel(cls.level_test)
+
+    @classmethod
+    def _configure_basic_console(cls):
+        """Configure basic logging to the console with colored logging."""
+        handler = logging.StreamHandler()
+        handler.setFormatter(colorlog.ColoredFormatter(LOG_FORMAT_BRIEF_COLOURED, style='{'))
+
+        logging.basicConfig(
+            format=LOG_FORMAT_BRIEF_COLOURED,
+            level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=DEFAULT_LEVEL),
+            handlers=[handler])
+
+    @classmethod
+    def configure(cls):
+        """Configure logging for an application."""
         logging_config = {
             'formatters': {
                 'brief': {
                     '()': 'colorlog.ColoredFormatter',
                     'style': '{',
-                    'format': '{name} [{log_color}{levelname}{reset}] {message}'},
+                    'format': LOG_FORMAT_BRIEF_COLOURED},
                 'precise': {
                     'style': '{',
-                    'format': '{asctime} {name} [{levelname}] {message}'}},
+                    'format': LOG_FORMAT_PRECISE}},
             'handlers': {},
             'root': {
                 'handlers': [],
@@ -142,20 +198,20 @@ class Logging:
                 'stream': 'ext://sys.stdout'}
             logging_config['root']['handlers'].append('console')
         if cls.enable_file:
-            filename = log_filename_precise(cls.directory) if cls.filename is None else cls.filename
+            cls._create_logs_folder()
             logging_config['handlers']['file'] = {
                 'class': 'logging.handlers.RotatingFileHandler',
                 'formatter': 'precise',
                 'level': logging.NOTSET,
-                'filename': str(logs_path.joinpath(filename)),
+                'filename': str(cls._absolute_path),
                 'maxBytes': 1 * 1024 * 1024,
                 'backupCount': 10}
-            logging_config['root']['handlers'].append('console')
+            logging_config['root']['handlers'].append('file')
         logging.config.dictConfig(logging_config)
 
     @classmethod
     def configure_from_json(cls):
-        pass
+        raise NotImplementedError()
 
 
 def unittest_verbosity() -> t.Optional[int]:
@@ -181,19 +237,19 @@ class StreamToCall:
     """Redirect stream writes to a function call.
 
     Enable using logging instances as a file-like objects.
-    Given a logging_function, convert write(text) calls to logging_function(text) calls.
-    For example: StreamToLog(logging.warning) will redirect all writes to logging.warning().
+    Given a called_function, convert write(text) calls to called_function(text) calls.
+    For example: StreamToCall(logging.warning) will redirect all writes to logging.warning().
     """
 
-    def __init__(self, logging_function: collections.abc.Callable):
-        assert callable(logging_function)
-        self.logging_function = logging_function
+    def __init__(self, called_function: collections.abc.Callable):
+        assert callable(called_function), type(called_function)
+        self._function = called_function
 
     def write(self, message: str, *args):
         """Redirect the write to the logging function."""
         while message.endswith('\r') or message.endswith('\n'):
             message = message[:-1]
-        self.logging_function(message, *args)
+        self._function(message, *args)
 
     def flush(self):
         """Flush can be a no-op."""
