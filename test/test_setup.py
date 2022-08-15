@@ -12,7 +12,7 @@ import types
 import typing as t
 import unittest
 
-__version__ = '2022.01.30'
+__version__ = '2022.08.15'
 
 
 def run_program(*args, glob: bool = False) -> None:
@@ -29,9 +29,7 @@ def run_program(*args, glob: bool = False) -> None:
 
 
 def run_pip(*args, **kwargs) -> None:
-    python_exec_name = pathlib.Path(sys.executable).name
-    pip_exec_name = python_exec_name.replace('python', 'pip')
-    run_program(pip_exec_name, *args, **kwargs)
+    run_program(sys.executable, '-m', 'pip', *args, **kwargs)
 
 
 def run_module(name: str, *args, run_name: str = '__main__') -> None:
@@ -313,7 +311,7 @@ class IntergrationTests(unittest.TestCase):
 
     def test_install_code(self):
         with tempfile.TemporaryDirectory() as temporary_folder:
-            run_pip('install', f'--prefix="{temporary_folder}"', '.')
+            run_pip('install', '--prefix', temporary_folder, '.')
         self.assertFalse(pathlib.Path(temporary_folder).exists())
 
     def test_install_source_tar(self):
@@ -321,14 +319,14 @@ class IntergrationTests(unittest.TestCase):
         version = find_version(self.pkg_name)
         with tempfile.TemporaryDirectory() as temporary_folder:
             run_pip(
-                'install', f'--prefix="{temporary_folder}"', f'dist/*-{version}.tar.gz', glob=True)
+                'install', '--prefix', temporary_folder, f'dist/*-{version}.tar.gz', glob=True)
         self.assertFalse(pathlib.Path(temporary_folder).exists())
 
     def test_install_source_zip(self):
         find_version = import_module_member('setup_boilerplate', 'find_version')
         version = find_version(self.pkg_name)
         with tempfile.TemporaryDirectory() as temporary_folder:
-            run_pip('install', f'--prefix="{temporary_folder}"', f'dist/*-{version}.zip', glob=True)
+            run_pip('install', '--prefix', temporary_folder, f'dist/*-{version}.zip', glob=True)
         self.assertFalse(pathlib.Path(temporary_folder).exists())
 
     def test_install_wheel(self):
@@ -336,7 +334,7 @@ class IntergrationTests(unittest.TestCase):
         version = find_version(self.pkg_name)
         with tempfile.TemporaryDirectory() as temporary_folder:
             run_pip(
-                'install', f'--prefix="{temporary_folder}"', f'dist/*-{version}-*.whl', glob=True)
+                'install', '--prefix', temporary_folder, f'dist/*-{version}-*.whl', glob=True)
         self.assertFalse(pathlib.Path(temporary_folder).exists())
 
     def test_pip_error(self):
