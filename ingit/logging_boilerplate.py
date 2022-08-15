@@ -36,7 +36,7 @@ import colorlog
 
 from .config_boilerplate import normalize_path
 
-__version__ = '2022.02.07'
+__version__ = '2022.08.15'
 
 LOGS_PATHS = {
     'Linux': pathlib.Path('~', '.local', 'share'),
@@ -168,7 +168,6 @@ class Logging:
         handler.setFormatter(colorlog.ColoredFormatter(LOG_FORMAT_BRIEF_COLOURED, style='{'))
 
         logging.basicConfig(
-            format=LOG_FORMAT_BRIEF_COLOURED,
             level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=DEFAULT_LEVEL),
             handlers=[handler])
 
