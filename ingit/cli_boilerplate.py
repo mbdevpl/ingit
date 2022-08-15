@@ -10,7 +10,7 @@ import argcomplete
 
 from ._version import VERSION
 
-__updated__ = '2020-01-29'
+__version__ = '2022.01.03'
 
 VERBOSITY_DEFAULT = (logging.CRITICAL - logging.WARNING) // 10  # integer from 0 to 5
 
@@ -25,7 +25,7 @@ def make_copyright_notice(
         license_name: str = 'Apache License 2.0', url: t.Optional[str] = None):
     """Assemble a copyright notice like "Copyright YYYY by Author(s). License Name. http://url/"."""
     if year_to is None or year_to == year_from:
-        years = year_from
+        years = str(year_from)
     else:
         years = f'{year_from}-{year_to}'
     return f'Copyright {years} by {author}. {license_name}. {"" if url is None else url}'.rstrip()
@@ -51,6 +51,22 @@ def add_verbosity_group(parser: argparse.ArgumentParser) -> 'argparse._MutuallyE
         help=f'set verbosity level explicitly (normally from {0} to {5})') \
         .completer = argcomplete.completers.ChoicesCompleter(choices=list(range(0, 5 + 1, 1)))
     return verbosity_group
+
+
+def __(parser):
+    parser.add_argument(
+        '--quiet', '-q', action='store_true', default=False, required=False,
+        help='''do not output anything but critical errors; overrides "--verbose" and "--debug"
+        if present; sets logging level to CRITICAL''')
+
+    parser.add_argument(
+        '--verbose', '-v', action='store_true', default=False, required=False,
+        help='''output non-critical information; sets logging level to INFO''')
+
+    parser.add_argument(
+        '--debug', action='store_true', default=False, required=False,
+        help='''output information at debugging level; overrides "--verbose" if present; sets
+        logging level to DEBUG''')
 
 
 def get_verbosity_level(parsed_args: argparse.Namespace) -> int:

@@ -19,6 +19,10 @@ OUT.addHandler(OUT_HANDLER)
 
 
 def default_template(question, answers, default):
+    """Print a question with candidate answers, with the default marked accordingly.
+
+    This is the default template for ask().
+    """
     case_insensitive_answers = {_.lower() for _ in answers}
     case_insensitive = len(case_insensitive_answers) == len(answers)
     if case_insensitive:
@@ -27,22 +31,21 @@ def default_template(question, answers, default):
     return f'{question} [{"/".join(answers)}] [default={default}] '
 
 
-def ask(question: str, answers: t.Sequence[str] = None, default: str = None,
+def ask(question: str, answers: t.Sequence[str] = None, default: t.Optional[str] = None,
         autoanswer: t.Union[bool, str] = None,
         template: collections.abc.Callable = default_template) -> str:
     """Ask a question that is to be answered with a single keystroke.
 
     By default, it is asked like this: "question [y/N] ".
 
-    @param question: a proposition that is to be answered
-    @param answers: list of valid answers, list of lower-case letters; if None, use ['y', 'n']
-    @param default:
+    :param question: a proposition that is to be answered
+    :param answers: list of valid answers, list of lower-case letters; if None, use ['y', 'n']
+    :param default:
         a default answer, lower-case letter; if None, use last of the answer, 'n' by default
-    @param autoanswer:
+    :param autoanswer:
         answer to be automatically given; if True, the default answer will be given
-    @param template: a function taking question and answers and returning string
-
-    @return: a lower-case letter that is the answer to the question
+    :param template: a function taking question and answers and returning string
+    :return: a lower-case letter that is the answer to the question
     """
     assert isinstance(question, str), type(question)
     if answers is None:
@@ -69,7 +72,7 @@ def ask(question: str, answers: t.Sequence[str] = None, default: str = None,
     case_insensitive_answers = {_.lower() for _ in answers}
     case_insensitive = len(case_insensitive_answers) == len(answers)
     if case_insensitive:
-        answers = case_insensitive_answers
+        answers = list(case_insensitive_answers)
         default = default.lower()
         if autoanswer is not None:
             autoanswer = autoanswer.lower()
@@ -78,6 +81,7 @@ def ask(question: str, answers: t.Sequence[str] = None, default: str = None,
         if answer is not None:
             print(answer, end='', flush=True)
         answer = readchar.readchar()
+        assert answer is not None
         if case_insensitive:
             answer = answer.lower()
         if answer in _INTERRUPTS:
@@ -85,4 +89,4 @@ def ask(question: str, answers: t.Sequence[str] = None, default: str = None,
         if answer in _NEWLINES:
             answer = default
     print(answer)
-    return answer
+    return str(answer)

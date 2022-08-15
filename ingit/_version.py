@@ -1,4 +1,4 @@
-""" Version of ingit package. """
+"""Version of ingit package."""
 
 from version_query import predict_version_str
 

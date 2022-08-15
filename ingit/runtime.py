@@ -38,23 +38,11 @@ class Runtime:
         self.runtime_config_path = runtime_config_path
         self.repos_config_path = repos_config_path
         self._hostname = platform.node() if hostname is None else hostname
-
-        self.runtime_config = None
-        self.repos_config = None
-        self._machine_config = None
         self._interactive = interactive
 
-        self.projects = None
-        self.filtered_projects = []
-
         # prepare, possibly interactive
-
         self.runtime_config = acquire_configuration(self.runtime_config_path, 'runtime')
         self._machine_config = self._read_machine_config()
-        # self.repos_path = pathlib.Path(normalize_path(self._machine_config['repos_path']))
-        # self.interactive = self._machine_config['interactive']
-        # if RuntimeInterfaceConfig.interactive is None:
-        #    runtime_config['']
 
         self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
         self.projects = self._read_projects()
@@ -62,6 +50,7 @@ class Runtime:
 
     @property
     def repos_path(self):
+        """Get path to where repositories are by default."""
         raw_path = self._machine_config['repos_path']
         if raw_path is None:
             return None
@@ -119,7 +108,7 @@ class Runtime:
 
     def filter_projects(self, predicate: t.Union[collections.abc.Callable, str]):
         """Select subset of all of the projects registered projects for processing."""
-        assert isinstance(predicate, (collections.abc.Callable, str)), type(predicate)
+        assert callable(predicate) or isinstance(predicate, str), type(predicate)
         if isinstance(predicate, str):
             predicate = functools.partial(regex_predicate, predicate)
         self.filtered_projects = [
@@ -144,6 +133,7 @@ class Runtime:
         command_executor(command, **command_options)
 
     def execute_ingit_command(self, command: str, **command_options):
+        """Execute an ingit command, as opposed to a wrapper for a git built-in command."""
         command = {
             'summary': 'repositories_summary',
             'register': 'register_repository',
@@ -152,6 +142,7 @@ class Runtime:
         implementation(**command_options)
 
     def execute_git_command(self, command: str, **command_options):
+        """Execute a wrapper for a git built-in command."""
         command = {
             'gc': 'collect_garbage'}.get(command, command)
         for project in self.filtered_projects:
@@ -159,6 +150,7 @@ class Runtime:
             implementation(**command_options)
 
     def execute_command(self, cmd: str, timeout: int = None):
+        """Execute a command in each of the projects (after filtering was applied)."""
         for project in self.filtered_projects:
             if not project.path.is_dir():
                 continue
@@ -171,7 +163,6 @@ class Runtime:
 
     def repositories_summary(self):
         """Summarize registered repositories."""
-
         all_count = len(self.filtered_projects)
         was_filtered = all_count < len(self.repos_config['repos'])
         if was_filtered:
@@ -205,7 +196,7 @@ class Runtime:
         for project in self.projects:
             try:
                 project_paths_in_root.add(project.path.relative_to(self.repos_path))
-            except:
+            except ValueError:
                 pass
 
         for path in self.repos_path.iterdir():
@@ -235,7 +226,7 @@ class Runtime:
                 print(path)
 
     def register_machine(self, name: str) -> dict:
-        """Add machine to ingit runtime configuation."""
+        """Add machine to ingit runtime configuration."""
         assert isinstance(name, str), type(name)
         assert name
         for machine in self.runtime_config['machines']:
@@ -285,7 +276,7 @@ class Runtime:
                         ' - registering absolute path', absolute_repo_path, self.repos_path)
                     repo_config['path'] = str(absolute_repo_path)
         except ValueError:
-            _LOG.info('canot resolve repo path %s', repo_config['path'])
+            _LOG.info('cannot resolve repo path %s', repo_config['path'])
         if tags is not None:
             repo_config['tags'] += tags
         _LOG.warning('adding repo to configuration: %s', repo_config)
