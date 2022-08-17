@@ -22,12 +22,16 @@ Tool for managing a large collection of repositories in git.
     :target: https://github.com/mbdevpl/ingit/actions
     :alt: build status from GitHub
 
-.. image:: https://codecov.io/gh/mbdevpl/ingit/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/mbdevpl/ingit/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/mbdevpl/ingit
     :alt: test coverage from Codecov
 
+.. image:: https://api.codacy.com/project/badge/Grade/477a1bc423f9465bb1ba8caeb895385b
+    :target: https://www.codacy.com/app/mbdevpl/ingit
+    :alt: grade from Codacy
+
 .. image:: https://img.shields.io/github/license/mbdevpl/ingit.svg
-    :target: https://github.com/mbdevpl/ingit/blob/master/NOTICE
+    :target: NOTICE
     :alt: license
 
 If you have 100 git-versioned projects, keeping tabs on everything can be quite troublesome.

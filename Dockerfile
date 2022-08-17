@@ -40,6 +40,8 @@ RUN set -Eeuxo pipefail && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
+# prepare ingit for testing
+
 WORKDIR /home/user/ingit
 
 COPY --chown=${USER_ID}:${GROUP_ID} requirements*.txt ./
@@ -47,11 +49,11 @@ COPY --chown=${USER_ID}:${GROUP_ID} requirements*.txt ./
 RUN set -Eeuxo pipefail && \
   pip3 install -r requirements_ci.txt
 
-VOLUME ["/home/user/ingit"]
-
 USER user
 
 WORKDIR /home/user
+
+VOLUME ["/home/user/ingit"]
 
 ENV EXAMPLE_PROJECTS_PATH="/home/user"
 
