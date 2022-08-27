@@ -30,7 +30,7 @@ jobs:
       - run: python -m coverage report --show-missing
       - run: codecov
   publish:
-    # if: startsWith(github.ref, 'refs/tags')
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
     steps:
