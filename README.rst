@@ -27,7 +27,7 @@ Tool for managing a large collection of repositories in git.
     :alt: test coverage from Codecov
 
 .. image:: https://api.codacy.com/project/badge/Grade/477a1bc423f9465bb1ba8caeb895385b
-    :target: https://www.codacy.com/app/mbdevpl/ingit
+    :target: https://app.codacy.com/gh/mbdevpl/ingit
     :alt: grade from Codacy
 
 .. image:: https://img.shields.io/github/license/mbdevpl/ingit.svg
