@@ -139,7 +139,7 @@ into a predicate function template, as below:
 
     lambda name, tags, path, remotes: (predicate)
 
-The actual implementation is here: `<ingit/main.py#L232>`_
+The actual implementation is here: `<ingit/main.py#L266>`_
 
 Therefore, executing ``ingit --predicate "'python' in tags" fetch`` results
 in the following predicate being applied:
@@ -477,6 +477,6 @@ Python version 3.8 or later.
 
 Python libraries as specified in `<requirements.txt>`_.
 
-Building and running tests additionally requires packages listed in `<test_requirements.txt>`_.
+Building and running tests additionally requires packages listed in `<requirements_test.txt>`_.
 
 Tested on Linux, macOS and Windows.
