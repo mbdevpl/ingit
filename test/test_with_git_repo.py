@@ -10,11 +10,10 @@ import git
 
 _LOG = logging.getLogger(__name__)
 
-__version__ = '2022.02.01'
+__version__ = '2022.08.18'
 
 
 class GitRepoTests(unittest.TestCase):
-
     """Provide several utility propertied and methods named repo_* and git_*."""
 
     repo = None  # type: git.Repo
@@ -84,6 +83,7 @@ class GitRepoTests(unittest.TestCase):
 
 
 class GitRepoSelfTests(GitRepoTests):
+    """Check that GitRepoTests class works."""
 
     def test_typical(self):
         self.git_init()
