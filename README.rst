@@ -477,6 +477,6 @@ Python version 3.8 or later.
 
 Python libraries as specified in `<requirements.txt>`_.
 
-Building and running tests additionally requires packages listed in `<test_requirements.txt>`_.
+Building and running tests additionally requires packages listed in `<requirements_test.txt>`_.
 
 Tested on Linux, macOS and Windows.
