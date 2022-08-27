@@ -9,7 +9,6 @@ import typing as t
 
 import git
 import git.remote
-from git.util import RemoteProgress
 
 # list used by __create_operation_strings()
 _KNOWN_OPERATIONS_STRINGS = {
@@ -25,7 +24,7 @@ _KNOWN_OPERATIONS_STRINGS = {
     512: 'fetching remote of submodule',
     # git.remote.RemoteProgress.CHECKING_OUT
 }
-_KNOWN_OPERATIONS = functools.reduce(operator.or_, _KNOWN_OPERATIONS_STRINGS.keys())
+_KNOWN_OPERATIONS: int = functools.reduce(operator.or_, _KNOWN_OPERATIONS_STRINGS.keys())
 _KNOWN_OPERATIONS_PHASES = git.remote.RemoteProgress.BEGIN | git.remote.RemoteProgress.END
 
 _CARET_UP = '\033[1A'  # TODO: works only in bash, but what about cmd?
@@ -39,7 +38,7 @@ def _create_operation_strings(op_code: int):
     for key, value in _KNOWN_OPERATIONS_STRINGS.items():
         if op_code & key:
             operation_strings.append(value)
-    unknown_operations = op_code & ~_KNOWN_OPERATIONS
+    unknown_operations = op_code & ~_KNOWN_OPERATIONS  # pylint: disable=invalid-unary-operand-type
     if unknown_operations:
         operation_strings.append(
             f'unknown operation code(s): {unknown_operations} ({unknown_operations:032b})')
@@ -58,11 +57,13 @@ class ActionProgress(git.remote.RemoteProgress):
         self.line_len = 0  # type: int
         try:
             term_size = shutil.get_terminal_size()
+        except ValueError:
+            self.line_width = 100
+        else:
             _LOG.log(logging.WARNING if term_size.columns < 16 else logging.NOTSET,
                      'detected terminal width is %i', term_size.columns)
             self.line_width = term_size.columns if term_size.columns else 100
-        except ValueError:
-            self.line_width = 100
+
         assert self.line_width > 0
 
         self.inline = inline
