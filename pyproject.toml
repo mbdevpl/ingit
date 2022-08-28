@@ -22,9 +22,10 @@ ignore = [
 
 [tool.pylint.MASTER]
 load-plugins = [
+    'pylint.extensions.broad_try_clause',
     'pylint.extensions.mccabe',
-    'pylint.extensions.redefined_variable_type',
-    'pylint.extensions.broad_try_clause'
+    'pylint.extensions.no_self_use',
+    'pylint.extensions.redefined_variable_type'
 ]
 
 [tool.pylint.'MESSAGES CONTROL']
