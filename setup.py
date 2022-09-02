@@ -7,7 +7,7 @@ class Package(setup_boilerplate.Package):
     """Package metadata."""
 
     name = 'ingit'
-    description = 'git repository collection management tool'
+    description = 'Tool for managing a large collection of repositories in git.'
     url = 'https://github.com/mbdevpl/ingit'
     license_str = 'GNU General Public License v3 or later (GPLv3+)'
     classifiers = [
