@@ -2,6 +2,7 @@
 
 import importlib
 import itertools
+import logging
 import os
 import pathlib
 import runpy
@@ -12,16 +13,32 @@ import types
 import typing as t
 import unittest
 
-__version__ = '2022.08.27'
+__version__ = '2023.02.15'
+
+_LOG = logging.getLogger(__name__)
+
+
+def expand_args_by_globbing_items(
+        *args: str, cwd: t.Optional[pathlib.Path] = None) -> t.Tuple[str, ...]:
+    if cwd is None:
+        cwd = pathlib.Path.cwd()
+    expanded_args = []
+    for arg in args:
+        if '*' not in arg:
+            expanded_args.append(arg)
+            continue
+        expanded_arg = [str(_.relative_to(cwd)) for _ in cwd.glob(arg)]
+        assert expanded_arg, arg
+        _LOG.debug('expanded arg "%s" to %s', arg, expanded_arg)
+        expanded_args += expanded_arg
+    _LOG.debug('expanded args to %s', expanded_args)
+    return tuple(expanded_args)
 
 
 def run_program(*args, glob: bool = False) -> None:
     """Run subprocess with given args. Use path globbing for each arg that contains an asterisk."""
     if glob:
-        cwd = pathlib.Path.cwd()
-        args = tuple(itertools.chain.from_iterable(
-            list(str(_.relative_to(cwd)) for _ in cwd.glob(arg)) if '*' in arg else [arg]
-            for arg in args))
+        args = expand_args_by_globbing_items(*args)
     try:
         subprocess.run(args, check=True)
     except subprocess.CalledProcessError as err:
