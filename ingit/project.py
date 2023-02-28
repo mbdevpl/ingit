@@ -244,7 +244,7 @@ class Project:
 
     def _prepare_checkout_list(self, keys: str):
         assert self.repo is not None
-        revisions = collections.OrderedDict()
+        revisions: t.Dict[str, t.Tuple[t.Any, str]] = collections.OrderedDict()
 
         local_branches = list(self.repo.branches)
         remote_tracking_branches = set(self.repo.tracking_branches.values())
@@ -424,8 +424,8 @@ class Project:
             raise RuntimeError(f'error while getting log for "{refs}" of "{self.path}"') from err
         return git_log.splitlines()
 
-    def _print_log(self, ref_log, printed_header: str = '', head_count: int = 10,
-                   tail_count: int = 10) -> None:
+    def _print_log(self, ref_log, printed_header: str = '', head_count: int = 2,
+                   tail_count: int = 2) -> None:
         if printed_header:
             OUT.critical(printed_header)
         if len(ref_log) > head_count + tail_count + 1:
@@ -439,7 +439,7 @@ class Project:
             for line in ref_log:
                 OUT.critical(line)
 
-    def _status_branch(self, branch: str = None) -> None:
+    def _status_branch(self, branch: t.Optional[str] = None) -> None:
         """Evaluate the status of single branch by comparing it to the remote branch.
 
         auto-answers used in this function: create_remote_branch, push, merge, forget_locally
