@@ -13,15 +13,14 @@ import types
 import typing as t
 import unittest
 
-__version__ = '2023.02.15'
+__version__ = '2023.02.28'
 
 _LOG = logging.getLogger(__name__)
 
 
-def expand_args_by_globbing_items(
-        *args: str, cwd: t.Optional[pathlib.Path] = None) -> t.Tuple[str, ...]:
-    if cwd is None:
-        cwd = pathlib.Path.cwd()
+def expand_args_by_globbing_items(*args: str) -> t.Tuple[str, ...]:
+    """Expand a list of glob expressions."""
+    cwd = pathlib.Path.cwd()
     expanded_args = []
     for arg in args:
         if '*' not in arg:
