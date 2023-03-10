@@ -35,7 +35,7 @@ def prepare_parser():
         description='''Tool for managing a large collection of repositories in git. If you have
         100 git-versioned projects, keeping tabs on everything can be quite troublesome.''',
         epilog=make_copyright_notice(
-            2015, 2022, license_name='GNU General Public License v3 or later (GPLv3+)',
+            2015, 2023, license_name='GNU General Public License v3 or later (GPLv3+)',
             url='https://github.com/mbdevpl/ingit'),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter, allow_abbrev=True)
     add_version_option(parser)
