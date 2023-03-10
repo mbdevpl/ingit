@@ -147,19 +147,24 @@ class Runtime:
             'gc': 'collect_garbage'}.get(command, command)
         for project in self.filtered_projects:
             implementation = getattr(project, command)
-            implementation(**command_options)
+            try:
+                implementation(**command_options)
+            except RuntimeError:
+                _LOG.exception('failed to execute command "%s" for project %s', command, project)
 
-    def execute_command(self, cmd: str, timeout: int = None):
+    def execute_command(self, cmd: str, timeout: t.Optional[int] = None):
         """Execute a command in each of the projects (after filtering was applied)."""
         for project in self.filtered_projects:
             if not project.path.is_dir():
                 continue
             try:
-                result = subprocess.run(cmd, timeout=timeout, shell=True, cwd=project.path)
-                if result.returncode != 0:
-                    _LOG.error('command "%s" failed in %s: %s', cmd, project, result)
+                subprocess.run(cmd, check=True, timeout=timeout, shell=True, cwd=project.path)
             except subprocess.TimeoutExpired:
                 _LOG.error('command "%s" in %s was aborted because it took too much time')
+            except subprocess.CalledProcessError as err:
+                _LOG.error(
+                    'command "%s" failed in %s:\nstderr: %s\nstdout: %s',
+                    cmd, project, err.stderr, err.stdout)
 
     def repositories_summary(self):
         """Summarize registered repositories."""

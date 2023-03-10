@@ -69,7 +69,11 @@ class Project:
 
     def link_repo(self):
         assert self.repo is None, self.repo
-        self.repo = RepoData(git.Repo(normalize_path(str(self.path))))
+        try:
+            git_repo = git.Repo(normalize_path(str(self.path)))
+        except git.InvalidGitRepositoryError as err:
+            raise RuntimeError(f'failed to link repo for path "{self.path}"') from err
+        self.repo = RepoData(git_repo)
 
     def clone(self) -> None:
         """Execute "git clone --recursive --origin <remote-name> <remote-url> <path>".
@@ -395,6 +399,9 @@ class Project:
         """
         if not self.is_existing:
             OUT.info('skipping non-existing "%s"...', self.path)
+            return
+        if not self.is_initialised and not any(self.path.iterdir()):
+            OUT.critical('!! directory "%s" exists but is empty', self.path)
             return
         if self.repo is None:
             self.link_repo()
