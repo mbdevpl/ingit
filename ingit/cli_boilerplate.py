@@ -10,9 +10,7 @@ import argcomplete
 
 from ._version import VERSION
 
-__version__ = '2022.01.03'
-
-VERBOSITY_DEFAULT = (logging.CRITICAL - logging.WARNING) // 10  # integer from 0 to 5
+__version__ = '2023.03.10'
 
 
 class ArgumentDefaultsAndRawDescriptionHelpFormatter(
@@ -22,7 +20,7 @@ class ArgumentDefaultsAndRawDescriptionHelpFormatter(
 
 def make_copyright_notice(
         year_from: int, year_to: t.Optional[int] = None, author: str = 'Mateusz Bysiek',
-        license_name: str = 'Apache License 2.0', url: t.Optional[str] = None):
+        license_name: str = 'Apache License 2.0', url: t.Optional[str] = None) -> str:
     """Assemble a copyright notice like "Copyright YYYY by Author(s). License Name. http://url/"."""
     if year_to is None or year_to == year_from:
         years = str(year_from)
@@ -37,46 +35,68 @@ def add_version_option(parser: argparse.ArgumentParser):
         '--version', action='version', version=f'{parser.prog} {VERSION}, Python {sys.version}')
 
 
+_LOGGING_LEVEL_MIN = logging.CRITICAL
+_LOGGING_LEVEL_DEFAULT = logging.WARNING
+_LOGGING_LEVEL_MAX = logging.DEBUG - 10
+
+
+def verbosity_level_to_logging_level(verbosity: int) -> int:
+    """Convert internal verbosity level to logging level from logging library."""
+    return _LOGGING_LEVEL_MIN - verbosity * 10
+
+
+def logging_level_to_verbosity_level(logging_level: int) -> int:
+    """Convert logging level from logging library to internal verbosity level."""
+    return (_LOGGING_LEVEL_MIN - logging_level) // 10
+
+
+_VERBOSITY_MIN = logging_level_to_verbosity_level(_LOGGING_LEVEL_MIN)
+_VERBOSITY_DEFAULT = logging_level_to_verbosity_level(_LOGGING_LEVEL_DEFAULT)
+_VERBOSITY_MAX = logging_level_to_verbosity_level(_LOGGING_LEVEL_MAX)
+
+_VERBOSE_MAX_COUNT = _VERBOSITY_MAX - _VERBOSITY_DEFAULT
+_QUIET_MAX_COUNT = _VERBOSITY_DEFAULT - _VERBOSITY_MIN
+
+
 def add_verbosity_group(parser: argparse.ArgumentParser) -> 'argparse._MutuallyExclusiveGroup':
     """Add parser option group for controlling application verbosity."""
     verbosity_group = parser.add_mutually_exclusive_group(required=False)
     verbosity_group.add_argument(
         '--verbose', '-v', action='count',
-        help='be more verbose than by default (repeat up to 2 times for stronger effect)')
+        help=f'''be more verbose than by default (repeat up to {_VERBOSE_MAX_COUNT} times
+        for stronger effect)''')
     verbosity_group.add_argument(
         '--quiet', '-q', action='count',
-        help='be more quiet than by default (repeat up to 3 times for stronger effect)')
-    verbosity_group.add_argument(
-        '--verbosity', metavar='LEVEL', type=int, default=VERBOSITY_DEFAULT,
-        help=f'set verbosity level explicitly (normally from {0} to {5})') \
-        .completer = argcomplete.completers.ChoicesCompleter(choices=list(range(0, 5 + 1, 1)))
+        help=f'''be more quiet than by default (repeat up to {_QUIET_MAX_COUNT} times
+        for stronger effect)''')
+    verbosity_arg = verbosity_group.add_argument(
+        '--verbosity', metavar='LEVEL', type=int, default=_VERBOSITY_DEFAULT,
+        help=f'set verbosity level explicitly (normally from {_VERBOSITY_MIN} to {_VERBOSITY_MAX})')
+    verbosity_arg.completer = argcomplete.completers.ChoicesCompleter(  # type: ignore
+        choices=list(range(_VERBOSITY_MIN, _VERBOSITY_MAX)))
     return verbosity_group
 
 
-def __(parser):
-    parser.add_argument(
-        '--quiet', '-q', action='store_true', default=False, required=False,
-        help='''do not output anything but critical errors; overrides "--verbose" and "--debug"
-        if present; sets logging level to CRITICAL''')
-
-    parser.add_argument(
-        '--verbose', '-v', action='store_true', default=False, required=False,
-        help='''output non-critical information; sets logging level to INFO''')
-
-    parser.add_argument(
-        '--debug', action='store_true', default=False, required=False,
-        help='''output information at debugging level; overrides "--verbose" if present; sets
-        logging level to DEBUG''')
-
-
 def get_verbosity_level(parsed_args: argparse.Namespace) -> int:
-    """Use to get verbosity level after using add_verbosity_group()."""
+    """Get verbosity level from parsed arguments after using add_verbosity_group() on a parser."""
     level = parsed_args.verbosity
     if parsed_args.verbose is not None:
-        level -= parsed_args.verbose
+        if parsed_args.verbose > _VERBOSE_MAX_COUNT:
+            raise ValueError('too many repetitions of --verbose/-v')
+        level += parsed_args.verbose
     if parsed_args.quiet is not None:
-        level += parsed_args.quiet
+        if parsed_args.quiet > _QUIET_MAX_COUNT:
+            raise ValueError('too many repetitions of --quiet/-q')
+        level -= parsed_args.quiet
     return level
+
+
+def get_logging_level(parsed_args: argparse.Namespace) -> int:
+    """Get logging level equivalent to the verbosity from parsed arguments.
+
+    This function only works after using add_verbosity_group().
+    """
+    return verbosity_level_to_logging_level(get_verbosity_level(parsed_args))
 
 
 def dedent_except_first_line(text: str) -> str:

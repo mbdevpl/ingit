@@ -3,13 +3,14 @@
 import argparse
 import logging
 import pathlib
+import sys
 
 import argcomplete
 
 from .config_boilerplate import initialize_config_directory
 from .cli_boilerplate import \
     ArgumentDefaultsAndRawDescriptionHelpFormatter, make_copyright_notice, add_version_option, \
-    add_verbosity_group, get_verbosity_level, dedent_except_first_line
+    add_verbosity_group, get_logging_level, dedent_except_first_line
 from .json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
 from .runtime import Runtime
 
@@ -249,9 +250,14 @@ def main(args=None):
         parser.error(f'project filtering is not applicable to "{parsed_args.command}" command'
                      ' -- it can be used only with summary command and with git-like commands')
 
-    level = logging.CRITICAL - 10 * get_verbosity_level(parsed_args)
+    try:
+        level = get_logging_level(parsed_args)
+    except ValueError as err:
+        _LOG.debug('failed to get interface verbosity level', exc_info=True)
+        OUT.critical('%s\ningit: error: %s', parser.format_usage(), err.args[0])
+        sys.exit(1)
     OUT.setLevel(level)
-    assert level == OUT.getEffectiveLevel(), (level, OUT.getEffectiveLevel())
+    assert level in {OUT.getEffectiveLevel(), logging.NOTSET}, (level, OUT.getEffectiveLevel())
 
     OUT.info('parsed args: %s', parsed_args)
 
