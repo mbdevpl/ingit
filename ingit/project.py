@@ -88,7 +88,12 @@ class Project:
             OUT.info('repo %s already initialised', self.path)
             return
         if self.is_existing:
-            raise ValueError('directory already exists... please check, delete it, and try again')
+            if any(self.path.iterdir()):
+                OUT.critical(
+                    '!! folder "%s" exists, and is not empty... please check it, and try again',
+                    self.path)
+                return
+            OUT.info('folder %s exists, but is empty: continuing', self.path)
 
         remotes = list(self.remotes.items())
         if not remotes:
