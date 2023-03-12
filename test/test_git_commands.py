@@ -68,10 +68,12 @@ class Tests(unittest.TestCase):
         self.assertTrue(repo_path.joinpath('.git').is_dir())
         call_main('-r', f'^{PROJECT_NAME}$', 'clone')
 
-    def test_clone_to_nonrepo_dir(self):
+    def test_clone_to_nonempty_dir(self):
         repo_path = pathlib.Path(self.repos_path, PROJECT_NAME)
         repo_path.mkdir()
-        with self.assertRaises(ValueError):
+        repo_path.joinpath('file.txt').touch()
+        with self.assertLogs(
+                logger=logging.getLogger('ingit.interface.print'), level=logging.CRITICAL):
             call_main('-p', f'name == "{PROJECT_NAME}"', 'clone')
         self.assertTrue(repo_path.is_dir())
 

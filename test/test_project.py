@@ -34,11 +34,13 @@ class Tests(GitRepoTests):
             project.clone()
         self.assertTrue(self.repo_path.joinpath('example', '.git').is_dir())
 
-    def test_clone_existing_dir(self):
+    def test_clone_to_existing_empty_dir(self):
         project = Project('example', [], self.repo_path, {'origin': _REMOTE})
+        self.assertTrue(self.repo_path.exists())
+        self.assertFalse(self.repo_path.joinpath('.git').exists())
         with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
-            with self.assertRaises(ValueError):
-                project.clone()
+            project.clone()
+        self.assertTrue(self.repo_path.joinpath('.git').is_dir())
 
     def test_clone_initialized(self):
         self.git_init()
