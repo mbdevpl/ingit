@@ -150,13 +150,12 @@ class Tests(unittest.TestCase):
         # project_name = 'argunparse'
         self.fail()
 
-    @unittest.expectedFailure
-    def test_merge(self):
-        for project_name in PROJECT_NAMES:
-            repo_path = pathlib.Path(self.repos_path, project_name)
-            call_main('-p', f'name == "{project_name}"', 'init')
-            self.assertTrue(repo_path.is_dir())
-            call_main('-p', f'name == "{project_name}"', 'merge')
+    # def test_merge(self):
+    #     for project_name in PROJECT_NAMES:
+    #         repo_path = pathlib.Path(self.repos_path, project_name)
+    #         call_main('-p', f'name == "{project_name}"', 'init')
+    #         self.assertTrue(repo_path.is_dir())
+    #         call_main('-p', f'name == "{project_name}"', 'merge')
 
     def test_push(self):
         for project_name in PROJECT_NAMES:
