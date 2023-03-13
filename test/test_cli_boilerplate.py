@@ -3,6 +3,7 @@
 import argparse
 import contextlib
 import logging
+import os
 import pathlib
 import unittest
 
@@ -25,7 +26,7 @@ class UnitTests(unittest.TestCase):
     def test_version_option(self):
         parser = argparse.ArgumentParser('cli_boilerplate_test')
         cli_boilerplate.add_version_option(parser)
-        with pathlib.Path('/dev/null').open('w', encoding='utf-8') as devnull:
+        with pathlib.Path(os.devnull).open('w', encoding='utf-8') as devnull:
             with contextlib.redirect_stderr(devnull):
                 with self.assertRaises(SystemExit):
                     parser.parse_args(['--version'])
