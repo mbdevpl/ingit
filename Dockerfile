@@ -25,7 +25,7 @@ ARG GROUP_ID=1000
 ARG AUX_GROUP_IDS=""
 
 RUN set -Eeuxo pipefail && \
-  addgroup --gid "${GROUP_ID}" user && \
+  (addgroup --gid "${GROUP_ID}" user || echo "group ${GROUP_ID} already exists, so not adding it") && \
   adduser --disabled-password --gecos "User" --uid "${USER_ID}" --gid "${GROUP_ID}" user && \
   echo ${AUX_GROUP_IDS} | xargs -n1 echo | xargs -I% addgroup --gid % group% && \
   echo ${AUX_GROUP_IDS} | xargs -n1 echo | xargs -I% usermod --append --groups group% user
@@ -40,20 +40,18 @@ RUN set -Eeuxo pipefail && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-# prepare ingit for testing
-
 WORKDIR /home/user/ingit
 
 COPY --chown=${USER_ID}:${GROUP_ID} requirements*.txt ./
 
 RUN set -Eeuxo pipefail && \
-  pip3 install -r requirements_ci.txt
+  pip3 install --no-cache-dir -r requirements_ci.txt
+
+# prepare ingit for testing
 
 USER user
 
 WORKDIR /home/user
-
-VOLUME ["/home/user/ingit"]
 
 ENV EXAMPLE_PROJECTS_PATH="/home/user"
 
@@ -63,3 +61,5 @@ RUN set -Eeuxo pipefail && \
   git clone https://github.com/mbdevpl/typed-astunparse
 
 WORKDIR /home/user/ingit
+
+VOLUME ["/home/user/ingit"]
