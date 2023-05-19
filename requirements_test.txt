@@ -1,6 +1,6 @@
-docutils ~= 0.18
-pip >= 21.0
-Pygments ~= 2.11
-setuptools >= 60.4
+docutils ~= 0.20
+pip >= 23.0
+Pygments ~= 2.14
+setuptools >= 67.4
 wheel >= 0.37
 -r requirements.txt

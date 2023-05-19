@@ -2,9 +2,9 @@ codecov ~= 2.1
 coverage ~= 7.2
 flake518 ~= 1.2
 mypy ~= 1.3
-pydocstyle ~= 6.1
-pylint ~= 2.12
+pydocstyle ~= 6.3
+pylint ~= 2.17
 twine ~= 4.0
-types-docutils ~= 0.17
-types-setuptools ~= 57.4
+types-docutils ~= 0.20
+types-setuptools ~= 67.4
 -r requirements_test.txt
