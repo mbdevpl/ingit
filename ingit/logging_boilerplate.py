@@ -184,7 +184,7 @@ class Logging:
     @classmethod
     def _set_default_logging_levels(cls):
         logging.getLogger().setLevel(cls.level_other)
-        for package in cls.packages:
+        for package in getattr(cls, 'packages', []):
             logging.getLogger(package).setLevel(cls.level_package)
         logging.getLogger('test').setLevel(cls.level_test)
 
