@@ -4,6 +4,7 @@ import inspect
 import logging
 import os
 import pathlib
+import tempfile
 import unittest
 import unittest.mock
 
@@ -23,7 +24,7 @@ class LoggingTests(unittest.TestCase):
 
     def setUp(self):
         patcher1 = unittest.mock.patch.object(
-            logging_boilerplate, 'LOGS_PATH', pathlib.Path('/tmp'))
+            logging_boilerplate, 'LOGS_PATH', pathlib.Path(tempfile.gettempdir()))
         patcher1.start()
         self.addCleanup(patcher1.stop)
         patcher2 = unittest.mock.patch.object(logging, 'getLogger')
