@@ -1,4 +1,4 @@
-argcomplete ~= 2.0
+argcomplete ~= 3.0
 colorlog ~= 6.7
 GitPython ~= 3.1
 ordered-set ~= 4.1
