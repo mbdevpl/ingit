@@ -11,7 +11,7 @@ from ingit.logging_boilerplate import \
     logging_level_from_envvar, log_filename_basic, log_filename_daily, log_filename_precise, \
     Logging, unittest_verbosity, StreamToCall
 
-__version__ = '2022.08.15'
+__version__ = '2023.05.19'
 
 
 class LoggingTests(unittest.TestCase):
@@ -53,10 +53,6 @@ class LoggingTests(unittest.TestCase):
                     self.assertIn('console', arg['root']['handlers'], msg=mocked.call_args)
                 if enable_file:
                     self.assertIn('file', arg['root']['handlers'], msg=mocked.call_args)
-
-    def test_configure_from_json(self):
-        with self.assertRaises(NotImplementedError):
-            Logging.configure_from_json()
 
 
 class UtilityTests(unittest.TestCase):

@@ -11,16 +11,50 @@ from . import logging_boilerplate
 class Logging(logging_boilerplate.Logging):
     "" "Logging configuration." ""
 
-    directory = ''
+    packages = ['package_name']
+
+
+More advanced usage could be:
+
+"" "Logging configuration." ""
+
+import logging
+
+from . import logging_boilerplate
+
+
+class Logging(logging_boilerplate.Logging):
+    "" "Logging configuration." ""
+
+    packages = ['package_name']
+    level_package = logging.INFO
+    enable_file = True
+    directory = 'package_name'
+
 
 You can and should adjust the class fields to your needs, please take a look at the Logging class
 implementation for details.
 
-Then, add the following to your __init__.py, or somewhere else you want:
+Then, add the following to your __main__.py, or somewhere else you want:
 
 from ._logging import Logging
 
-Logging.configure()
+
+if __name__ == '__main__':
+    Logging.configure()
+    ...
+
+
+As for using the logging in your code, you can use it as usual, for example:
+
+# in a standalone script:
+_LOG = logging.getLogger(pathlib.Path(__file__).stem)
+# in a standalone script that can also be imported:
+_LOG = logging.getLogger(pathlib.Path(__file__).stem if __name__ == '__main__' else __name__)
+# in __main__.py:
+_LOG = logging.getLogger(pathlib.Path(__file__).parent.name)
+# in usual module files:
+_LOG = logging.getLogger(__name__)
 """
 
 import collections.abc
@@ -36,7 +70,7 @@ import colorlog
 
 from .config_boilerplate import normalize_path
 
-__version__ = '2022.08.15'
+__version__ = '2023.05.19'
 
 LOGS_PATHS = {
     'Linux': pathlib.Path('~', '.local', 'share'),
@@ -45,14 +79,10 @@ LOGS_PATHS = {
 
 LOGS_PATH = LOGS_PATHS[platform.system()]
 
-# _LOG.setLevel(_LOG_LEVEL)
-# _LOG.log(_LOG_LEVEL, '%s logger level set to %s', __name__, logging.getLevelName(_LOG_LEVEL))
-
-DEFAULT_LOGGING_LEVEL_GLOBAL = logging.NOTSET
+DEFAULT_LOGGING_LEVEL_GLOBAL = logging.DEBUG
 DEFAULT_LOGGING_LEVEL_PACKAGE = logging.DEBUG
 DEFAULT_LOGGING_LEVEL_TEST = logging.DEBUG
 DEFAULT_LOGGING_LEVEL_OTHER = logging.WARNING
-DEFAULT_LEVEL = logging.DEBUG
 
 LEVEL_ENVVAR_NAME = 'LOGGING_LEVEL'
 
@@ -97,12 +127,19 @@ class Logging:
     """Boilerplate to configure logging for an application."""
 
     packages: t.List[str]
+    """List of packages that are considered in-package/local/internal."""
 
     directory: str
+    """This must be set if enable_file is True."""
+
     filename: t.Optional[str] = None
+    """Choose a custom log filename, instead of an auto-generated one."""
 
     enable_console: bool = True
+    """Default True, you can disable console logging by setting this to False."""
+
     enable_file: bool = False
+    """Default False, you can enable file logging by setting this to True."""
 
     level_global: int = DEFAULT_LOGGING_LEVEL_GLOBAL
     """Global logging cut-off filter.
@@ -120,13 +157,19 @@ class Logging:
     """
 
     level_test: int = DEFAULT_LOGGING_LEVEL_TEST
-    """Logging level"""
+    """Logging level for tests.
+
+    This applies to packages with name basically starting with 'test.*'.
+    """
 
     level_other: int = DEFAULT_LOGGING_LEVEL_OTHER
+    """Logging level for all other packages.
 
-    @property
+    This applies to the root logger, so to all packages not covered by level_package and level_test.
+    """
+
     @classmethod
-    def _absolute_path(cls) -> pathlib.Path:
+    def _log_absolute_path(cls) -> pathlib.Path:
         assert cls.directory is not None
         filename = log_filename_precise(cls.directory) if cls.filename is None else cls.filename
         return normalize_path(LOGS_PATH.joinpath(cls.directory, filename))
@@ -135,8 +178,15 @@ class Logging:
     def _create_logs_folder(cls):
         assert cls.directory is not None
         logs_path = normalize_path(LOGS_PATH.joinpath(cls.directory))
-        if not logs_path.is_dir():
-            logs_path.mkdir(parents=True)
+        assert logs_path.parent.exists(), logs_path.parent
+        logs_path.mkdir(parents=False, exist_ok=True)
+
+    @classmethod
+    def _set_default_logging_levels(cls):
+        logging.getLogger().setLevel(cls.level_other)
+        for package in cls.packages:
+            logging.getLogger(package).setLevel(cls.level_package)
+        logging.getLogger('test').setLevel(cls.level_test)
 
     @classmethod
     def configure_basic(cls):
@@ -150,16 +200,13 @@ class Logging:
         elif cls.enable_file:
             cls._create_logs_folder()
             logging.basicConfig(
-                level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=DEFAULT_LEVEL),
-                filename=str(cls._absolute_path))
+                level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=cls.level_global),
+                filename=str(cls._log_absolute_path()))
         else:
             logging.basicConfig(
-                level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=DEFAULT_LEVEL))
+                level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=cls.level_global))
 
-        logging.getLogger().setLevel(cls.level_other)
-        for package in cls.packages:
-            logging.getLogger(package).setLevel(cls.level_package)
-        logging.getLogger('test').setLevel(cls.level_test)
+        cls._set_default_logging_levels()
 
     @classmethod
     def _configure_basic_console(cls):
@@ -168,7 +215,7 @@ class Logging:
         handler.setFormatter(colorlog.ColoredFormatter(LOG_FORMAT_BRIEF_COLOURED, style='{'))
 
         logging.basicConfig(
-            level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=DEFAULT_LEVEL),
+            level=logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=cls.level_global),
             handlers=[handler])
 
     @classmethod
@@ -176,11 +223,11 @@ class Logging:
         """Configure logging for an application."""
         logging_config = {
             'formatters': {
-                'brief': {
+                'console': {
                     '()': 'colorlog.ColoredFormatter',
                     'style': '{',
-                    'format': LOG_FORMAT_BRIEF_COLOURED},
-                'precise': {
+                    'format': LOG_FORMAT_PRECISE_COLOURED},
+                'file': {
                     'style': '{',
                     'format': LOG_FORMAT_PRECISE}},
             'handlers': {},
@@ -192,25 +239,23 @@ class Logging:
         if cls.enable_console:
             logging_config['handlers']['console'] = {
                 'class': 'logging.StreamHandler',
-                'formatter': 'brief',
-                'level': logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=DEFAULT_LEVEL),
+                'formatter': 'console',
+                'level': logging_level_from_envvar(LEVEL_ENVVAR_NAME, default=cls.level_global),
                 'stream': 'ext://sys.stdout'}
             logging_config['root']['handlers'].append('console')
         if cls.enable_file:
             cls._create_logs_folder()
             logging_config['handlers']['file'] = {
                 'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'precise',
+                'formatter': 'file',
                 'level': logging.NOTSET,
-                'filename': str(cls._absolute_path),
+                'filename': str(cls._log_absolute_path()),
                 'maxBytes': 1 * 1024 * 1024,
                 'backupCount': 10}
             logging_config['root']['handlers'].append('file')
         logging.config.dictConfig(logging_config)
 
-    @classmethod
-    def configure_from_json(cls):
-        raise NotImplementedError()
+        cls._set_default_logging_levels()
 
 
 def unittest_verbosity() -> t.Optional[int]:

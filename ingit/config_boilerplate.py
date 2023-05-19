@@ -14,7 +14,7 @@ import pathlib
 import platform
 import typing as t
 
-__version__ = '2022.01.03'
+__version__ = '2023.04.08'
 
 CONFIG_PATHS = {
     'Linux': pathlib.Path('~', '.config'),
@@ -27,9 +27,10 @@ PathOrStr = t.TypeVar('PathOrStr', pathlib.Path, str)
 
 
 def normalize_path(path: PathOrStr) -> PathOrStr:
+    """Normalize path variable by expanding user symbol and environment variables."""
     if isinstance(path, str):
         return os.path.expanduser(os.path.expandvars(path))
-    # assert isinstance(path, pathlib.Path), type(path)
+    assert isinstance(path, pathlib.Path), type(path)
     _ = normalize_path(str(path))
     return pathlib.Path(_)
 
