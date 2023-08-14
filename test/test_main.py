@@ -6,11 +6,11 @@ import os
 import unittest
 import unittest.mock
 
+from boilerplates.packaging_tests import run_module
 import readchar
 
 from ingit.json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, normalize_path
 from ingit.main import main
-from .test_setup import run_module
 
 _LOG = logging.getLogger(__name__)
 
