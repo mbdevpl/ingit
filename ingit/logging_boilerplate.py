@@ -70,7 +70,7 @@ import colorlog
 
 from .config_boilerplate import normalize_path
 
-__version__ = '2023.05.19'
+__version__ = '2023.05.20'
 
 LOGS_PATHS = {
     'Linux': pathlib.Path('~', '.local', 'share'),

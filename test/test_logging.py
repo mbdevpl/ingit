@@ -10,7 +10,7 @@ import unittest.mock
 
 from ingit import logging_boilerplate
 
-__version__ = '2023.05.19'
+__version__ = '2023.05.20'
 
 
 class ExampleLogging(logging_boilerplate.Logging):

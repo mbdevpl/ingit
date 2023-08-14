@@ -1,5 +1,8 @@
 [build-system]
-requires = ['boilerplates[setup] ~= 0.1', 'version-query ~= 1.2']
+requires = [
+    'boilerplates[setup] ~= 0.1',
+    'version-query ~= 1.2'
+]
 
 [tool.flake8]
 max-line-length = 100
