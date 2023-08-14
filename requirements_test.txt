@@ -1,6 +1,2 @@
-docutils ~= 0.20
-pip >= 23.0
-Pygments ~= 2.14
-setuptools >= 67.4
-wheel >= 0.37
 -r requirements.txt
+boilerplates[packaging_tests] ~= 0.1
