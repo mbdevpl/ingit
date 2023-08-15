@@ -5,8 +5,9 @@ import json.decoder
 import pathlib
 import platform
 
+from boilerplates.config import CONFIG_PATH, normalize_path
+
 from ._version import VERSION
-from .config_boilerplate import CONFIG_PATH, normalize_path
 from .runtime_interface import ask
 
 JSON_INDENT = 2

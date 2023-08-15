@@ -66,9 +66,8 @@ import pathlib
 import platform
 import typing as t
 
+from boilerplates.config import normalize_path
 import colorlog
-
-from .config_boilerplate import normalize_path
 
 __version__ = '2023.05.20'
 

@@ -6,8 +6,8 @@ import pathlib
 import sys
 
 import argcomplete
+from boilerplates.config import initialize_config_directory
 
-from .config_boilerplate import initialize_config_directory
 from .cli_boilerplate import \
     ArgumentDefaultsAndRawDescriptionHelpFormatter, make_copyright_notice, add_version_option, \
     add_verbosity_group, get_logging_level, dedent_except_first_line

@@ -1,7 +1,6 @@
 [build-system]
 requires = [
-    'boilerplates[setup] ~= 0.1',
-    'version-query ~= 1.2'
+    'boilerplates[setup] ~= 0.2'
 ]
 
 [tool.flake8]
