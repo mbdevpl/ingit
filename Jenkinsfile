@@ -53,6 +53,9 @@ pipeline {
           python3 -m coverage report --show-missing |& tee coverage.log
           echo "${PIPESTATUS[0]}" | tee coverage_status.log
         '''
+        script {
+          defaultHandlers.afterPythonBuild()
+        }
       }
     }
 
@@ -129,11 +132,6 @@ pipeline {
     fixed {
       script {
         defaultHandlers.afterBuildFixed()
-      }
-    }
-    always {
-      script {
-        defaultHandlers.afterPythonBuild()
       }
     }
   }
