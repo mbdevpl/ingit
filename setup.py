@@ -26,11 +26,12 @@ class Package(boilerplates.setup.Package):
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3 :: Only',
         'Topic :: Software Development :: Version Control',
+        'Topic :: Software Development :: Version Control :: Git',
         'Topic :: System :: Archiving :: Backup',
         'Topic :: System :: Archiving :: Mirroring',
         'Topic :: System :: Monitoring',
-        'Topic :: Utilities'
-        ]
+        'Topic :: Utilities',
+        'Typing :: Typed']
     keywords = ['tools', 'vcs', 'repository management', 'git', 'submodules']
     entry_points = {'console_scripts': ['ingit = ingit.__main__:main']}
 

@@ -1,17 +1,15 @@
 """Unit tests for git repository data gathering."""
 
 import logging
-# import unittest
 
-# import git
+import boilerplates.git_repo_tests
 
 from ingit.repo_data import RepoData
-from .test_with_git_repo import GitRepoTests
 
 _LOG = logging.getLogger(__name__)
 
 
-class Tests(GitRepoTests):
+class Tests(boilerplates.git_repo_tests.GitRepoTests):
 
     def test_empty_repo(self):
         self.git_init()

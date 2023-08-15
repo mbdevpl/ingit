@@ -2,8 +2,18 @@
 
 # PYTHON_ARGCOMPLETE_OK
 
-from ._logging import Logging
+import logging
+
+import boilerplates.logging
+
 from .main import main
+
+
+class Logging(boilerplates.logging.Logging):
+    """Logging configuration."""
+
+    packages = ['ingit']
+    level_package = logging.INFO
 
 
 if __name__ == '__main__':

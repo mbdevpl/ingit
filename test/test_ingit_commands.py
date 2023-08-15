@@ -12,7 +12,7 @@ import readchar
 from ingit.json_config import normalize_path, json_to_file, acquire_configuration
 from ingit.main import main
 
-EXAMPLE_PROJECTS_PATH = pathlib.Path(os.environ['EXAMPLE_PROJECTS_PATH'])
+EXAMPLE_PROJECTS_PATH = pathlib.Path(os.environ.get('EXAMPLE_PROJECTS_PATH', '..'))
 EXAMPLE_REPO_NAMES = ['argunparse', 'transpyle', 'typed-astunparse']
 EXAMPLE_REPO_NAME = EXAMPLE_REPO_NAMES[0]
 

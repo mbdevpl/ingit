@@ -1,2 +1,2 @@
 -r requirements.txt
-boilerplates[packaging_tests] ~= 0.2
+boilerplates[git_repo_tests,packaging_tests] ~= 0.5

@@ -7,11 +7,10 @@ import pathlib
 import unittest
 import unittest.mock
 
-# import git
+import boilerplates.git_repo_tests
 import readchar
 
 from ingit.project import Project
-from .test_with_git_repo import GitRepoTests
 
 _HERE = pathlib.Path(__file__).resolve().parent
 
@@ -20,7 +19,7 @@ _REMOTE = str(_HERE.parent.joinpath('.git'))
 _LOG = logging.getLogger(__name__)
 
 
-class Tests(GitRepoTests):
+class Tests(boilerplates.git_repo_tests.GitRepoTests):
     # pylint: disable = too-many-public-methods
 
     def test_example(self):
@@ -120,7 +119,7 @@ class Tests(GitRepoTests):
             self.repo.git.branch(f'branch_{i:02}')
             project.repo.refresh()
             with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
-                with open(os.devnull, 'a') as devnull:
+                with open(os.devnull, 'a', encoding='utf-8') as devnull:
                     with contextlib.redirect_stdout(devnull):
                         project.checkout()
         self.repo.git.branch('devel')
@@ -134,7 +133,7 @@ class Tests(GitRepoTests):
     #    pass
 
     def test_push(self):
-        separate_repo = GitRepoTests()
+        separate_repo = boilerplates.git_repo_tests.GitRepoTests()
         separate_repo.setUp()
         separate_repo.git_init()
         separate_repo.git_commit_new_file()

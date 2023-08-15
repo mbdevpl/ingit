@@ -6,11 +6,12 @@ import pathlib
 import sys
 
 import argcomplete
-from boilerplates.config import initialize_config_directory
-
-from .cli_boilerplate import \
+from boilerplates.cli import \
     ArgumentDefaultsAndRawDescriptionHelpFormatter, make_copyright_notice, add_version_option, \
     add_verbosity_group, get_logging_level, dedent_except_first_line
+from boilerplates.config import initialize_config_directory
+
+from ._version import VERSION
 from .json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
 from .runtime import Runtime
 
@@ -38,7 +39,7 @@ def prepare_parser():
             2015, 2023, license_name='GNU General Public License v3 or later (GPLv3+)',
             url='https://github.com/mbdevpl/ingit'),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter, allow_abbrev=True)
-    add_version_option(parser)
+    add_version_option(parser, VERSION)
 
     interactivity_group = parser.add_mutually_exclusive_group(required=False)
     interactivity_group.add_argument(
@@ -271,7 +272,7 @@ def main(args=None):
     else:
         predicate_code = f"lambda name, tags, path, remotes: ({parsed_args.predicate})"
         _LOG.warning('prepared predicate lambda: %s', predicate_code)
-        predicate = eval(predicate_code)
+        predicate = eval(predicate_code)  # pylint: disable=eval-used
 
     if parsed_args.regex is None:
         regex = None

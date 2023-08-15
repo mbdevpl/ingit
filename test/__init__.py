@@ -3,16 +3,13 @@
 import logging
 import os
 
-from ingit import _logging
+from ingit.__main__ import Logging
 
 
-class Logging(_logging.Logging):
+class TestsLogging(Logging):
     """Test logging configuration."""
 
     level_package = logging.DEBUG
 
 
-Logging.configure_basic()
-
-if 'EXAMPLE_PROJECTS_PATH' not in os.environ:
-    os.environ['EXAMPLE_PROJECTS_PATH'] = '..'
+TestsLogging.configure_basic()

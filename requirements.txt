@@ -1,7 +1,6 @@
 argcomplete ~= 3.0
-boilerplates[config] ~= 0.2
-colorlog ~= 6.7
+boilerplates[cli,config,logging] ~= 0.5
 GitPython ~= 3.1
 ordered-set ~= 4.1
 readchar ~= 4.0
-version-query ~= 1.2
+version-query ~= 1.5
