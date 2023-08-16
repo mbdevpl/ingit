@@ -26,7 +26,7 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
     def setUp(self):
         super().setUp()
         self.default_branch_name = git.GitConfigParser(
-            read_only=True).get_value('init', 'defaultBranch')
+            read_only=True).get_value('init', 'defaultBranch', default='master')
 
     def test_example(self):
         project = Project('example', ['tag1', 'tag2'], self.repo_path, {})
