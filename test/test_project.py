@@ -8,6 +8,7 @@ import unittest
 import unittest.mock
 
 import boilerplates.git_repo_tests
+import git
 import readchar
 
 from ingit.project import Project
@@ -21,6 +22,11 @@ _LOG = logging.getLogger(__name__)
 
 class Tests(boilerplates.git_repo_tests.GitRepoTests):
     # pylint: disable = too-many-public-methods
+
+    def setUp(self):
+        super().setUp()
+        self.default_branch_name = git.GitConfigParser(
+            read_only=True).get_value('init', 'defaultBranch')
 
     def test_example(self):
         project = Project('example', ['tag1', 'tag2'], self.repo_path, {})
@@ -138,7 +144,7 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         separate_repo.git_init()
         separate_repo.git_commit_new_file()
         separate_repo.repo.git.checkout('-b', 'devel')
-        separate_repo.repo.git.branch('-d', 'master')
+        separate_repo.repo.git.branch('-d', self.default_branch_name)
         target_url = str(separate_repo.repo_path)
 
         self.git_init()
@@ -148,18 +154,21 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         # project.push(all_branches=True)
 
         self.git_commit_new_file()
-        self.repo.git.push('target', 'master')
+        self.repo.git.push('target', self.default_branch_name)
         self.git_commit_new_file()
         project.repo.refresh()
-        self.assertEqual(project.repo.active_branch, 'master')
-        self.assertIsNone(project.repo.tracking_branches['master'])
+        self.assertEqual(project.repo.active_branch, self.default_branch_name)
+        self.assertIsNone(project.repo.tracking_branches[self.default_branch_name])
         project.push()
         # project.push(all_branches=True)
 
-        self.repo.git.branch('master', set_upstream_to='target/master')
+        self.repo.git.branch(
+            self.default_branch_name, set_upstream_to=f'target/{self.default_branch_name}')
         project.repo.refresh()
-        self.assertEqual(project.repo.active_branch, 'master')
-        self.assertTupleEqual(project.repo.tracking_branches['master'], ('target', 'master'))
+        self.assertEqual(project.repo.active_branch, self.default_branch_name)
+        self.assertTupleEqual(
+            project.repo.tracking_branches[self.default_branch_name],
+            ('target', self.default_branch_name))
         project.push()
         # project.push(all_branches=True)
 

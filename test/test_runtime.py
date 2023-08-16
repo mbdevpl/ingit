@@ -14,6 +14,9 @@ from ingit.runtime import Runtime
 
 HERE = pathlib.Path(__file__).resolve().parent
 
+TEST_RUNTIME_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'runtime_config', 'example_initial.json')
+TEST_REPOS_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'repos_config', 'example_paths.json')
+
 _LOG = logging.getLogger(__name__)
 
 
@@ -65,11 +68,8 @@ class Tests(unittest.TestCase):
             machine.get('name') for machine in runtime.runtime_config['machines']])
 
     def test_path_depends_on_machine(self):
-        runtime_config_path = pathlib.Path(HERE, 'examples', 'runtime_config',
-                                           'example_initial.json')
-        shutil.copy(str(runtime_config_path), str(self.runtime_config_path))
-        repos_config_path = pathlib.Path(HERE, 'examples', 'repos_config', 'example_paths.json')
-        shutil.copy(str(repos_config_path), str(self.repos_config_path))
+        shutil.copy(str(TEST_RUNTIME_CONFIG_PATH), str(self.runtime_config_path))
+        shutil.copy(str(TEST_REPOS_CONFIG_PATH), str(self.repos_config_path))
 
         for hostname, path in [
                 (f'example_machine{i}', pathlib.Path(f'/example_path_{i}'))
