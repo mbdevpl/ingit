@@ -1,36 +1,12 @@
 """Tests for git operation progress reporting."""
 
-import collections.abc
 import logging
 import sys
 import unittest
 
+import boilerplates.logging
+
 from ingit.action_progress import ActionProgress, _KNOWN_OPERATIONS_STRINGS as op_codes
-
-
-class StreamToLog:
-
-    """Clumsy converter that allows logging instances to be used as a file-like object.
-
-    Given a logging_function, will convert write(text) calls to logging_function(text) calls.
-    For example: StreamToLog(logging.warning) will redirect all writes to logging.warning().
-    """
-
-    def __init__(self, logging_function: collections.abc.Callable):
-        """Construct StreamToLog."""
-        assert callable(logging_function)
-
-        self.logging_function = logging_function
-
-    def write(self, message):
-        """Redirect the write to the logging function."""
-        while message.endswith('\r') or message.endswith('\n'):
-            message = message[:-1]
-        self.logging_function(message)
-
-    def flush(self):
-        """Flush can be a no-op."""
-        # pass
 
 
 class ActionProgressTests(unittest.TestCase):
@@ -142,7 +118,7 @@ class ActionProgressTests(unittest.TestCase):
 
     def test_redirect_output_not_inline(self):
         """Can ActionProgress be used in non-inline mode? """
-        log_stream = StreamToLog(logging.debug)
+        log_stream = boilerplates.logging.StreamToCall(logging.debug)
         apr = ActionProgress(inline=False, f_d=log_stream)
         self.assertIsNotNone(apr)
         for op_code in op_codes:

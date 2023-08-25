@@ -1,4 +1,4 @@
-"""Entry point of ingit package."""
+"""Entry point of the command-line interface of ingit package."""
 
 # PYTHON_ARGCOMPLETE_OK
 
@@ -17,5 +17,5 @@ class Logging(boilerplates.logging.Logging):
 
 
 if __name__ == '__main__':
-    Logging.configure_basic()
+    Logging.configure()
     main()

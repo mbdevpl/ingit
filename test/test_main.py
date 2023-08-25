@@ -1,7 +1,6 @@
 """Unit tests for ingit command-line interface."""
 
 import contextlib
-import logging
 import os
 import unittest
 import unittest.mock
@@ -11,8 +10,6 @@ import readchar
 
 from ingit.json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, normalize_path
 from ingit.main import main
-
-_LOG = logging.getLogger(__name__)
 
 
 class Tests(unittest.TestCase):

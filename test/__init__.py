@@ -1,7 +1,6 @@
-"""Initialization of tests of ingit package."""
+"""Initialization of tests for ingit package."""
 
 import logging
-import os
 
 from ingit.__main__ import Logging
 
@@ -12,4 +11,4 @@ class TestsLogging(Logging):
     level_package = logging.DEBUG
 
 
-TestsLogging.configure_basic()
+TestsLogging.configure()
