@@ -5,7 +5,7 @@ import json.decoder
 import pathlib
 import platform
 
-from boilerplates.config import CONFIG_PATH, normalize_path
+from boilerplates.config import CONFIGS_PATH, normalize_path
 
 from ._version import VERSION
 from .runtime_interface import ask
@@ -14,7 +14,7 @@ JSON_INDENT = 2
 
 JSON_ENSURE_ASCII = False
 
-CONFIG_DIRECTORY = CONFIG_PATH.joinpath('ingit')
+CONFIG_DIRECTORY = CONFIGS_PATH.joinpath('ingit')
 RUNTIME_CONFIG_PATH = CONFIG_DIRECTORY.joinpath('ingit_config.json')
 REPOS_CONFIG_PATH = CONFIG_DIRECTORY.joinpath('ingit_repos.json')
 
