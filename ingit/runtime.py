@@ -9,12 +9,13 @@ import re
 import subprocess
 import typing as t
 
+from boilerplates.config import normalize_path
 import git
 import ordered_set
 
 from .runtime_interface import ask
 from .json_config import \
-    normalize_path, json_to_file, default_machine_configuration, acquire_configuration
+    json_to_file, default_machine_configuration, acquire_configuration
 from .repo_data import RepoData
 from .project import Project
 

@@ -5,10 +5,11 @@ import os
 import unittest
 import unittest.mock
 
+from boilerplates.config import normalize_path
 from boilerplates.packaging_tests import run_module
 import readchar
 
-from ingit.json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, normalize_path
+from ingit.json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
 from ingit.main import main
 
 

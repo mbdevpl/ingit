@@ -6,9 +6,9 @@ import logging
 import pathlib
 import typing as t
 
+from boilerplates.config import normalize_path
 import git
 
-from .json_config import normalize_path
 from .repo_data import RepoData
 from .action_progress import ActionProgress
 from .runtime_interface import ask

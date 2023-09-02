@@ -7,10 +7,11 @@ import tempfile
 import unittest
 import unittest.mock
 
+from boilerplates.config import normalize_path
 import readchar
 
 from ingit.json_config import \
-    RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, normalize_path, \
+    RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, \
     default_runtime_configuration, default_repos_configuration, acquire_configuration
 
 _LOG = logging.getLogger(__name__)
