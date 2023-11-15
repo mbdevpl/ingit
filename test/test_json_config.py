@@ -11,7 +11,7 @@ from boilerplates.config import normalize_path
 import readchar
 
 from ingit.json_config import \
-    RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH, \
+    RUNTIME_CONFIG_PATH, DEFAULT_REPOS_CONFIG_PATH, \
     default_runtime_configuration, default_repos_configuration, acquire_configuration
 
 _LOG = logging.getLogger(__name__)
@@ -45,8 +45,8 @@ class Tests(unittest.TestCase):
             runtime_config_path = normalize_path(RUNTIME_CONFIG_PATH)
             runtime_config_path.unlink()
             self.assertEqual(runtime_config, default_runtime_configuration())
-            repos_config = acquire_configuration(REPOS_CONFIG_PATH, 'repos')
-            repos_config_path = normalize_path(REPOS_CONFIG_PATH)
+            repos_config = acquire_configuration(DEFAULT_REPOS_CONFIG_PATH, 'repos')
+            repos_config_path = normalize_path(DEFAULT_REPOS_CONFIG_PATH)
             repos_config_path.unlink()
             self.assertEqual(repos_config, default_repos_configuration())
 
