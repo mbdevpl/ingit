@@ -15,7 +15,7 @@ import ordered_set
 
 from .runtime_interface import ask
 from .json_config import \
-    json_to_file, default_machine_configuration, acquire_configuration
+    json_to_file, default_machine_configuration, acquire_configuration, acquire_repos_configuration
 from .repo_data import RepoData
 from .project import Project
 
@@ -45,7 +45,7 @@ class Runtime:
         self.runtime_config = acquire_configuration(self.runtime_config_path, 'runtime')
         self._machine_config = self._read_machine_config()
 
-        self.repos_config = acquire_configuration(self.repos_config_path, 'repos')
+        self.repos_config = acquire_repos_configuration(self.repos_config_path)
         self.projects = self._read_projects()
         self.filtered_projects = list(self.projects)
 
