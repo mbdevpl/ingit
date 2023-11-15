@@ -12,7 +12,7 @@ from boilerplates.cli import \
 from boilerplates.config import initialize_config_directory
 
 from ._version import VERSION
-from .json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
+from .json_config import RUNTIME_CONFIG_PATH, DEFAULT_REPOS_CONFIG_PATH
 from .runtime import Runtime
 
 _LOG = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ def prepare_parser():
         can be absolute, or relative to current woking directory''')
 
     parser.add_argument(
-        '--repos', metavar='PATH', type=str, default=str(REPOS_CONFIG_PATH),
+        '--repos', metavar='PATH', type=str, default=str(DEFAULT_REPOS_CONFIG_PATH),
         help='''path to the projects list file;
         can be absolute, or relative to current woking directory''')
 

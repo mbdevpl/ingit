@@ -14,9 +14,9 @@ JSON_INDENT = 2
 
 JSON_ENSURE_ASCII = False
 
-CONFIG_DIRECTORY = CONFIGS_PATH.joinpath('ingit')
-RUNTIME_CONFIG_PATH = CONFIG_DIRECTORY.joinpath('ingit_config.json')
-REPOS_CONFIG_PATH = CONFIG_DIRECTORY.joinpath('ingit_repos.json')
+_CONFIG_DIRECTORY = CONFIGS_PATH.joinpath('ingit')
+RUNTIME_CONFIG_PATH = _CONFIG_DIRECTORY.joinpath('ingit_config.json')
+DEFAULT_REPOS_CONFIG_PATH = _CONFIG_DIRECTORY.joinpath('ingit_repos.json')
 
 
 def json_to_str(data: dict) -> str:
