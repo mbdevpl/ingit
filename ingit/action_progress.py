@@ -38,7 +38,8 @@ def _create_operation_strings(op_code: int):
     for key, value in _KNOWN_OPERATIONS_STRINGS.items():
         if op_code & key:
             operation_strings.append(value)
-    unknown_operations = op_code & ~_KNOWN_OPERATIONS  # pylint: disable=invalid-unary-operand-type
+    unknown_operations = (
+        op_code & ~_KNOWN_OPERATIONS)  # pylint: disable = invalid-unary-operand-type
     if unknown_operations:
         operation_strings.append(
             f'unknown operation code(s): {unknown_operations} ({unknown_operations:032b})')
