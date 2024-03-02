@@ -9,7 +9,7 @@ from boilerplates.config import normalize_path
 from boilerplates.packaging_tests import run_module
 import readchar
 
-from ingit.json_config import RUNTIME_CONFIG_PATH, REPOS_CONFIG_PATH
+from ingit.json_config import RUNTIME_CONFIG_PATH, DEFAULT_REPOS_CONFIG_PATH
 from ingit.main import main
 
 
@@ -37,7 +37,7 @@ class Tests(unittest.TestCase):
     def test_create_configs(self):
         with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
             runtime_config_path = normalize_path(RUNTIME_CONFIG_PATH)
-            repos_config_path = normalize_path(REPOS_CONFIG_PATH)
+            repos_config_path = normalize_path(DEFAULT_REPOS_CONFIG_PATH)
             self.assertFalse(runtime_config_path.exists())
             self.assertFalse(repos_config_path.exists())
             main(['register'])
