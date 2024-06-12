@@ -165,7 +165,7 @@ class Project:
             OUT.warning('!! "%s" is not on any branch, fetching all remotes', self.path)
             return self.repo.remotes
         try:
-            remote_name, _ = self.repo.tracking_branches[self.repo.active_branch]
+            remote_name, *_ = self.repo.tracking_branches[self.repo.active_branch]
         except KeyError:
             _LOG.warning('branch "%s" in "%s" not configured, fetching all remotes',
                          self.repo.active_branch, self.path)
@@ -256,9 +256,10 @@ class Project:
         revisions: t.Dict[str, t.Tuple[t.Any, str]] = collections.OrderedDict()
 
         local_branches = list(self.repo.branches)
-        remote_tracking_branches = set(self.repo.tracking_branches.values())
+        remote_tracking_branches = set(
+            _[:2] for _ in self.repo.tracking_branches.values() if _ is not None)
         remote_nontracking_branches = [
-            (remote, branch) for remote, branch in self.repo.remote_branches.items()
+            (remote, branch) for remote, branch in self.repo.remote_branches.keys()
             if (remote, branch) not in remote_tracking_branches and branch not in _SPECIAL_REFS]
         local_tags = list(self.repo._repo.tags)
 
@@ -280,7 +281,7 @@ class Project:
             revisions[keys[index]] = (tag, 'tag')
             index += 1
 
-        for (remote, branch) in self.repo.remote_branches.items():
+        for (remote, branch) in self.repo.remote_branches.keys():
             if (remote, branch) in remote_tracking_branches \
                     or branch in _SPECIAL_REFS:
                 continue
@@ -344,7 +345,7 @@ class Project:
                 OUT.warning('pushing "%s" to "%s"...', self.path, remote)
                 remote_branch = None
             else:
-                remote, remote_branch = tracking_branch
+                remote, remote_branch, _ = tracking_branch
             if remote in pushed_branches_per_remote:
                 pushed_branches_per_remote[remote][local_branch] = remote_branch
             else:
@@ -467,7 +468,7 @@ class Project:
             OUT.warning('cannot diagnose branch status in "%s"'
                         ' -- current branch has no tracking branch', self.path)
             return
-        tracking_branch = '/'.join(tracking_branch_data)
+        tracking_branch = '/'.join(tracking_branch_data[:2])
         try:
             self.repo.git.rev_parse(tracking_branch)
         except:
