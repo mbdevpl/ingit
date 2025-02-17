@@ -167,7 +167,7 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         project.repo.refresh()
         self.assertEqual(project.repo.active_branch, self.default_branch_name)
         self.assertTupleEqual(
-            project.repo.tracking_branches[self.default_branch_name],
+            project.repo.tracking_branches[self.default_branch_name][:2],
             ('target', self.default_branch_name))
         project.push()
         # project.push(all_branches=True)
