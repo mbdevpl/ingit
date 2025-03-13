@@ -38,9 +38,7 @@ class RepoData:
         self._active_branch = branch_name
         if branch_name is None:
             return
-        try:
-            self._repo.active_branch.tracking_branch()
-        except AttributeError:
+        if self._repo.active_branch.tracking_branch() is None:
             _LOG.warning('current branch "%s" in %s has no tracking branch',
                          self._active_branch, self._repo)
 
@@ -86,9 +84,7 @@ class RepoData:
         if default_remote is None:
             return None
         matching_remotes = [_ for _ in self._repo.remotes if str(_) == default_remote]
-        assert len(matching_remotes) <= 1, matching_remotes
-        if not matching_remotes:
-            return None
+        assert len(matching_remotes) == 1, matching_remotes
         return matching_remotes[0]
 
     def _refresh_remotes(self) -> None:
@@ -104,11 +100,11 @@ class RepoData:
     def refresh(self) -> None:
         """Refresh repository data."""
         self.active_branch = None
-        try:
-            if self._repo.branches:
+        if self._repo.branches:
+            try:
                 self.active_branch = str(self._repo.active_branch)
-        except TypeError:
-            _LOG.warning('repository %s is not on any branch', self._repo)
+            except TypeError:
+                _LOG.warning('repository %s is not on any branch', self._repo)
 
         self.branches = collections.OrderedDict(
             [] if self._active_branch is None
