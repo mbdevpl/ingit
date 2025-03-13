@@ -262,7 +262,7 @@ class Project:
         remote_nontracking_branches = [
             (remote, branch) for remote, branch in self.repo.remote_branches.keys()
             if (remote, branch) not in remote_tracking_branches and branch not in _SPECIAL_REFS]
-        local_tags = list(self.repo._repo.tags)
+        local_tags = list(self.repo.tags)
 
         all_candidates_count: int = \
             len(local_branches) + len(remote_nontracking_branches) + len(local_tags)
@@ -278,7 +278,7 @@ class Project:
             revisions[keys[index]] = (branch, None)
             index += 1
 
-        for tag in self.repo._repo.tags:
+        for tag in self.repo.tags:
             revisions[keys[index]] = (tag, 'tag')
             index += 1
 

@@ -136,5 +136,9 @@ class RepoData:
         return f'{self._repo}:(branches={self.tracking_branches},remotes={self.remotes})'
 
     @property
+    def tags(self):
+        return self._repo.tags
+
+    @property
     def git(self):
         return self._repo.git
