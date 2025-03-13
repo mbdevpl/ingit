@@ -108,13 +108,13 @@ def acquire_repos_configuration(path: pathlib.Path):
     repos_config = acquire_configuration(path, 'repos')
     repo_lists_directory = normalize_path(path).parent.joinpath(REPO_LISTS_DIRECTORY_NAME)
     if not repo_lists_directory.is_dir():
-        _LOG.warning('repos lists directory %s does not exist', repo_lists_directory)
+        _LOG.debug('repos lists directory %s does not exist', repo_lists_directory)
         return repos_config
 
-    _LOG.warning('loading repository lists from %s', repo_lists_directory)
+    _LOG.debug('loading repository lists from %s', repo_lists_directory)
     for list_path in repo_lists_directory.iterdir():
         if list_path.suffix != '.json':
             continue
-        _LOG.warning('reading repos from %s', list_path)
+        _LOG.debug('reading repos from %s', list_path)
         repos_config['repos'] += acquire_configuration(list_path, 'repos')['repos']
     return repos_config

@@ -4,6 +4,7 @@ import contextlib
 import logging
 import os
 import pathlib
+import tempfile
 import unittest
 import unittest.mock
 
@@ -57,6 +58,17 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         with self.assertRaises(ValueError):
             project.clone()
 
+    def test_clone_nonexisting(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            nonexisting_path = pathlib.Path(temp_dir)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = pathlib.Path(temp_dir)
+            project = Project('example', [], path, {'origin': str(nonexisting_path)})
+            self.assertTrue(path.is_dir())
+            with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
+                with self.assertRaises(ValueError):
+                    project.clone()
+
     def test_clone_no(self):
         project = Project('example', [], self.repo_path.joinpath('example'), {'origin': _REMOTE})
         with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
@@ -85,6 +97,18 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
             project.init()
         self.assertFalse(self.repo_path.joinpath('example', '.git').is_dir())
+
+    def test_link_repo_invalid(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = pathlib.Path(temp_dir)
+            self.assertTrue(path.is_dir())
+            project = Project('example', [], path, {})
+            with self.assertRaises(RuntimeError):
+                project.link_repo()
+        self.assertFalse(path.exists())
+        project = Project('example', [], path, {})
+        with self.assertRaises(RuntimeError):
+            project.link_repo()
 
     # def test_fetch(self):
     #    pass
@@ -241,6 +265,32 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
             project.status()
         self.assertNotIn('origin', self.repo.git.remote(v=True))
         self.assertNotIn(_REMOTE, self.repo.git.remote(v=True))
+
+    def test_status_tracking_branch_gone(self):
+        # create 1st repo
+        self.git_init()
+        self.git_commit_new_file()
+        self.repo.git.checkout('-b', 'temporary_branch')
+        self.git_commit_new_file()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # create 2nd repo by cloning the 1st
+            path = pathlib.Path(temp_dir)
+            cloned_repo = git.Repo.clone_from(self.repo_path, path, origin='source')
+            project = Project('example', [], path, {'source': str(self.repo_path)})
+            _LOG.debug('linking repo at %s', path)
+            project.link_repo()
+            project.status()
+            # delete the branch in the 1st repo
+            self.repo.git.checkout(self.default_branch_name)
+            self.repo.git.branch('-D', 'temporary_branch')
+            # fetch the changes
+            cloned_repo.git.fetch(prune=True)
+            _LOG.debug('refreshing repo at %s', path)
+            project.repo.refresh()
+            output = cloned_repo.git.branch('-vav')
+            _LOG.debug('git branch -vav output:\n%s', output)
+            self.assertIn('[source/temporary_branch: gone]', output)
+            project.status()
 
     def test_status_bad_remote(self):
         self.git_init()

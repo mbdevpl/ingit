@@ -27,7 +27,7 @@ _KNOWN_OPERATIONS_STRINGS = {
 _KNOWN_OPERATIONS: int = functools.reduce(operator.or_, _KNOWN_OPERATIONS_STRINGS.keys())
 _KNOWN_OPERATIONS_PHASES = git.remote.RemoteProgress.BEGIN | git.remote.RemoteProgress.END
 
-_CARET_UP = '\033[1A'  # TODO: works only in bash, but what about cmd?
+_CARET_UP = '\033[1A'
 
 _LOG = logging.getLogger(__name__)
 

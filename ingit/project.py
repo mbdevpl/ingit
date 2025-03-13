@@ -26,6 +26,23 @@ def normalize_url(url: str):
     return normalize_path(url)
 
 
+def _print_log(
+        ref_log, printed_header: str = '', head_count: int = 2, tail_count: int = 2) -> None:
+    """Print log of commits occupying limited amount of space."""
+    if printed_header:
+        OUT.critical(printed_header)
+    if len(ref_log) > head_count + tail_count + 1:
+        for line in ref_log[:head_count]:
+            OUT.critical(line)
+        OUT.critical(
+            '... skipped %i commits', len(ref_log) - head_count - tail_count)
+        for line in ref_log[-tail_count:]:
+            OUT.critical(line)
+    else:
+        for line in ref_log:
+            OUT.critical(line)
+
+
 class Project:
     """Single project."""
 
@@ -72,7 +89,7 @@ class Project:
         assert self.repo is None, self.repo
         try:
             git_repo = git.Repo(normalize_path(str(self.path)))
-        except git.InvalidGitRepositoryError as err:
+        except (git.NoSuchPathError, git.InvalidGitRepositoryError) as err:
             raise RuntimeError(f'failed to link repo for path "{self.path}"') from err
         self.repo = RepoData(git_repo)
 
@@ -254,7 +271,7 @@ class Project:
 
     def _prepare_checkout_list(self, keys: str):
         assert self.repo is not None
-        revisions: t.Dict[str, t.Tuple[t.Any, str]] = collections.OrderedDict()
+        revisions: t.Dict[str, t.Tuple[str, str | None]] = collections.OrderedDict()
 
         local_branches = list(self.repo.branches)
         remote_tracking_branches = set(
@@ -273,25 +290,7 @@ class Project:
                 f'\n- branches:{local_branches}, {remote_nontracking_branches}'
                 f'\n- tags: {local_tags}')
 
-        index = 0
-        for branch in self.repo.branches:
-            revisions[keys[index]] = (branch, None)
-            index += 1
-
-        for tag in self.repo.tags:
-            revisions[keys[index]] = (tag, 'tag')
-            index += 1
-
-        for (remote, branch) in self.repo.remote_branches.keys():
-            if (remote, branch) in remote_tracking_branches \
-                    or branch in _SPECIAL_REFS:
-                continue
-            if branch in self.repo.branches:
-                to_checkout = f'{remote}/{branch}'
-            else:
-                to_checkout = branch
-            revisions[keys[index]] = (to_checkout, f'based on {remote}')
-            index += 1
+        self._prepare_checkout_list_revisions(revisions, keys, remote_tracking_branches)
 
         if self.repo.active_branch is None:
             revisions['n'] = ('---', 'keep no branch/tag')
@@ -305,6 +304,28 @@ class Project:
                     break
 
         return revisions
+
+    def _prepare_checkout_list_revisions(self, revisions, keys, remote_tracking_branches) -> None:
+        assert self.repo is not None
+        index = 0
+        for branch in self.repo.branches:
+            revisions[keys[index]] = (branch, None)
+            index += 1
+
+        for tag in self.repo.tags:
+            revisions[keys[index]] = (tag.name, 'tag')
+            index += 1
+
+        for (remote, branch) in self.repo.remote_branches.keys():
+            if (remote, branch) in remote_tracking_branches \
+                    or branch in _SPECIAL_REFS:
+                continue
+            if branch in self.repo.branches:
+                to_checkout = f'{remote}/{branch}'
+            else:
+                to_checkout = branch
+            revisions[keys[index]] = (to_checkout, f'based on {remote}')
+            index += 1
 
     def merge(self) -> None:
         """Execute "git merge" for current branch."""
@@ -438,21 +459,6 @@ class Project:
             raise RuntimeError(f'error while getting log for "{refs}" of "{self.path}"') from err
         return git_log.splitlines()
 
-    def _print_log(self, ref_log, printed_header: str = '', head_count: int = 2,
-                   tail_count: int = 2) -> None:
-        if printed_header:
-            OUT.critical(printed_header)
-        if len(ref_log) > head_count + tail_count + 1:
-            for line in ref_log[:head_count]:
-                OUT.critical(line)
-            OUT.critical(
-                '... skipped %i commits', len(ref_log) - head_count - tail_count)
-            for line in ref_log[-tail_count:]:
-                OUT.critical(line)
-        else:
-            for line in ref_log:
-                OUT.critical(line)
-
     def _status_branch(self, branch: t.Optional[str] = None) -> None:
         """Evaluate the status of single branch by comparing it to the remote branch.
 
@@ -472,21 +478,23 @@ class Project:
         tracking_branch = '/'.join(tracking_branch_data[:2])
         try:
             self.repo.git.rev_parse(tracking_branch)
-        except:
+        except git.GitCommandError:
             OUT.warning(
                 'cannot diagnose branch status in "%s"'
                 ' -- tracking branch of the current branch does not exist', self.path)
             return
         not_pushed_log = self._get_log(tracking_branch, branch)
         if not_pushed_log:
-            self._print_log(not_pushed_log, f'!! not pushed commits from "{branch}"'
-                            f' to "{tracking_branch}" in "{self.path}":')
+            _print_log(
+                not_pushed_log,
+                f'!! not pushed commits from "{branch}" to "{tracking_branch}" in "{self.path}":')
             # self.push_single_remote(
             #    tracking_branch_data[0], ['{0}:{0}'.for.mat(branch, tracking_branch_data[1])])
         not_merged_log = self._get_log(branch, tracking_branch)
         if not_merged_log:
-            self._print_log(not_merged_log, f'!! not merged commits from "{tracking_branch}"'
-                            f' to "{branch}" in "{self.path}":')
+            _print_log(
+                not_merged_log,
+                f'!! not merged commits from "{tracking_branch}" to "{branch}" in "{self.path}":')
             # answer = self.interface.get_answer('merge')
             # if answer in ['y', 'm']:
             #     self.merge_single_branch(remote, branch)
@@ -514,28 +522,8 @@ class Project:
         OUT.critical('!! repo "%s" has different remotes than it should', self.path)
 
         for name, url in extra_remotes.items():
-            if url in missing_remotes.values():
-                OUT.critical('!! renamed remote: "%s"', name)
-                new_name = [k for k, v in missing_remotes.items() if url == v][0]
-                ans = ask(f'Rename remote from "{name}" to "{new_name}"?')
-                if ans == 'y':
-                    self.repo.git.remote('rename', name, new_name)
-                    del missing_remotes[new_name]
-            elif name in missing_remotes.keys():
-                OUT.critical('!! url changed for remote: "%s"', name)
-                ans = ask(f'Change URL of remote "{name}" from "{url}"'
-                          f' to "{remotes_in_config[name]}"?')
-                if ans == 'y':
-                    self.repo.git.remote('set-url', name, remotes_in_config[name])
-                    del missing_remotes[name]
-            else:
-                OUT.critical('!! extra remote: "%s"', name)
-                if name not in extra_remote_names:
-                    OUT.critical('!! misconfigured remote: "%s"', name)
-                    continue
-                ans = ask(f'Remove remote "{name}" with url "{remotes[name]}"?')
-                if ans == 'y':
-                    self.repo.git.remote('remove', name)
+            self._status_handle_extra_remote(
+                name, url, extra_remote_names, remotes_in_config, remotes, missing_remotes)
 
         for name, url in missing_remotes.items():
             OUT.critical('!! missing remote: "%s"', name)
@@ -545,6 +533,38 @@ class Project:
             ans = ask(f'Add remote "{name}" with url "{self.remotes[name]}"?')
             if ans == 'y':
                 self.repo.git.remote('add', name, self.remotes[name])
+
+    def _status_handle_extra_remote(
+            # pylint: disable = too-many-arguments, too-many-positional-arguments
+            self, name: str, url: str, extra_remote_names, remotes_in_config, remotes,
+            missing_remotes) -> None:
+        assert self.repo is not None
+        if url in missing_remotes.values():
+            OUT.critical('!! renamed remote: "%s"', name)
+            new_name = [k for k, v in missing_remotes.items() if url == v][0]
+            ans = ask(f'Rename remote from "{name}" to "{new_name}"?')
+            if ans != 'y':
+                return
+            self.repo.git.remote('rename', name, new_name)
+            del missing_remotes[new_name]
+            return
+        if name in missing_remotes.keys():
+            OUT.critical('!! url changed for remote: "%s"', name)
+            ans = ask(f'Change URL of remote "{name}" from "{url}" to "{remotes_in_config[name]}"?')
+            if ans != 'y':
+                return
+            self.repo.git.remote('set-url', name, remotes_in_config[name])
+            del missing_remotes[name]
+            return
+
+        OUT.critical('!! extra remote: "%s"', name)
+        if name not in extra_remote_names:
+            OUT.critical('!! misconfigured remote: "%s"', name)
+            return
+        ans = ask(f'Remove remote "{name}" with url "{remotes[name]}"?')
+        if ans != 'y':
+            return
+        self.repo.git.remote('remove', name)
 
     def __str__(self):
         fields = [f'path="{self.path}"']

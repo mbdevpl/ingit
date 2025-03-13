@@ -31,7 +31,7 @@ def regex_predicate(regex: str, name, tags, path, remotes):
         or any(re.search(regex, name) for name, url in remotes.items()))
 
 
-class Runtime:
+class Runtime:  # pylint: disable = too-many-instance-attributes
     """The ingit runtime."""
 
     def __init__(self, runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
@@ -195,8 +195,6 @@ class Runtime:
 
     def _unregistered_folders_summary(self):
         assert self.repos_path is not None
-        non_repo_paths_in_root = ordered_set.OrderedSet()
-        unregistered_in_root = ordered_set.OrderedSet()
 
         project_paths_in_root = ordered_set.OrderedSet()
         for project in self.projects:
@@ -205,19 +203,8 @@ class Runtime:
             except ValueError:
                 pass
 
-        for path in self.repos_path.iterdir():
-            if not path.is_dir():
-                continue
-            try:
-                _ = git.Repo(str(path))
-            except git.InvalidGitRepositoryError:
-                # TODO: recurse into non-git dir here
-                non_repo_paths_in_root.add(path)
-                continue
-            relative_path = path.relative_to(self.repos_path)
-            if relative_path in project_paths_in_root:
-                continue
-            unregistered_in_root.add(path)
+        unregistered_in_root, non_repo_paths_in_root = \
+            self._find_unregistered_folders_in_root(project_paths_in_root)
 
         if unregistered_in_root:
             print(f'There are {len(unregistered_in_root)} unregistered git repositories'
@@ -230,6 +217,25 @@ class Runtime:
                   f' in configured repositories root "{self.repos_path}".')
             for path in non_repo_paths_in_root:
                 print(path)
+
+    def _find_unregistered_folders_in_root(self, project_paths_in_root: ordered_set.OrderedSet):
+        assert self.repos_path is not None
+
+        unregistered: ordered_set.OrderedSet[pathlib.Path] = ordered_set.OrderedSet()
+        non_repo_paths: ordered_set.OrderedSet[pathlib.Path] = ordered_set.OrderedSet()
+        for path in self.repos_path.iterdir():
+            if not path.is_dir():
+                continue
+            try:
+                _ = git.Repo(str(path))
+            except git.InvalidGitRepositoryError:
+                non_repo_paths.add(path)
+                continue
+            relative_path = path.relative_to(self.repos_path)
+            if relative_path in project_paths_in_root:
+                continue
+            unregistered.add(path)
+        return unregistered, non_repo_paths
 
     def register_machine(self, name: str) -> dict:
         """Add machine to ingit runtime configuration."""
@@ -256,35 +262,8 @@ class Runtime:
         repo_data.refresh()
         _LOG.debug('registering repository: %s', repo_data)
         repo_config = repo_data.generate_repo_configuration()
-        try:
-            absolute_repo_path = pathlib.Path(repo_config['path']).resolve()
-        except ValueError:
-            _LOG.info('cannot resolve repo path %s', repo_config['path'])
-        else:
-            if self.repos_path is None:
-                _LOG.warning('repos path is not configured - registering absolute repo path "%s"',
-                             absolute_repo_path)
-                repo_config['path'] = str(absolute_repo_path)
-            else:
-                try:
-                    repo_path = absolute_repo_path.relative_to(self.repos_path)
-                except ValueError:
-                    _LOG.warning(
-                        'resolved repo path "%s" is not within configured repos path "%s"'
-                        ' - registering absolute path', absolute_repo_path, self.repos_path)
-                    repo_config['path'] = str(absolute_repo_path)
-                else:
-                    if str(repo_path) == repo_config['name']:
-                        del repo_config['path']
-                        _LOG.warning('resolved repo path "%s" is within configured repos path "%s"'
-                                     ' and resolves to the repository name "%s"'
-                                     ' - registering without redundant path data',
-                                     absolute_repo_path, self.repos_path, repo_path)
-                    else:
-                        repo_config['path'] = str(repo_path)
-                        _LOG.warning('resolved repo path "%s" is within configured repos path "%s"'
-                                     '- registering relative path "%s"', absolute_repo_path,
-                                     self.repos_path, repo_path)
+
+        self._postprocess_configured_repo_path(repo_config)
 
         if tags is not None:
             repo_config['tags'] += tags
@@ -302,3 +281,39 @@ class Runtime:
             index = len(self.projects)
         self.repos_config['repos'].insert(index, repo_config)
         json_to_file(self.repos_config, self.repos_config_path)
+
+    def _postprocess_configured_repo_path(self, repo_config) -> None:
+        try:
+            absolute_repo_path = pathlib.Path(repo_config['path']).resolve()
+        except ValueError:
+            _LOG.info('cannot resolve repo path %s', repo_config['path'])
+            return
+
+        if self.repos_path is None:
+            _LOG.warning(
+                'repos path is not configured - registering absolute repo path "%s"',
+                absolute_repo_path)
+            repo_config['path'] = str(absolute_repo_path)
+            return
+
+        try:
+            repo_path = absolute_repo_path.relative_to(self.repos_path)
+        except ValueError:
+            _LOG.warning(
+                'resolved repo path "%s" is not within configured repos path "%s"'
+                ' - registering absolute path', absolute_repo_path, self.repos_path)
+            repo_config['path'] = str(absolute_repo_path)
+            return
+
+        if str(repo_path) == repo_config['name']:
+            del repo_config['path']
+            _LOG.warning(
+                'resolved repo path "%s" is within configured repos path "%s" and resolves'
+                ' to the repository name "%s" - registering without redundant path data',
+                absolute_repo_path, self.repos_path, repo_path)
+            return
+
+        repo_config['path'] = str(repo_path)
+        _LOG.warning(
+            'resolved repo path "%s" is within configured repos path "%s" - registering'
+            ' relative path "%s"', absolute_repo_path, self.repos_path, repo_path)
