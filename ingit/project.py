@@ -26,6 +26,23 @@ def normalize_url(url: str):
     return normalize_path(url)
 
 
+def _print_log(
+        ref_log, printed_header: str = '', head_count: int = 2, tail_count: int = 2) -> None:
+    """Print log of commits occupying limited amount of space."""
+    if printed_header:
+        OUT.critical(printed_header)
+    if len(ref_log) > head_count + tail_count + 1:
+        for line in ref_log[:head_count]:
+            OUT.critical(line)
+        OUT.critical(
+            '... skipped %i commits', len(ref_log) - head_count - tail_count)
+        for line in ref_log[-tail_count:]:
+            OUT.critical(line)
+    else:
+        for line in ref_log:
+            OUT.critical(line)
+
+
 class Project:
     """Single project."""
 
@@ -438,21 +455,6 @@ class Project:
             raise RuntimeError(f'error while getting log for "{refs}" of "{self.path}"') from err
         return git_log.splitlines()
 
-    def _print_log(self, ref_log, printed_header: str = '', head_count: int = 2,
-                   tail_count: int = 2) -> None:
-        if printed_header:
-            OUT.critical(printed_header)
-        if len(ref_log) > head_count + tail_count + 1:
-            for line in ref_log[:head_count]:
-                OUT.critical(line)
-            OUT.critical(
-                '... skipped %i commits', len(ref_log) - head_count - tail_count)
-            for line in ref_log[-tail_count:]:
-                OUT.critical(line)
-        else:
-            for line in ref_log:
-                OUT.critical(line)
-
     def _status_branch(self, branch: t.Optional[str] = None) -> None:
         """Evaluate the status of single branch by comparing it to the remote branch.
 
@@ -479,14 +481,16 @@ class Project:
             return
         not_pushed_log = self._get_log(tracking_branch, branch)
         if not_pushed_log:
-            self._print_log(not_pushed_log, f'!! not pushed commits from "{branch}"'
-                            f' to "{tracking_branch}" in "{self.path}":')
+            _print_log(
+                not_pushed_log,
+                f'!! not pushed commits from "{branch}" to "{tracking_branch}" in "{self.path}":')
             # self.push_single_remote(
             #    tracking_branch_data[0], ['{0}:{0}'.for.mat(branch, tracking_branch_data[1])])
         not_merged_log = self._get_log(branch, tracking_branch)
         if not_merged_log:
-            self._print_log(not_merged_log, f'!! not merged commits from "{tracking_branch}"'
-                            f' to "{branch}" in "{self.path}":')
+            _print_log(
+                not_merged_log,
+                f'!! not merged commits from "{tracking_branch}" to "{branch}" in "{self.path}":')
             # answer = self.interface.get_answer('merge')
             # if answer in ['y', 'm']:
             #     self.merge_single_branch(remote, branch)
