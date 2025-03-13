@@ -1,6 +1,7 @@
 """Unit tests for git repository data gathering."""
 
 import logging
+import tempfile
 
 import boilerplates.git_repo_tests
 import git
@@ -22,8 +23,10 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         repo = RepoData(self.repo)
         repo.refresh()
         self.assertDictEqual(repo.remotes, {})
+        self.assertIsNone(repo.default_remote)
         self.assertDictEqual(repo.branches, {})
-        self.assertEqual(repo.active_branch, None)
+        self.assertIsNone(repo.active_branch)
+        self.assertIsNone(repo.current_tracking_branch)
         self.assertDictEqual(repo.remote_branches, {})
         self.assertDictEqual(repo.tracking_branches, {})
 
@@ -34,8 +37,10 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         repo = RepoData(self.repo)
         repo.refresh()
         self.assertDictEqual(repo.remotes, {})
+        self.assertIsNone(repo.default_remote)
         self.assertSetEqual(set(repo.branches), {self.default_branch_name})
-        self.assertEqual(repo.active_branch, None)
+        self.assertIsNone(repo.active_branch)
+        self.assertIsNone(repo.current_tracking_branch)
         self.assertDictEqual(repo.remote_branches, {})
         self.assertSetEqual(set(repo.tracking_branches), {self.default_branch_name})
 
@@ -45,7 +50,30 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         repo = RepoData(self.repo)
         repo.refresh()
         self.assertDictEqual(repo.remotes, {})
+        self.assertIsNone(repo.default_remote)
         self.assertSetEqual(set(repo.branches), {self.default_branch_name})
         self.assertEqual(repo.active_branch, self.default_branch_name)
+        self.assertIsNone(repo.current_tracking_branch)
         self.assertDictEqual(repo.remote_branches, {})
         self.assertSetEqual(set(repo.tracking_branches), {self.default_branch_name})
+
+    def test_has_remotes(self):
+        self.git_init()
+        self.git_commit_new_file()
+        origin_name = 'my-origin'
+        with tempfile.TemporaryDirectory() as tmpdir:
+            git_repo = git.Repo.clone_from(self.repo_path, tmpdir, origin=origin_name)
+            repo = RepoData(git_repo)
+            repo.refresh()
+            self.assertGreater(len(repo.remotes), 0)
+            self.assertEqual(repo.default_remote, origin_name)
+            self.assertSetEqual(set(repo.branches), {self.default_branch_name})
+            self.assertEqual(repo.active_branch, self.default_branch_name)
+            self.assertEqual(
+                repo.current_tracking_branch, f'{origin_name}/{self.default_branch_name}')
+            self.assertGreater(len(repo.remote_branches), 0)
+            self.assertEqual(len(repo.tracking_branches), 1)
+            key, value = next(iter(repo.tracking_branches.items()))
+            self.assertEqual(key, self.default_branch_name)
+            self.assertEqual(value.remote_name, origin_name)
+            self.assertEqual(value.tracking_branch_name, self.default_branch_name)

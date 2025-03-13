@@ -272,7 +272,7 @@ def main(args=None):
     else:
         predicate_code = f"lambda name, tags, path, remotes: ({parsed_args.predicate})"
         _LOG.warning('prepared predicate lambda: %s', predicate_code)
-        predicate = eval(predicate_code)  # pylint: disable=eval-used
+        predicate = eval(predicate_code)  # pylint: disable = eval-used
 
     if parsed_args.regex is None:
         regex = None

@@ -14,10 +14,11 @@ import readchar
 
 from ingit.main import main
 
-HERE = pathlib.Path(__file__).resolve().parent
+_HERE = pathlib.Path(__file__).resolve().parent
+_EXAMPLES_FOLDER = _HERE.joinpath('examples')
 
-TEST_RUNTIME_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'runtime_config', 'example_initial.json')
-TEST_REPOS_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'repos_config', 'example_initial.json')
+TEST_RUNTIME_CONFIG_PATH = _EXAMPLES_FOLDER.joinpath('runtime_config', 'example_initial.json')
+TEST_REPOS_CONFIG_PATH = _EXAMPLES_FOLDER.joinpath('repos_config', 'example_initial.json')
 
 PROJECT_NAMES = ('argunparse', 'transpyle', 'typed-astunparse')
 PROJECT_NAME = PROJECT_NAMES[0]
@@ -37,7 +38,7 @@ class Tests(unittest.TestCase):
 
     def setUp(self):
         assert 'INGIT_TEST_REPOS_PATH' not in os.environ
-        self._tmpdir = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+        self._tmpdir = tempfile.TemporaryDirectory()  # pylint: disable = consider-using-with
         os.environ['INGIT_TEST_REPOS_PATH'] = self._tmpdir.name
         _LOG.warning('set INGIT_TEST_REPOS_PATH="%s"', self._tmpdir.name)
         self.repos_path = pathlib.Path(self._tmpdir.name)

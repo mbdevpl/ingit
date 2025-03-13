@@ -195,9 +195,9 @@ Example:
 Repositories configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It's a file that lists all registered projects and keeps their metadata.
+It's a file or multiple files that list all registered projects and keeps their metadata.
 
-It is automatically updated when ``ingit register`` is used.
+The repositories configuration is automatically updated when ``ingit register`` is used.
 
 Example:
 
@@ -280,6 +280,22 @@ The two path specifications below are equivalent:
       }
     }
 
+One can provide additional repositories in additional repositories configuration files.
+
+In order for ingit to detect them, they should be located in ``repos.d`` folder relative to the main
+repositories configuration file, and follow the same syntax.
+
+Example config structure on Linux that includes 2 additional repositories configuration files:
+
+.. code::
+
+    ~/.config/ingit/
+    .
+    ├── repos.d
+    │   ├── additional_repos_1.json
+    │   └── additional_repos_2.json
+    ├── ingit_config.json
+    └── ingit_repos.json
 
 
 Command details
@@ -473,7 +489,7 @@ Use ``--ignored`` to include ignored files in the status report, just as with
 Requirements
 ============
 
-Python version 3.9 or later.
+Python version 3.8 or later.
 
 Python libraries as specified in `<requirements.txt>`_.
 

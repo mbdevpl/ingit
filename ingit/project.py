@@ -68,6 +68,7 @@ class Project:
         return self.is_existing and self.has_git_folder_or_file
 
     def link_repo(self):
+        """Link this object with a repository existing in the filesystem."""
         assert self.repo is None, self.repo
         try:
             git_repo = git.Repo(normalize_path(str(self.path)))
@@ -105,14 +106,14 @@ class Project:
             OUT.warning('skipping %s', self.path)
             return
 
+        progress = ActionProgress()
         try:
-            progress = ActionProgress()
             self.repo = RepoData(git.Repo.clone_from(
                 normalize_url(remote_url), normalize_path(str(self.path)), recursive=True,
-                origin=remote_name, progress=progress))
-            progress.finalize()
+                origin=remote_name, progress=progress.update))
         except git.GitCommandError as err:
             raise ValueError(f'error while cloning "{remote_url}" into "{self.path}"') from err
+        progress.finalize()
 
         for remote_name, remote_url in remaning_remotes:
             self.repo.git.remote('add', remote_name, normalize_url(remote_url))
@@ -165,7 +166,7 @@ class Project:
             OUT.warning('!! "%s" is not on any branch, fetching all remotes', self.path)
             return self.repo.remotes
         try:
-            remote_name, _ = self.repo.tracking_branches[self.repo.active_branch]
+            remote_name, *_ = self.repo.tracking_branches[self.repo.active_branch]
         except KeyError:
             _LOG.warning('branch "%s" in "%s" not configured, fetching all remotes',
                          self.repo.active_branch, self.path)
@@ -179,13 +180,13 @@ class Project:
     def _fetch_remote(self, remote_name: str) -> None:
         assert self.repo is not None
         fetch_infos: t.Sequence[git.FetchInfo]
+        progress = ActionProgress()
         try:
-            progress = ActionProgress()
             fetch_infos = self.repo.remotes[remote_name].fetch(prune=True, progress=progress)
-            progress.finalize()
         except git.GitCommandError as err:
             raise ValueError(f'error while fetching remote "{remote_name}"'
                              f' ("{self.repo.remotes[remote_name].url}") in "{self.name}"') from err
+        progress.finalize()
         if not fetch_infos:
             _LOG.warning('no fetch info after fetching from remote "%s" in "%s"',
                          remote_name, self.name)
@@ -256,11 +257,12 @@ class Project:
         revisions: t.Dict[str, t.Tuple[t.Any, str]] = collections.OrderedDict()
 
         local_branches = list(self.repo.branches)
-        remote_tracking_branches = set(self.repo.tracking_branches.values())
+        remote_tracking_branches = set(
+            _[:2] for _ in self.repo.tracking_branches.values() if _ is not None)
         remote_nontracking_branches = [
-            (remote, branch) for remote, branch in self.repo.remote_branches.items()
+            (remote, branch) for remote, branch in self.repo.remote_branches.keys()
             if (remote, branch) not in remote_tracking_branches and branch not in _SPECIAL_REFS]
-        local_tags = list(self.repo._repo.tags)
+        local_tags = list(self.repo.tags)
 
         all_candidates_count: int = \
             len(local_branches) + len(remote_nontracking_branches) + len(local_tags)
@@ -276,11 +278,11 @@ class Project:
             revisions[keys[index]] = (branch, None)
             index += 1
 
-        for tag in self.repo._repo.tags:
+        for tag in self.repo.tags:
             revisions[keys[index]] = (tag, 'tag')
             index += 1
 
-        for (remote, branch) in self.repo.remote_branches.items():
+        for (remote, branch) in self.repo.remote_branches.keys():
             if (remote, branch) in remote_tracking_branches \
                     or branch in _SPECIAL_REFS:
                 continue
@@ -344,7 +346,7 @@ class Project:
                 OUT.warning('pushing "%s" to "%s"...', self.path, remote)
                 remote_branch = None
             else:
-                remote, remote_branch = tracking_branch
+                remote, remote_branch, _ = tracking_branch
             if remote in pushed_branches_per_remote:
                 pushed_branches_per_remote[remote][local_branch] = remote_branch
             else:
@@ -363,15 +365,15 @@ class Project:
                         else f'{local_branch}:{remote_branch}'
                         for local_branch, remote_branch in branch_mapping.items()]
         _LOG.warning('push refspec: %s', push_refspec)
+        progress = ActionProgress()
         try:
-            progress = ActionProgress()
             push_infos = self.repo.remotes[remote_name].push(
                 refspec=push_refspec, with_extended_output=True, progress=progress)
-            progress.finalize()
         except git.GitCommandError as err:
             raise ValueError(
                 f'error while pushing branches {branch_mapping} to remote "{remote_name}"'
                 f' ("{self.repo.remotes[remote_name].url}") in "{self.name}"') from err
+        progress.finalize()
         return push_infos
 
     def _print_push_info(self, push_info: git.PushInfo) -> None:
@@ -467,7 +469,7 @@ class Project:
             OUT.warning('cannot diagnose branch status in "%s"'
                         ' -- current branch has no tracking branch', self.path)
             return
-        tracking_branch = '/'.join(tracking_branch_data)
+        tracking_branch = '/'.join(tracking_branch_data[:2])
         try:
             self.repo.git.rev_parse(tracking_branch)
         except:
