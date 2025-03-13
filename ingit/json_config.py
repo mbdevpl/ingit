@@ -18,9 +18,9 @@ JSON_INDENT = 2
 JSON_ENSURE_ASCII = False
 
 _CONFIG_DIRECTORY = CONFIGS_PATH.joinpath('ingit')
-REPO_LISTS_DIRECTORY = _CONFIG_DIRECTORY.joinpath('repos.d')
 RUNTIME_CONFIG_PATH = _CONFIG_DIRECTORY.joinpath('ingit_config.json')
-DEFAULT_REPOS_CONFIG_PATH = _CONFIG_DIRECTORY.joinpath('ingit_repos.json')
+REPOS_CONFIG_PATH = _CONFIG_DIRECTORY.joinpath('ingit_repos.json')
+REPO_LISTS_DIRECTORY_NAME = 'repos.d'
 
 
 def json_to_str(data: dict) -> str:
@@ -105,18 +105,16 @@ def acquire_configuration(path: pathlib.Path, config_type: str):
 
 def acquire_repos_configuration(path: pathlib.Path):
     """Read (or create default) and return ingit repositories configuration."""
-    if path != DEFAULT_REPOS_CONFIG_PATH:
-        return acquire_configuration(path, 'repos')
-    incremental_config = default_repos_configuration()
-    repo_lists_directory = normalize_path(REPO_LISTS_DIRECTORY)
-    if repo_lists_directory.is_dir():
-        _LOG.warning('loading repository lists from %s', repo_lists_directory)
-        for path in repo_lists_directory.iterdir():
-            if path.suffix != '.json':
-                continue
-            _LOG.warning('reading repos from %s', path)
-            incremental_config['repos'] += file_to_json(path)['repos']
-    if normalize_path(DEFAULT_REPOS_CONFIG_PATH).exists():
-        incremental_config['repos'] += \
-            acquire_configuration(DEFAULT_REPOS_CONFIG_PATH, 'repos')['repos']
-    return incremental_config
+    repos_config = acquire_configuration(path, 'repos')
+    repo_lists_directory = normalize_path(path).parent.joinpath(REPO_LISTS_DIRECTORY_NAME)
+    if not repo_lists_directory.is_dir():
+        _LOG.warning('repos lists directory %s does not exist', repo_lists_directory)
+        return repos_config
+
+    _LOG.warning('loading repository lists from %s', repo_lists_directory)
+    for list_path in repo_lists_directory.iterdir():
+        if list_path.suffix != '.json':
+            continue
+        _LOG.warning('reading repos from %s', list_path)
+        repos_config['repos'] += acquire_configuration(list_path, 'repos')['repos']
+    return repos_config
