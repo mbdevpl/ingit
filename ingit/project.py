@@ -68,6 +68,7 @@ class Project:
         return self.is_existing and self.has_git_folder_or_file
 
     def link_repo(self):
+        """Link this object with a repository existing in the filesystem."""
         assert self.repo is None, self.repo
         try:
             git_repo = git.Repo(normalize_path(str(self.path)))
