@@ -290,6 +290,23 @@ class Project:
                 f'\n- branches:{local_branches}, {remote_nontracking_branches}'
                 f'\n- tags: {local_tags}')
 
+        self._prepare_checkout_list_revisions(revisions, keys, remote_tracking_branches)
+
+        if self.repo.active_branch is None:
+            revisions['n'] = ('---', 'keep no branch/tag')
+        else:
+            # assert revisions['1'][0] == active_branch
+            for key, (revision, comment) in revisions.items():
+                if revision == self.repo.active_branch:
+                    _ = 'no change'
+                    comment = f'{comment}, {_}' if comment else _
+                    revisions[key] = (revision, comment)
+                    break
+
+        return revisions
+
+    def _prepare_checkout_list_revisions(self, revisions, keys, remote_tracking_branches) -> None:
+        assert self.repo is not None
         index = 0
         for branch in self.repo.branches:
             revisions[keys[index]] = (branch, None)
@@ -309,19 +326,6 @@ class Project:
                 to_checkout = branch
             revisions[keys[index]] = (to_checkout, f'based on {remote}')
             index += 1
-
-        if self.repo.active_branch is None:
-            revisions['n'] = ('---', 'keep no branch/tag')
-        else:
-            # assert revisions['1'][0] == active_branch
-            for key, (revision, comment) in revisions.items():
-                if revision == self.repo.active_branch:
-                    _ = 'no change'
-                    comment = f'{comment}, {_}' if comment else _
-                    revisions[key] = (revision, comment)
-                    break
-
-        return revisions
 
     def merge(self) -> None:
         """Execute "git merge" for current branch."""
@@ -518,28 +522,8 @@ class Project:
         OUT.critical('!! repo "%s" has different remotes than it should', self.path)
 
         for name, url in extra_remotes.items():
-            if url in missing_remotes.values():
-                OUT.critical('!! renamed remote: "%s"', name)
-                new_name = [k for k, v in missing_remotes.items() if url == v][0]
-                ans = ask(f'Rename remote from "{name}" to "{new_name}"?')
-                if ans == 'y':
-                    self.repo.git.remote('rename', name, new_name)
-                    del missing_remotes[new_name]
-            elif name in missing_remotes.keys():
-                OUT.critical('!! url changed for remote: "%s"', name)
-                ans = ask(f'Change URL of remote "{name}" from "{url}"'
-                          f' to "{remotes_in_config[name]}"?')
-                if ans == 'y':
-                    self.repo.git.remote('set-url', name, remotes_in_config[name])
-                    del missing_remotes[name]
-            else:
-                OUT.critical('!! extra remote: "%s"', name)
-                if name not in extra_remote_names:
-                    OUT.critical('!! misconfigured remote: "%s"', name)
-                    continue
-                ans = ask(f'Remove remote "{name}" with url "{remotes[name]}"?')
-                if ans == 'y':
-                    self.repo.git.remote('remove', name)
+            self._status_handle_extra_remote(
+                name, url, extra_remote_names, remotes_in_config, remotes, missing_remotes)
 
         for name, url in missing_remotes.items():
             OUT.critical('!! missing remote: "%s"', name)
@@ -549,6 +533,37 @@ class Project:
             ans = ask(f'Add remote "{name}" with url "{self.remotes[name]}"?')
             if ans == 'y':
                 self.repo.git.remote('add', name, self.remotes[name])
+
+    def _status_handle_extra_remote(  # pylint: disable = too-many-arguments
+            self, name: str, url: str, extra_remote_names, remotes_in_config, remotes,
+            missing_remotes) -> None:
+        assert self.repo is not None
+        if url in missing_remotes.values():
+            OUT.critical('!! renamed remote: "%s"', name)
+            new_name = [k for k, v in missing_remotes.items() if url == v][0]
+            ans = ask(f'Rename remote from "{name}" to "{new_name}"?')
+            if ans != 'y':
+                return
+            self.repo.git.remote('rename', name, new_name)
+            del missing_remotes[new_name]
+            return
+        if name in missing_remotes.keys():
+            OUT.critical('!! url changed for remote: "%s"', name)
+            ans = ask(f'Change URL of remote "{name}" from "{url}" to "{remotes_in_config[name]}"?')
+            if ans != 'y':
+                return
+            self.repo.git.remote('set-url', name, remotes_in_config[name])
+            del missing_remotes[name]
+            return
+
+        OUT.critical('!! extra remote: "%s"', name)
+        if name not in extra_remote_names:
+            OUT.critical('!! misconfigured remote: "%s"', name)
+            return
+        ans = ask(f'Remove remote "{name}" with url "{remotes[name]}"?')
+        if ans != 'y':
+            return
+        self.repo.git.remote('remove', name)
 
     def __str__(self):
         fields = [f'path="{self.path}"']
