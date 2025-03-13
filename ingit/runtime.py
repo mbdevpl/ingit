@@ -35,7 +35,7 @@ class Runtime:
     """The ingit runtime."""
 
     def __init__(self, runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
-                 hostname: str = None, interactive: t.Optional[bool] = None):
+                 hostname: str | None = None, interactive: t.Optional[bool] = None):
         self.runtime_config_path = runtime_config_path
         self.repos_config_path = repos_config_path
         self._hostname = platform.node() if hostname is None else hostname

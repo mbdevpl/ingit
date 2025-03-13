@@ -31,8 +31,8 @@ def default_template(question, answers, default):
     return f'{question} [{"/".join(answers)}] [default={default}] '
 
 
-def ask(question: str, answers: t.Sequence[str] = None, default: t.Optional[str] = None,
-        autoanswer: t.Union[bool, str] = None,
+def ask(question: str, answers: t.Sequence[str] | None = None, default: t.Optional[str] = None,
+        autoanswer: bool | str | None = None,
         template: collections.abc.Callable = default_template) -> str:
     """Ask a question that is to be answered with a single keystroke.
 
