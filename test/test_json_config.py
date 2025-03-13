@@ -3,6 +3,7 @@
 import logging
 import os
 import pathlib
+import shutil
 import tempfile
 import unittest
 import unittest.mock
@@ -11,7 +12,7 @@ from boilerplates.config import normalize_path
 import readchar
 
 from ingit.json_config import \
-    RUNTIME_CONFIG_PATH, DEFAULT_REPOS_CONFIG_PATH, \
+    REPO_LISTS_DIRECTORY, RUNTIME_CONFIG_PATH, DEFAULT_REPOS_CONFIG_PATH, \
     default_runtime_configuration, default_repos_configuration, acquire_configuration
 
 _HERE = pathlib.Path(__file__).resolve().parent
@@ -65,3 +66,21 @@ class Tests(unittest.TestCase):
             repos_config = acquire_configuration(path, 'repos')
             path.unlink()
             self.assertEqual(repos_config, default_repos_configuration())
+
+    @unittest.skipUnless('CI' in os.environ, 'skipping test that affects user environment')
+    def test_use_repos_configs_folder(self):
+        repo_lists_path = normalize_path(REPO_LISTS_DIRECTORY)
+        self.assertFalse(repo_lists_path.exists())
+        _LOG.info('creating folder for storing repos lists: "%s"', repo_lists_path)
+        repo_lists_path.mkdir()
+        extra_repos_config_path_source = _EXAMPLES_FOLDER.joinpath(
+            'repos_config', 'repos.d', 'example_extra.json')
+        extra_repos_config_path = repo_lists_path.joinpath('example_extra.json')
+        shutil.copy(extra_repos_config_path_source, extra_repos_config_path)
+        repos_config = acquire_configuration(DEFAULT_REPOS_CONFIG_PATH, 'repos')
+        self.assertIn(repos_config, 'repos')
+        self.assertEqual(len(repos_config['repos']), 1)
+        self.assertEqual(repos_config['repos'][0]['name'], 'nonexistent')
+
+        extra_repos_config_path.unlink()
+        repo_lists_path.rmdir()

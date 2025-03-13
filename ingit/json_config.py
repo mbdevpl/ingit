@@ -18,7 +18,7 @@ JSON_INDENT = 2
 JSON_ENSURE_ASCII = False
 
 _CONFIG_DIRECTORY = CONFIGS_PATH.joinpath('ingit')
-_REPO_LISTS_DIRECTORY = _CONFIG_DIRECTORY.joinpath('repos.d')
+REPO_LISTS_DIRECTORY = _CONFIG_DIRECTORY.joinpath('repos.d')
 RUNTIME_CONFIG_PATH = _CONFIG_DIRECTORY.joinpath('ingit_config.json')
 DEFAULT_REPOS_CONFIG_PATH = _CONFIG_DIRECTORY.joinpath('ingit_repos.json')
 
@@ -105,10 +105,11 @@ def acquire_configuration(path: pathlib.Path, config_type: str):
 
 
 def acquire_repos_configuration(path: pathlib.Path):
+    """Read (or create default) and return ingit repositories configuration."""
     if path != DEFAULT_REPOS_CONFIG_PATH:
         return acquire_configuration(path, 'repos')
     incremental_config = default_repos_configuration()
-    repo_lists_directory = normalize_path(_REPO_LISTS_DIRECTORY)
+    repo_lists_directory = normalize_path(REPO_LISTS_DIRECTORY)
     if repo_lists_directory.is_dir():
         _LOG.warning('loading repository lists from %s', repo_lists_directory)
         for path in repo_lists_directory.iterdir():
