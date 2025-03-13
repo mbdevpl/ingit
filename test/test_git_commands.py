@@ -14,10 +14,11 @@ import readchar
 
 from ingit.main import main
 
-HERE = pathlib.Path(__file__).resolve().parent
+_HERE = pathlib.Path(__file__).resolve().parent
+_EXAMPLES_FOLDER = _HERE.joinpath('examples')
 
-TEST_RUNTIME_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'runtime_config', 'example_initial.json')
-TEST_REPOS_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'repos_config', 'example_initial.json')
+TEST_RUNTIME_CONFIG_PATH = _EXAMPLES_FOLDER.joinpath('runtime_config', 'example_initial.json')
+TEST_REPOS_CONFIG_PATH = _EXAMPLES_FOLDER.joinpath('repos_config', 'example_initial.json')
 
 PROJECT_NAMES = ('argunparse', 'transpyle', 'typed-astunparse')
 PROJECT_NAME = PROJECT_NAMES[0]

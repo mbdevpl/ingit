@@ -12,10 +12,11 @@ import readchar
 
 from ingit.runtime import Runtime
 
-HERE = pathlib.Path(__file__).resolve().parent
+_HERE = pathlib.Path(__file__).resolve().parent
+_EXAMPLES_FOLDER = _HERE.joinpath('examples')
 
-TEST_RUNTIME_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'runtime_config', 'example_initial.json')
-TEST_REPOS_CONFIG_PATH = pathlib.Path(HERE, 'examples', 'repos_config', 'example_paths.json')
+TEST_RUNTIME_CONFIG_PATH = _EXAMPLES_FOLDER.joinpath('runtime_config', 'example_initial.json')
+TEST_REPOS_CONFIG_PATH = _EXAMPLES_FOLDER.joinpath('repos_config', 'example_paths.json')
 
 _LOG = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ class Tests(unittest.TestCase):
 
     def test_autoadd_machine(self):
         """Test adding machine into an existing config."""
-        runtime_config_path = pathlib.Path(HERE, 'examples', 'runtime_config', 'example_names.json')
+        runtime_config_path = _EXAMPLES_FOLDER.joinpath('runtime_config', 'example_names.json')
         shutil.copy(str(runtime_config_path), str(self.runtime_config_path))
         with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
             with self.assertRaises(ValueError):

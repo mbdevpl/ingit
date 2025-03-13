@@ -14,6 +14,8 @@ from ingit.json_config import \
     RUNTIME_CONFIG_PATH, DEFAULT_REPOS_CONFIG_PATH, \
     default_runtime_configuration, default_repos_configuration, acquire_configuration
 
+_HERE = pathlib.Path(__file__).resolve().parent
+_EXAMPLES_FOLDER = _HERE.joinpath('examples')
 _LOG = logging.getLogger(__name__)
 
 
@@ -34,7 +36,7 @@ class Tests(unittest.TestCase):
             self.assertEqual(runtime_config, default_runtime_configuration())
 
     def test_bad_runtime_config(self):
-        bad_config_path = pathlib.Path('test', 'examples', 'runtime_config', 'example_bad.json')
+        bad_config_path = _EXAMPLES_FOLDER.joinpath('runtime_config', 'example_bad.json')
         with self.assertRaises(ValueError):
             acquire_configuration(bad_config_path, 'runtime')
 
