@@ -31,7 +31,7 @@ def regex_predicate(regex: str, name, tags, path, remotes):
         or any(re.search(regex, name) for name, url in remotes.items()))
 
 
-class Runtime:
+class Runtime:  # pylint: disable = too-many-instance-attributes
     """The ingit runtime."""
 
     def __init__(self, runtime_config_path: pathlib.Path, repos_config_path: pathlib.Path,
@@ -211,7 +211,6 @@ class Runtime:
             try:
                 _ = git.Repo(str(path))
             except git.InvalidGitRepositoryError:
-                # TODO: recurse into non-git dir here
                 non_repo_paths_in_root.add(path)
                 continue
             relative_path = path.relative_to(self.repos_path)

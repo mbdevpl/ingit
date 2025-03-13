@@ -67,7 +67,6 @@ def ask(question: str, answers: t.Sequence[str] | None = None, default: t.Option
     assert autoanswer is None or isinstance(autoanswer, str), type(autoanswer)
     assert autoanswer is None or autoanswer in answers, (autoanswer, answers)
     assert callable(template), type(template)
-    # TODO: put this function in some library
     print(template(question, answers, default), end='', flush=True)
     case_insensitive_answers = {_.lower() for _ in answers}
     case_insensitive = len(case_insensitive_answers) == len(answers)
