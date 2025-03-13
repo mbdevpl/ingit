@@ -254,7 +254,7 @@ class Project:
 
     def _prepare_checkout_list(self, keys: str):
         assert self.repo is not None
-        revisions: t.Dict[str, t.Tuple[t.Any, str]] = collections.OrderedDict()
+        revisions: t.Dict[str, t.Tuple[str, str | None]] = collections.OrderedDict()
 
         local_branches = list(self.repo.branches)
         remote_tracking_branches = set(
@@ -279,7 +279,7 @@ class Project:
             index += 1
 
         for tag in self.repo.tags:
-            revisions[keys[index]] = (tag, 'tag')
+            revisions[keys[index]] = (tag.name, 'tag')
             index += 1
 
         for (remote, branch) in self.repo.remote_branches.keys():
