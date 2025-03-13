@@ -40,7 +40,7 @@ jobs:
       - run: git clone https://github.com/mbdevpl/typed-astunparse ../typed-astunparse
       - run: python -m coverage run --branch --source . -m unittest -v
       - run: python -m coverage report --show-missing
-      - run: codecov
+      - run: python -m codecov --token ${{ secrets.CODECOV_TOKEN }}
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
