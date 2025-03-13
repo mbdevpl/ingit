@@ -77,15 +77,20 @@ def ask(question: str, answers: t.Sequence[str] | None = None, default: t.Option
             autoanswer = autoanswer.lower()
     answer = autoanswer
     while answer not in answers:
-        if answer is not None:
-            print(answer, end='', flush=True)
-        answer = readchar.readchar()
-        assert answer is not None
-        if case_insensitive:
-            answer = answer.lower()
-        if answer in _INTERRUPTS:
-            raise KeyboardInterrupt()
-        if answer in _NEWLINES:
-            answer = default
+        answer = _wait_for_answer(answer, case_insensitive, default)
     print(answer)
     return str(answer)
+
+
+def _wait_for_answer(answer: str | None, case_insensitive: bool, default: str) -> str:
+    if answer is not None:
+        print(answer, end='', flush=True)
+    answer = readchar.readchar()
+    assert answer is not None
+    if case_insensitive:
+        answer = answer.lower()
+    if answer in _INTERRUPTS:
+        raise KeyboardInterrupt()
+    if answer in _NEWLINES:
+        answer = default
+    return answer
