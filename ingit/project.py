@@ -472,7 +472,7 @@ class Project:
         tracking_branch = '/'.join(tracking_branch_data[:2])
         try:
             self.repo.git.rev_parse(tracking_branch)
-        except:
+        except git.GitCommandError:
             OUT.warning(
                 'cannot diagnose branch status in "%s"'
                 ' -- tracking branch of the current branch does not exist', self.path)

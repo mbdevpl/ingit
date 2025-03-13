@@ -266,6 +266,32 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         self.assertNotIn('origin', self.repo.git.remote(v=True))
         self.assertNotIn(_REMOTE, self.repo.git.remote(v=True))
 
+    def test_status_tracking_branch_gone(self):
+        # create 1st repo
+        self.git_init()
+        self.git_commit_new_file()
+        self.repo.git.checkout('-b', 'temporary_branch')
+        self.git_commit_new_file()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # create 2nd repo by cloning the 1st
+            path = pathlib.Path(temp_dir)
+            cloned_repo = git.Repo.clone_from(self.repo_path, path, origin='source')
+            project = Project('example', [], path, {'source': str(self.repo_path)})
+            _LOG.debug('linking repo at %s', path)
+            project.link_repo()
+            project.status()
+            # delete the branch in the 1st repo
+            self.repo.git.checkout(self.default_branch_name)
+            self.repo.git.branch('-D', 'temporary_branch')
+            # fetch the changes
+            cloned_repo.git.fetch(prune=True)
+            _LOG.debug('refreshing repo at %s', path)
+            project.repo.refresh()
+            output = cloned_repo.git.branch('-vav')
+            _LOG.debug('git branch -vav output:\n%s', output)
+            self.assertIn('[source/temporary_branch: gone]', output)
+            project.status()
+
     def test_status_bad_remote(self):
         self.git_init()
         self.repo.git.remote('add', 'mirror', _REMOTE)
