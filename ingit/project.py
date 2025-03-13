@@ -106,14 +106,14 @@ class Project:
             OUT.warning('skipping %s', self.path)
             return
 
+        progress = ActionProgress()
         try:
-            progress = ActionProgress()
             self.repo = RepoData(git.Repo.clone_from(
                 normalize_url(remote_url), normalize_path(str(self.path)), recursive=True,
-                origin=remote_name, progress=progress))
-            progress.finalize()
+                origin=remote_name, progress=progress.update))
         except git.GitCommandError as err:
             raise ValueError(f'error while cloning "{remote_url}" into "{self.path}"') from err
+        progress.finalize()
 
         for remote_name, remote_url in remaning_remotes:
             self.repo.git.remote('add', remote_name, normalize_url(remote_url))
@@ -180,13 +180,13 @@ class Project:
     def _fetch_remote(self, remote_name: str) -> None:
         assert self.repo is not None
         fetch_infos: t.Sequence[git.FetchInfo]
+        progress = ActionProgress()
         try:
-            progress = ActionProgress()
             fetch_infos = self.repo.remotes[remote_name].fetch(prune=True, progress=progress)
-            progress.finalize()
         except git.GitCommandError as err:
             raise ValueError(f'error while fetching remote "{remote_name}"'
                              f' ("{self.repo.remotes[remote_name].url}") in "{self.name}"') from err
+        progress.finalize()
         if not fetch_infos:
             _LOG.warning('no fetch info after fetching from remote "%s" in "%s"',
                          remote_name, self.name)
@@ -365,15 +365,15 @@ class Project:
                         else f'{local_branch}:{remote_branch}'
                         for local_branch, remote_branch in branch_mapping.items()]
         _LOG.warning('push refspec: %s', push_refspec)
+        progress = ActionProgress()
         try:
-            progress = ActionProgress()
             push_infos = self.repo.remotes[remote_name].push(
                 refspec=push_refspec, with_extended_output=True, progress=progress)
-            progress.finalize()
         except git.GitCommandError as err:
             raise ValueError(
                 f'error while pushing branches {branch_mapping} to remote "{remote_name}"'
                 f' ("{self.repo.remotes[remote_name].url}") in "{self.name}"') from err
+        progress.finalize()
         return push_infos
 
     def _print_push_info(self, push_info: git.PushInfo) -> None:
