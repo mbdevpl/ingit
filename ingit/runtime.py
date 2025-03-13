@@ -258,6 +258,9 @@ class Runtime:
         repo_config = repo_data.generate_repo_configuration()
         try:
             absolute_repo_path = pathlib.Path(repo_config['path']).resolve()
+        except ValueError:
+            _LOG.info('cannot resolve repo path %s', repo_config['path'])
+        else:
             if self.repos_path is None:
                 _LOG.warning('repos path is not configured - registering absolute repo path "%s"',
                              absolute_repo_path)
@@ -265,6 +268,12 @@ class Runtime:
             else:
                 try:
                     repo_path = absolute_repo_path.relative_to(self.repos_path)
+                except ValueError:
+                    _LOG.warning(
+                        'resolved repo path "%s" is not within configured repos path "%s"'
+                        ' - registering absolute path', absolute_repo_path, self.repos_path)
+                    repo_config['path'] = str(absolute_repo_path)
+                else:
                     if str(repo_path) == repo_config['name']:
                         del repo_config['path']
                         _LOG.warning('resolved repo path "%s" is within configured repos path "%s"'
@@ -276,13 +285,7 @@ class Runtime:
                         _LOG.warning('resolved repo path "%s" is within configured repos path "%s"'
                                      '- registering relative path "%s"', absolute_repo_path,
                                      self.repos_path, repo_path)
-                except ValueError:
-                    _LOG.warning(
-                        'resolved repo path "%s" is not within configured repos path "%s"'
-                        ' - registering absolute path', absolute_repo_path, self.repos_path)
-                    repo_config['path'] = str(absolute_repo_path)
-        except ValueError:
-            _LOG.info('cannot resolve repo path %s', repo_config['path'])
+
         if tags is not None:
             repo_config['tags'] += tags
         _LOG.warning('adding repo to configuration: %s', repo_config)
