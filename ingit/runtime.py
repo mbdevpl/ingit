@@ -195,8 +195,6 @@ class Runtime:  # pylint: disable = too-many-instance-attributes
 
     def _unregistered_folders_summary(self):
         assert self.repos_path is not None
-        non_repo_paths_in_root = ordered_set.OrderedSet()
-        unregistered_in_root = ordered_set.OrderedSet()
 
         project_paths_in_root = ordered_set.OrderedSet()
         for project in self.projects:
@@ -205,18 +203,8 @@ class Runtime:  # pylint: disable = too-many-instance-attributes
             except ValueError:
                 pass
 
-        for path in self.repos_path.iterdir():
-            if not path.is_dir():
-                continue
-            try:
-                _ = git.Repo(str(path))
-            except git.InvalidGitRepositoryError:
-                non_repo_paths_in_root.add(path)
-                continue
-            relative_path = path.relative_to(self.repos_path)
-            if relative_path in project_paths_in_root:
-                continue
-            unregistered_in_root.add(path)
+        unregistered_in_root, non_repo_paths_in_root = \
+            self._find_unregistered_folders_in_root(project_paths_in_root)
 
         if unregistered_in_root:
             print(f'There are {len(unregistered_in_root)} unregistered git repositories'
@@ -229,6 +217,25 @@ class Runtime:  # pylint: disable = too-many-instance-attributes
                   f' in configured repositories root "{self.repos_path}".')
             for path in non_repo_paths_in_root:
                 print(path)
+
+    def _find_unregistered_folders_in_root(self, project_paths_in_root: ordered_set.OrderedSet):
+        assert self.repos_path is not None
+
+        unregistered: ordered_set.OrderedSet[pathlib.Path] = ordered_set.OrderedSet()
+        non_repo_paths: ordered_set.OrderedSet[pathlib.Path] = ordered_set.OrderedSet()
+        for path in self.repos_path.iterdir():
+            if not path.is_dir():
+                continue
+            try:
+                _ = git.Repo(str(path))
+            except git.InvalidGitRepositoryError:
+                non_repo_paths.add(path)
+                continue
+            relative_path = path.relative_to(self.repos_path)
+            if relative_path in project_paths_in_root:
+                continue
+            unregistered.add(path)
+        return unregistered, non_repo_paths
 
     def register_machine(self, name: str) -> dict:
         """Add machine to ingit runtime configuration."""
