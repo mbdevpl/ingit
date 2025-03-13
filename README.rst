@@ -364,7 +364,7 @@ For example, if repository configuration is as follows:
     "name": "Spack",
     "path": "~/Software/Spack",
     "remotes": {
-      "source": "https://github.com/spack/spack.git",
+      "source": "https://github.com/spack/spack",
       "github": "git@github.com:mbdevpl/spack.git"
     },
     "tags": []
