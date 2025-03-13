@@ -534,7 +534,8 @@ class Project:
             if ans == 'y':
                 self.repo.git.remote('add', name, self.remotes[name])
 
-    def _status_handle_extra_remote(  # pylint: disable = too-many-arguments
+    def _status_handle_extra_remote(
+            # pylint: disable = too-many-arguments, too-many-positional-arguments
             self, name: str, url: str, extra_remote_names, remotes_in_config, remotes,
             missing_remotes) -> None:
         assert self.repo is not None
