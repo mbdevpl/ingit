@@ -52,9 +52,9 @@ class RepoData:
         tracking_branch = self.tracking_branches[self._active_branch]
         if tracking_branch is None:
             return None
-        return tracking_branch.tracking_branch_name
+        return f'{tracking_branch.remote_name}/{tracking_branch.tracking_branch_name}'
 
-    def _refresh_tracking_branches(self):
+    def _refresh_tracking_branches(self) -> None:
         _tracking_branches: t.Dict[str, t.Optional[TrackingBranchTuple]] = {}
         for name, ref in self.branches.items():
             _tracking_branch = ref.tracking_branch()
@@ -74,11 +74,11 @@ class RepoData:
         Default remote name would be the remote name of the tracking branch of the current branch.
         It's None if the current branch has no tracking branch, or if there's no current branch.
         """
-        if self._active_branch is None:
+        if self.current_tracking_branch is None:
             return None
+        assert self._active_branch is not None
         tracking_branch = self.tracking_branches[self._active_branch]
-        if tracking_branch is None:
-            return None
+        assert tracking_branch is not None
         return tracking_branch.remote_name
 
     def _find_default_remote_ref(self) -> t.Optional[git.Remote]:
