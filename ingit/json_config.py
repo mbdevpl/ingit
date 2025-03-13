@@ -101,7 +101,6 @@ def acquire_configuration(path: pathlib.Path, config_type: str):
         config = default_generator()
         json_to_file(config, path)
         return config
-    return file_to_json(path)
 
 
 def acquire_repos_configuration(path: pathlib.Path):
