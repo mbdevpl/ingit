@@ -72,7 +72,7 @@ class Project:
         assert self.repo is None, self.repo
         try:
             git_repo = git.Repo(normalize_path(str(self.path)))
-        except git.InvalidGitRepositoryError as err:
+        except (git.NoSuchPathError, git.InvalidGitRepositoryError) as err:
             raise RuntimeError(f'failed to link repo for path "{self.path}"') from err
         self.repo = RepoData(git_repo)
 

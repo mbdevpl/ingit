@@ -4,6 +4,7 @@ import contextlib
 import logging
 import os
 import pathlib
+import tempfile
 import unittest
 import unittest.mock
 
@@ -57,6 +58,17 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         with self.assertRaises(ValueError):
             project.clone()
 
+    def test_clone_nonexisting(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            nonexisting_path = pathlib.Path(temp_dir)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = pathlib.Path(temp_dir)
+            project = Project('example', [], path, {'origin': str(nonexisting_path)})
+            self.assertTrue(path.is_dir())
+            with unittest.mock.patch.object(readchar, 'readchar', return_value='y'):
+                with self.assertRaises(ValueError):
+                    project.clone()
+
     def test_clone_no(self):
         project = Project('example', [], self.repo_path.joinpath('example'), {'origin': _REMOTE})
         with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
@@ -85,6 +97,18 @@ class Tests(boilerplates.git_repo_tests.GitRepoTests):
         with unittest.mock.patch.object(readchar, 'readchar', return_value='n'):
             project.init()
         self.assertFalse(self.repo_path.joinpath('example', '.git').is_dir())
+
+    def test_link_repo_invalid(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = pathlib.Path(temp_dir)
+            self.assertTrue(path.is_dir())
+            project = Project('example', [], path, {})
+            with self.assertRaises(RuntimeError):
+                project.link_repo()
+        self.assertFalse(path.exists())
+        project = Project('example', [], path, {})
+        with self.assertRaises(RuntimeError):
+            project.link_repo()
 
     # def test_fetch(self):
     #    pass
