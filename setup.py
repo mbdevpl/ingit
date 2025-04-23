@@ -9,13 +9,12 @@ class Package(boilerplates.setup.Package):
     name = 'ingit'
     description = 'Tool for managing a large collection of repositories in git.'
     url = 'https://github.com/mbdevpl/ingit'
-    license_str = 'GNU General Public License v3 or later (GPLv3+)'
+    license_str = 'GPL-3.0-or-later'
     classifiers = [
         'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Natural Language :: English',
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
