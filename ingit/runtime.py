@@ -161,7 +161,9 @@ class Runtime:  # pylint: disable = too-many-instance-attributes
             try:
                 subprocess.run(cmd, check=True, timeout=timeout, shell=True, cwd=project.path)
             except subprocess.TimeoutExpired:
-                _LOG.error('command "%s" in %s was aborted because it took too much time')
+                _LOG.error(
+                    'command "%s" in %s was aborted because it took too much time',
+                    cmd, project)
             except subprocess.CalledProcessError as err:
                 _LOG.error(
                     'command "%s" failed in %s:\nstderr: %s\nstdout: %s',
