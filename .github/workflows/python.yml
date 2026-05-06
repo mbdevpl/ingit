@@ -16,9 +16,6 @@ jobs:
         exclude:
           - os: macos-latest
             python-version: '3.10'
-        include:
-          - os: macos-13
-            python-version: '3.10'
     steps:
       - uses: actions/checkout@v5
         with:
