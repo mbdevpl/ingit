@@ -1,5 +1,6 @@
 """Unit tests for ingit-only commands of ingit."""
 
+import logging
 import os
 import pathlib
 import tempfile
@@ -13,6 +14,7 @@ import readchar
 from ingit.json_config import json_to_file, acquire_configuration
 from ingit.main import main
 
+_LOG = logging.getLogger(__name__)
 EXAMPLE_PROJECTS_PATH = pathlib.Path(os.environ.get('EXAMPLE_PROJECTS_PATH', '..'))
 EXAMPLE_REPO_NAMES = ['argunparse', 'transpyle', 'typed-astunparse']
 EXAMPLE_REPO_NAME = EXAMPLE_REPO_NAMES[0]
@@ -44,6 +46,17 @@ class Tests(unittest.TestCase):
     def test_summary(self):
         for example_repo_name in EXAMPLE_REPO_NAMES:
             self.call_main('register', str(EXAMPLE_PROJECTS_PATH.joinpath(example_repo_name)))
+            self.call_main('summary')
+
+    def test_summary_directly_in_root(self):
+        _LOG.info('current projects path: %s', EXAMPLE_PROJECTS_PATH)
+        absolute_projects_path = EXAMPLE_PROJECTS_PATH.resolve()
+        _LOG.info('resolved projects path:%s', absolute_projects_path)
+        self.assertTrue(absolute_projects_path.is_absolute())
+        self.runtime_config['machines'][0]['repos_path'] = str(absolute_projects_path)
+        json_to_file(self.runtime_config, self.runtime_config_path)
+        for example_repo_name in EXAMPLE_REPO_NAMES:
+            self.call_main('register', str(absolute_projects_path.joinpath(example_repo_name)))
             self.call_main('summary')
 
     def test_summary_empty(self):
