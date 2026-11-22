@@ -2,9 +2,9 @@ name: actions
 
 on:
   push:
-  pull_request:
-    branches:
-      - $default-branch
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -30,19 +30,3 @@ jobs:
       - run: uv run -m coverage run --branch --source . -m unittest -v
       - run: uv run -m coverage report --show-missing
       - run: uv run -m codecov --token ${{ secrets.CODECOV_TOKEN }}
-  publish:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: astral-sh/setup-uv@v10.3.3
-        with:
-          python-version: '3.14'
-      - run: uv sync --only-group publish
-      - run: uv run -m build
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
