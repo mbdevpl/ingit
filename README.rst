@@ -8,7 +8,7 @@ Tool for managing a large collection of repositories in git.
     :target: https://pypi.org/project/ingit
     :alt: package version from PyPI
 
-.. image:: https://github.com/mbdevpl/ingit/actions/workflows/python.yml/badge.svg?branch=main
+.. image:: https://github.com/mbdevpl/ingit/actions/workflows/test.yml/badge.svg?branch=main
     :target: https://github.com/mbdevpl/ingit/actions
     :alt: build status from GitHub
 
