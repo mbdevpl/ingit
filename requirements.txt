@@ -1,6 +1,0 @@
-argcomplete ~= 3.0
-boilerplates[cli,config,logging] ~= 1.2
-GitPython ~= 3.1
-ordered-set ~= 4.1
-readchar ~= 4.0
-version-query ~= 1.5

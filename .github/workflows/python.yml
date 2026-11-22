@@ -20,16 +20,16 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v7
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -r requirements_ci.txt
+      - run: uv sync --group coverage
       - run: git clone https://github.com/mbdevpl/argunparse ../argunparse
       - run: git clone https://github.com/mbdevpl/transpyle ../transpyle
       - run: git clone https://github.com/mbdevpl/typed-astunparse ../typed-astunparse
-      - run: python -m coverage run --branch --source . -m unittest -v
-      - run: python -m coverage report --show-missing
-      - run: python -m codecov --token ${{ secrets.CODECOV_TOKEN }}
+      - run: uv run -m coverage run --branch --source . -m unittest -v
+      - run: uv run -m coverage report --show-missing
+      - run: uv run -m codecov --token ${{ secrets.CODECOV_TOKEN }}
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
@@ -38,11 +38,11 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v7
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: '3.14'
-      - run: pip install build~=1.2
-      - run: python -m build
+      - run: uv sync --only-group publish
+      - run: uv run -m build
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}

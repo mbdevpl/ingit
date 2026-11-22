@@ -32,8 +32,8 @@ class Package(boilerplates.setup.Package):
         'Topic :: System :: Monitoring',
         'Topic :: Utilities',
         'Typing :: Typed']
-    keywords = ['tools', 'vcs', 'repository management', 'git', 'submodules']
     entry_points = {'console_scripts': ['ingit = ingit.__main__:main']}
+    install_requires = []
 
 
 if __name__ == '__main__':
