@@ -32,7 +32,6 @@ class Package(boilerplates.setup.Package):
         'Topic :: System :: Monitoring',
         'Topic :: Utilities',
         'Typing :: Typed']
-    entry_points = {'console_scripts': ['ingit = ingit.__main__:main']}
     install_requires = []
 
 

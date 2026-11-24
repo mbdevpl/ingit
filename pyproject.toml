@@ -14,6 +14,9 @@ keywords = [
 ]
 dynamic = ['authors', 'classifiers', 'description', 'license', 'maintainers', 'readme', 'version']
 
+[project.scripts]
+ingit = 'ingit.__main__:main'
+
 [dependency-groups]
 coverage = [
     {include-group = 'test'},
