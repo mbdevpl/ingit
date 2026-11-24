@@ -1,13 +1,3 @@
-.. role:: bash(code)
-    :language: bash
-
-.. role:: json(code)
-    :language: json
-
-.. role:: python(code)
-    :language: python
-
-
 =====
 ingit
 =====
@@ -18,7 +8,7 @@ Tool for managing a large collection of repositories in git.
     :target: https://pypi.org/project/ingit
     :alt: package version from PyPI
 
-.. image:: https://github.com/mbdevpl/ingit/actions/workflows/python.yml/badge.svg?branch=main
+.. image:: https://github.com/mbdevpl/ingit/actions/workflows/test.yml/badge.svg?branch=main
     :target: https://github.com/mbdevpl/ingit/actions
     :alt: build status from GitHub
 
@@ -489,10 +479,8 @@ Use ``--ignored`` to include ignored files in the status report, just as with
 Requirements
 ============
 
-Python version 3.10 or later.
+Python version 3.11 or later.
 
-Python libraries as specified in `<requirements.txt>`_.
-
-Building and running tests additionally requires packages listed in `<requirements_test.txt>`_.
+Dependencies are listed in `<pyproject.toml>`_.
 
 Tested on Linux, macOS and Windows.

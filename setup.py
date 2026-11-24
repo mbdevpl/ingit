@@ -19,11 +19,11 @@ class Package(boilerplates.setup.Package):
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: 3.14',
+        'Programming Language :: Python :: 3.15',
         'Programming Language :: Python :: 3 :: Only',
         'Topic :: Software Development :: Version Control',
         'Topic :: Software Development :: Version Control :: Git',
@@ -32,8 +32,8 @@ class Package(boilerplates.setup.Package):
         'Topic :: System :: Monitoring',
         'Topic :: Utilities',
         'Typing :: Typed']
-    keywords = ['tools', 'vcs', 'repository management', 'git', 'submodules']
     entry_points = {'console_scripts': ['ingit = ingit.__main__:main']}
+    install_requires = []
 
 
 if __name__ == '__main__':

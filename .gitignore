@@ -21,3 +21,9 @@ __pycache__
 # Python: coverage
 /htmlcov
 /.coverage
+
+# Python: mypy
+/.mypy_cache
+
+# Python: venv
+/.venv
